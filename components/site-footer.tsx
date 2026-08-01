@@ -26,7 +26,6 @@ const services = [
   "أنظمة ذكية",
 ];
 
-/** Only the profiles that are actually configured get an icon. */
 const socials = [
   { href: siteConfig.social.facebook, label: "فيسبوك", Icon: Facebook },
   { href: siteConfig.social.instagram, label: "انستغرام", Icon: Instagram },
@@ -59,7 +58,7 @@ export function SiteFooter() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="واتساب"
-                    className="w-10 h-10 rounded-full glass-light flex items-center justify-center text-gray-300 hover:text-gold hover:border-gold/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                    className="w-10 h-10 rounded-full glass-on-dark flex items-center justify-center text-gray-300 hover:text-gold hover:border-gold/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                   >
                     <WhatsAppIcon className="w-4 h-4 fill-current" />
                   </a>
@@ -71,7 +70,7 @@ export function SiteFooter() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={label}
-                      className="w-10 h-10 rounded-full glass-light flex items-center justify-center text-gray-300 hover:text-gold hover:border-gold/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                      className="w-10 h-10 rounded-full glass-on-dark flex items-center justify-center text-gray-300 hover:text-gold hover:border-gold/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                     >
                       <Icon className="w-4 h-4" aria-hidden="true" />
                     </a>
@@ -148,7 +147,6 @@ export function SiteFooter() {
                   {siteConfig.contact.address}
                 </a>
               </li>
-              {/* Not a link — this used to be an anchor pointing at "#". */}
               <li className="flex items-start gap-3">
                 <Clock className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <span className="text-gray-400">

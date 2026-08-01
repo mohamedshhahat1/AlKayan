@@ -44,13 +44,7 @@ type SectionHeadingProps = {
   className?: string;
 };
 
-export function SectionHeading({
-  eyebrow,
-  title,
-  subtitle,
-  center = true,
-  className,
-}: SectionHeadingProps) {
+export function SectionHeading({ eyebrow, title, subtitle, center = true, className }: SectionHeadingProps) {
   return (
     <div className={cn(center ? "text-center mx-auto" : "text-right", "max-w-3xl", className)}>
       {eyebrow && (
@@ -61,13 +55,13 @@ export function SectionHeading({
         </Reveal>
       )}
       <Reveal delay={0.1}>
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight text-balance">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground leading-tight text-balance">
           {title}
         </h2>
       </Reveal>
       {subtitle && (
         <Reveal delay={0.2}>
-          <p className="mt-5 text-base sm:text-lg text-gray-300 leading-relaxed text-balance">
+          <p className="mt-5 text-base sm:text-lg text-muted-foreground leading-relaxed text-balance">
             {subtitle}
           </p>
         </Reveal>

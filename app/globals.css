@@ -14,6 +14,43 @@
     --gold-light: #e4c558;
     --gold-dark: #b8962e;
 
+    /* Light mode — clean white + navy + bright gold */
+    --background: 0 0% 100%;
+    --foreground: 213 60% 14%;
+    --card: 210 40% 98%;
+    --card-foreground: 213 60% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 213 60% 14%;
+    --primary: 43 65% 52%;
+    --primary-foreground: 213 60% 14%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 213 60% 14%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 213 15% 40%;
+    --accent: 43 65% 52%;
+    --accent-foreground: 213 60% 14%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 213 30% 20% / 0.12;
+    --input: 210 40% 96%;
+    --ring: 43 65% 52%;
+    --radius: 0.75rem;
+
+    /* Theme-aware surface variables */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(11, 31, 58, 0.1);
+    --glass-light-bg: rgba(11, 31, 58, 0.03);
+    --glass-light-border: rgba(11, 31, 58, 0.08);
+    --navy-grad-from: #ffffff;
+    --navy-grad-to: #f0f4f8;
+    --swiper-bullet-bg: rgba(11, 31, 58, 0.25);
+    --scrim-h-from: rgba(255, 255, 255, 0.95);
+    --scrim-h-mid: rgba(255, 255, 255, 0.4);
+    --line-bg: rgba(11, 31, 58, 0.06);
+  }
+
+  .dark {
+    /* Night mode — navy + gold (original theme) */
     --background: 210 50% 7%;
     --foreground: 0 0% 98%;
     --card: 213 58% 11%;
@@ -33,26 +70,32 @@
     --border: 0 0% 100% / 0.1;
     --input: 213 50% 18%;
     --ring: 43 65% 52%;
-    --radius: 0.75rem;
+
+    --glass-bg: rgba(19, 42, 77, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-light-bg: rgba(255, 255, 255, 0.05);
+    --glass-light-border: rgba(255, 255, 255, 0.1);
+    --navy-grad-from: #0b1f3a;
+    --navy-grad-to: #132a4d;
+    --swiper-bullet-bg: rgba(255, 255, 255, 0.25);
+    --scrim-h-from: rgba(11, 31, 58, 0.95);
+    --scrim-h-mid: rgba(11, 31, 58, 0.4);
+    --line-bg: rgba(255, 255, 255, 0.06);
   }
 
   * {
     @apply border-border;
   }
 
-  /* `scroll-behavior: smooth` used to live here. Lenis drives scrolling now,
-     and having both meant every anchor click was animated twice. */
   html {
     -webkit-text-size-adjust: 100%;
   }
 
   body {
-    @apply bg-navy text-foreground antialiased;
-    background-color: var(--navy);
+    @apply bg-background text-foreground antialiased;
     overflow-x: hidden;
   }
 
-  /* Anchor targets sit under a fixed header; keep the heading visible. */
   [id] {
     scroll-margin-top: 6rem;
   }
@@ -73,13 +116,21 @@
   }
 
   .glass {
-    background: rgba(19, 42, 77, 0.55);
+    background: var(--glass-bg);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--glass-border);
   }
 
   .glass-light {
+    background: var(--glass-light-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-light-border);
+  }
+
+  /* Always-dark glass for surfaces that sit on navy regardless of theme. */
+  .glass-on-dark {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -105,10 +156,9 @@
   }
 
   .navy-gradient {
-    background: linear-gradient(160deg, var(--navy) 0%, var(--navy-light) 100%);
+    background: linear-gradient(160deg, var(--navy-grad-from) 0%, var(--navy-grad-to) 100%);
   }
 
-  /* Scrim behind text that sits on top of a photograph. */
   .bg-image-scrim {
     background: linear-gradient(to top, rgba(8, 24, 48, 0.95) 0%, rgba(8, 24, 48, 0.35) 45%, transparent 100%);
   }
@@ -184,14 +234,13 @@
     text-wrap: balance;
   }
 
-  /* Swiper pagination bullets. */
   .swiper-bullet {
     display: inline-block;
     width: 8px;
     height: 8px;
     margin: 0 4px;
     border-radius: 9999px;
-    background: rgba(255, 255, 255, 0.25);
+    background: var(--swiper-bullet-bg);
     cursor: pointer;
     transition: all 0.3s ease;
   }
@@ -279,10 +328,6 @@ html.lenis {
   overflow: hidden;
 }
 
-/*
- * Respect the OS-level "reduce motion" setting. The marquee, float and pulse
- * loops previously ran unconditionally.
- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

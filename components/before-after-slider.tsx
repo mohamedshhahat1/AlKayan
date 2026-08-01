@@ -15,15 +15,6 @@ function clamp(value: number) {
   return Math.max(0, Math.min(100, value));
 }
 
-/**
- * Before/after comparison slider.
- *
- * The original implementation moved the divider on any `mousemove` over the
- * container (so the image changed on hover, not on drag) and was completely
- * unusable without a mouse. This version drags from a real handle, tracks the
- * pointer outside the container once dragging starts, and exposes the handle as
- * an ARIA slider so it can be operated with the arrow keys.
- */
 export function BeforeAfterSlider({
   before,
   after,
@@ -42,7 +33,6 @@ export function BeforeAfterSlider({
     setPosition(clamp(((clientX - rect.left) / rect.width) * 100));
   }, []);
 
-  // Keep following the pointer even when it leaves the container mid-drag.
   useEffect(() => {
     if (!dragging) return;
 
@@ -140,7 +130,7 @@ export function BeforeAfterSlider({
           event.stopPropagation();
           setDragging(true);
         }}
-        className="absolute top-1/2 z-20 w-12 h-12 rounded-full gold-gradient-bg flex items-center justify-center shadow-2xl shadow-gold/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent cursor-ew-resize"
+        className="absolute top-1/2 z-20 w-12 h-12 rounded-full gold-gradient-bg flex items-center justify-center shadow-2xl shadow-gold/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-transparent cursor-ew-resize"
         style={{ left: `${position}%`, transform: "translate(-50%, -50%)", color: "#0B1F3A" }}
       >
         <span aria-hidden="true" className="text-lg font-bold">

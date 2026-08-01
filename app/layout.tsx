@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Tajawal } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { SiteHeader } from "@/components/site-header";
@@ -16,8 +17,6 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  // Required for the relative openGraph/twitter image URLs below to be
-  // resolved into absolute ones.
   metadataBase: new URL(siteConfig.url),
   title: {
     default: siteConfig.title,
@@ -56,21 +55,23 @@ export const viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" className={tajawal.variable}>
+    <html lang="ar" dir="rtl" className={tajawal.variable} suppressHydrationWarning>
       <body className={tajawal.className}>
-        {/* Side effect only — it does not render its children. */}
-        <SmoothScroll />
-        <a
-          href="#hero"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:right-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-full focus:gold-gradient-bg focus:text-navy-deep focus:font-bold"
-        >
-          تخطي إلى المحتوى
-        </a>
-        <SiteHeader />
-        <main>{children}</main>
-        <SiteFooter />
-        <WhatsAppButton />
-        <ChatWidget />
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          {/* Side effect only — it does not render its children. */}
+          <SmoothScroll />
+          <a
+            href="#hero"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:right-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-full focus:gold-gradient-bg focus:text-navy-deep focus:font-bold"
+          >
+            تخطي إلى المحتوى
+          </a>
+          <SiteHeader />
+          <main>{children}</main>
+          <SiteFooter />
+          <WhatsAppButton />
+          <ChatWidget />
+        </ThemeProvider>
       </body>
     </html>
   );

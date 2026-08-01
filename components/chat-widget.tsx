@@ -7,15 +7,6 @@ import { siteConfig } from "@/lib/site-config";
 
 type Message = { id: number; from: "bot" | "user"; text: string };
 
-/**
- * Keyword-matched automated assistant.
- *
- * This is deliberately labelled as automated: the previous version showed a
- * "متصل الآن" (agent online) indicator, which implied a human was reading the
- * messages. Anything it cannot answer is handed off to WhatsApp.
- *
- * All quoted facts come from siteConfig so they cannot drift from the FAQ.
- */
 const { warranty, timelines, hours, contact } = siteConfig;
 
 const answers: Array<{ keywords: string[]; reply: string }> = [
@@ -115,11 +106,6 @@ export function ChatWidget() {
         {open ? <X className="w-6 h-6" aria-hidden="true" /> : <MessageCircle className="w-6 h-6" aria-hidden="true" />}
       </button>
 
-      {/*
-        Rendered conditionally rather than with the `hidden` attribute. `hidden`
-        is only `display: none` from the UA stylesheet, so the `flex` class on
-        this element overrode it and the panel was always on screen.
-      */}
       {open && (
         <div
           id="chat-panel"
@@ -127,13 +113,11 @@ export function ChatWidget() {
           aria-label="المساعد الآلي"
           className="fixed bottom-24 left-6 z-50 w-[min(22rem,calc(100vw-3rem))] rounded-3xl glass border border-gold/20 overflow-hidden flex flex-col"
         >
-          <div className="p-4 border-b border-white/10">
-            <p className="font-bold text-white">{siteConfig.name}</p>
-            <p className="text-xs text-gray-400 mt-0.5">مساعد آلي — للتحدث مع فريقنا استخدم واتساب</p>
+          <div className="p-4 border-b border-border">
+            <p className="font-bold text-foreground">{siteConfig.name}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">مساعد آلي — للتحدث مع فريقنا استخدم واتساب</p>
           </div>
 
-          {/* data-lenis-prevent: without it Lenis swallows the wheel event and
-              scrolls the page instead of this list. */}
           <div
             data-lenis-prevent
             className="flex-1 max-h-80 overflow-y-auto overscroll-contain p-4 space-y-3"
@@ -144,7 +128,7 @@ export function ChatWidget() {
                 key={message.id}
                 className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                   message.from === "bot"
-                    ? "glass-light text-gray-200"
+                    ? "glass-light text-muted-foreground"
                     : "gold-gradient-bg text-navy-deep font-medium mr-auto"
                 }`}
               >
@@ -160,7 +144,7 @@ export function ChatWidget() {
                 key={question}
                 type="button"
                 onClick={() => send(question)}
-                className="text-[11px] px-3 py-1.5 rounded-full glass-light text-gray-300 hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                className="text-[11px] px-3 py-1.5 rounded-full glass-light text-muted-foreground hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               >
                 {question}
               </button>
@@ -172,7 +156,7 @@ export function ChatWidget() {
               event.preventDefault();
               send(input);
             }}
-            className="p-4 pt-2 border-t border-white/10 flex items-center gap-2"
+            className="p-4 pt-2 border-t border-border flex items-center gap-2"
           >
             <label htmlFor="chat-input" className="sr-only">
               اكتب رسالتك
@@ -182,7 +166,7 @@ export function ChatWidget() {
               value={input}
               onChange={(event) => setInput(event.target.value)}
               placeholder="اكتب سؤالك..."
-              className="flex-1 min-w-0 rounded-full bg-navy-light border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-gold/50"
+              className="flex-1 min-w-0 rounded-full bg-input border border-border px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-gold/50"
             />
             <button
               type="submit"

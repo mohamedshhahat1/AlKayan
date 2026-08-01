@@ -4,13 +4,6 @@ import { useEffect, useState } from "react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { siteConfig } from "@/lib/site-config";
 
-/**
- * Floating WhatsApp call-to-action.
- *
- * Note: the previous version displayed a "متصل الآن" (online now) badge that was
- * always shown regardless of the time of day or whether anyone was available.
- * It now shows the actual working hours instead.
- */
 export function WhatsAppButton() {
   const [visible, setVisible] = useState(false);
 
@@ -32,8 +25,8 @@ export function WhatsAppButton() {
       }`}
     >
       <span className="hidden sm:flex flex-col items-end glass rounded-2xl px-4 py-2 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-300">
-        <span className="text-xs font-bold text-white whitespace-nowrap">تحدث معنا على واتساب</span>
-        <span className="text-[11px] text-gray-400 whitespace-nowrap">{siteConfig.hours.summary}</span>
+        <span className="text-xs font-bold text-foreground whitespace-nowrap">تحدث معنا على واتساب</span>
+        <span className="text-[11px] text-muted-foreground whitespace-nowrap">{siteConfig.hours.summary}</span>
       </span>
 
       <span className="relative flex items-center justify-center w-14 h-14 rounded-full bg-[#25D366] shadow-lg shadow-black/30 group-hover:scale-110 transition-transform duration-300">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Menu, X, Phone } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 import { lockScroll, unlockScroll } from "@/lib/lenis";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navLinks = [
   { href: "#hero", label: "الرئيسية" },
@@ -27,8 +28,6 @@ export function SiteHeader() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close on Escape and stop the page scrolling behind the open menu. Body
-  // overflow alone does not stop Lenis — see lib/lenis.ts.
   useEffect(() => {
     if (!menuOpen) return;
 
@@ -48,8 +47,8 @@ export function SiteHeader() {
   return (
     <header
       className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${
-        scrolled ? "glass py-3 border-b border-white/10" : "bg-transparent py-5"
-      }`}
+        scrolled ? "glass py-3 border-b border-border" : "bg-transparent py-5"
+      }`
     >
       <div className="container-luxury flex items-center justify-between gap-4">
         <a
@@ -62,7 +61,7 @@ export function SiteHeader() {
           </span>
           <span className="flex flex-col leading-tight">
             <span className="text-lg font-extrabold gold-gradient-text">{siteConfig.name}</span>
-            <span className="text-[10px] tracking-[0.25em] text-gray-400">{siteConfig.nameEn}</span>
+            <span className="text-[10px] tracking-[0.25em] text-muted-foreground">{siteConfig.nameEn}</span>
           </span>
         </a>
 
@@ -71,7 +70,7 @@ export function SiteHeader() {
             <a
               key={link.href}
               href={link.href}
-              className="px-3.5 py-2 text-sm text-gray-300 hover:text-gold transition-colors duration-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              className="px-3.5 py-2 text-sm text-muted-foreground hover:text-gold transition-colors duration-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             >
               {link.label}
             </a>
@@ -87,13 +86,15 @@ export function SiteHeader() {
             <span dir="ltr">{siteConfig.contact.phone}</span>
           </a>
 
+          <ThemeToggle />
+
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
             aria-label={menuOpen ? "إغلاق القائمة" : "فتح القائمة"}
-            className="lg:hidden w-11 h-11 rounded-xl glass-light flex items-center justify-center text-white hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            className="lg:hidden w-11 h-11 rounded-xl glass-light flex items-center justify-center text-foreground hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           >
             {menuOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
           </button>
@@ -105,7 +106,7 @@ export function SiteHeader() {
         aria-label="التنقل للجوال"
         hidden={!menuOpen}
         data-lenis-prevent
-        className="lg:hidden glass border-t border-white/10 mt-3 max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain"
+        className="lg:hidden glass border-t border-border mt-3 max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain"
       >
         <ul className="container-luxury py-4 flex flex-col">
           {navLinks.map((link) => (
@@ -113,7 +114,7 @@ export function SiteHeader() {
               <a
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
-                className="block px-2 py-3 text-gray-200 hover:text-gold border-b border-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                className="block px-2 py-3 text-muted-foreground hover:text-gold border-b border-border/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               >
                 {link.label}
               </a>
