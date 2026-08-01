@@ -150,21 +150,21 @@ export function ProjectsSection() {
               </div>
             </Reveal>
 
-            <div className="mt-12 columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+            <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filtered.map((project, index) => (
                 <Reveal key={project.id} delay={(index % 3) * 0.1} y={40}>
                   <button
                     type="button"
                     onClick={() => setSelected(project)}
                     aria-label={`عرض تفاصيل مشروع ${project.title}`}
-                    className="group relative block w-full text-right break-inside-avoid rounded-2xl overflow-hidden glass cursor-pointer hover:border-gold/30 transition-all duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                    className="group relative block w-full text-right rounded-2xl overflow-hidden glass cursor-pointer hover:border-gold/30 transition-all duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                   >
-                    <div className="zoom-container relative">
+                    <div className="zoom-container relative aspect-[4/3]">
                       <img
                         src={project.hero_image}
                         alt={project.title}
                         loading="lazy"
-                        className="zoom-image w-full h-auto object-cover"
+                        className="zoom-image w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-image-scrim opacity-80 group-hover:opacity-90 transition-opacity duration-500" />
 
