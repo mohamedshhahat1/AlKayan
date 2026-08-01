@@ -17,6 +17,17 @@ import { registerLenis } from "@/lib/lenis";
  */
 export function SmoothScroll() {
   useEffect(() => {
+    // Prevent the browser from restoring the previous scroll position on
+    // refresh, and always start from the top of the page.
+    history.scrollRestoration = "manual";
+    window.scrollTo(0, 0);
+
+    // If the URL has a hash (e.g. #services), remove it so the page does not
+    // jump to that section on reload.
+    if (window.location.hash) {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) return;
 
