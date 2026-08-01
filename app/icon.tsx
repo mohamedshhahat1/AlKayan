@@ -1,4 +1,6 @@
-import { ImageResponse } from "next/og";
+// ImageResponse lives in next/server on Next 13. The next/og entry point was
+// only introduced in Next 14 — switch these imports if the project upgrades.
+import { ImageResponse } from "next/server";
 
 export const runtime = "edge";
 export const size = { width: 32, height: 32 };

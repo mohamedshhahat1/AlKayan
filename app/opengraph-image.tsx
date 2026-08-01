@@ -1,4 +1,6 @@
-import { ImageResponse } from "next/og";
+// ImageResponse lives in next/server on Next 13. The next/og entry point was
+// only introduced in Next 14 — switch these imports if the project upgrades.
+import { ImageResponse } from "next/server";
 import { siteConfig } from "@/lib/site-config";
 
 export const runtime = "edge";
@@ -9,7 +11,7 @@ export const contentType = "image/png";
 /**
  * Generated social preview card.
  *
- * Deliberately Latin-only: the fonts bundled with next/og do not cover Arabic
+ * Deliberately Latin-only: the fonts bundled with Satori do not cover Arabic
  * glyphs, so Arabic text would render as blank boxes. Swap in a Tajawal .ttf
  * via the `fonts` option if an Arabic card is needed.
  */
