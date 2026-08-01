@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Menu, X, Phone } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
+import { lockScroll, unlockScroll } from "@/lib/lenis";
 
 const navLinks = [
   { href: "#hero", label: "الرئيسية" },
@@ -26,17 +27,20 @@ export function SiteHeader() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close the mobile menu on Escape and prevent the page scrolling behind it.
+  // Close on Escape and stop the page scrolling behind the open menu. Body
+  // overflow alone does not stop Lenis — see lib/lenis.ts.
   useEffect(() => {
     if (!menuOpen) return;
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMenuOpen(false);
     };
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    lockScroll();
     window.addEventListener("keydown", onKeyDown);
+
     return () => {
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [menuOpen]);
@@ -100,7 +104,8 @@ export function SiteHeader() {
         id="mobile-nav"
         aria-label="التنقل للجوال"
         hidden={!menuOpen}
-        className="lg:hidden glass border-t border-white/10 mt-3"
+        data-lenis-prevent
+        className="lg:hidden glass border-t border-white/10 mt-3 max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain"
       >
         <ul className="container-luxury py-4 flex flex-col">
           {navLinks.map((link) => (
@@ -117,6 +122,7 @@ export function SiteHeader() {
           <li className="pt-4">
             <a
               href={siteConfig.contact.telHref}
+              onClick={() => setMenuOpen(false)}
               className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-full gold-gradient-bg text-navy-deep font-bold"
             >
               <Phone className="w-4 h-4" aria-hidden="true" />
