@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
-import { Reveal, SectionHeading } from "@/components/reveal";
 import { X, MapPin, Calendar, Maximize, Clock, CheckCircle2 } from "lucide-react";
+import { Reveal, SectionHeading } from "@/components/reveal";
+import { BeforeAfterSlider } from "@/components/before-after-slider";
+import { getSupabaseClient } from "@/lib/supabase";
 
 type Project = {
   id: string;
@@ -15,8 +16,8 @@ type Project = {
   area_sqm: number | null;
   duration_days: number | null;
   execution_date: string | null;
-  services_included: string[];
-  materials_used: string[];
+  services_included: string[] | null;
+  materials_used: string[] | null;
   client_testimonial: string | null;
   client_name: string | null;
   hero_image: string;
@@ -25,6 +26,8 @@ type Project = {
   after_image: string | null;
   featured: boolean;
 };
+
+type Status = "loading" | "ready" | "error";
 
 const categoryLabels: Record<string, string> = {
   apartments: "شقق",
@@ -36,31 +39,65 @@ const categoryLabels: Record<string, string> = {
   landscape: "حدائق",
 };
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+/** `category` is free text in the database, so fall back instead of rendering "undefined". */
+function categoryLabel(category: string) {
+  return categoryLabels[category] ?? "مشروع";
+}
+
+/**
+ * Gregorian formatting. `toLocaleDateString("ar-SA")` resolves to the Islamic
+ * calendar in most browsers, which is not what a completion date should show.
+ */
+const dateFormatter = new Intl.DateTimeFormat("ar-SA-u-ca-gregory", {
+  year: "numeric",
+  month: "long",
+});
 
 export function ProjectsSection() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [status, setStatus] = useState<Status>("loading");
   const [activeCategory, setActiveCategory] = useState("all");
   const [selected, setSelected] = useState<Project | null>(null);
 
   useEffect(() => {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      setStatus("ready");
+      return;
+    }
+
+    let cancelled = false;
+
     async function fetchProjects() {
-      const { data } = await supabase
+      const { data, error } = await supabase!
         .from("projects")
         .select("*")
         .order("sort_order", { ascending: true });
-      if (data) setProjects(data as Project[]);
+
+      if (cancelled) return;
+      if (error) {
+        console.error("[projects] failed to load", error.message);
+        setStatus("error");
+        return;
+      }
+      setProjects((data ?? []) as Project[]);
+      setStatus("ready");
     }
+
     fetchProjects();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const categories = ["all", ...Object.keys(categoryLabels)];
-  const filtered = activeCategory === "all"
-    ? projects
-    : projects.filter((p) => p.category === activeCategory);
+  // Only offer filters that actually match something.
+  const availableCategories = Array.from(new Set(projects.map((project) => project.category)));
+  const categories = ["all", ...availableCategories];
+
+  const filtered =
+    activeCategory === "all"
+      ? projects
+      : projects.filter((project) => project.category === activeCategory);
 
   return (
     <section id="projects" className="relative py-24 lg:py-32">
@@ -71,82 +108,116 @@ export function ProjectsSection() {
           subtitle="نظرة على بعض مشاريعنا التي نفذناها بأعلى معايير الجودة والاحترافية"
         />
 
-        {/* Category filters */}
-        <Reveal delay={0.2} className="mt-12">
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                  activeCategory === cat
-                    ? "gold-gradient-bg text-navy"
-                    : "glass-light text-gray-300 hover:text-gold hover:border-gold/30"
-                }`}
-                style={activeCategory === cat ? { color: "#0B1F3A" } : {}}
-              >
-                {cat === "all" ? "الكل" : categoryLabels[cat]}
-              </button>
+        {status === "loading" && (
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-hidden="true">
+            {[0, 1, 2, 3, 4, 5].map((index) => (
+              <div key={index} className="glass rounded-2xl h-64 animate-pulse" />
             ))}
           </div>
-        </Reveal>
+        )}
 
-        {/* Masonry grid */}
-        <div className="mt-12 columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-          {filtered.map((project, i) => (
-            <Reveal key={project.id} delay={(i % 3) * 0.1} y={40}>
-              <div
-                onClick={() => setSelected(project)}
-                className="group relative break-inside-avoid rounded-2xl overflow-hidden glass cursor-pointer hover:border-gold/30 transition-all duration-500"
-              >
-                {/* Image */}
-                <div className="zoom-container relative">
-                  <img
-                    src={project.hero_image}
-                    alt={project.title}
-                    className="zoom-image w-full h-auto object-cover"
-                    loading="lazy"
-                  />
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-500" style={{ background: "linear-gradient(180deg, transparent 30%, rgba(11,31,58,0.9) 100%)" }} />
+        {status === "error" && (
+          <p role="status" className="mt-12 text-center text-gray-400">
+            تعذر تحميل المشاريع حالياً. يرجى المحاولة لاحقاً.
+          </p>
+        )}
 
-                  {/* Category badge */}
-                  <div className="absolute top-4 right-4">
-                    <span className="glass-gold text-gold text-xs font-bold px-3 py-1.5 rounded-full">
-                      {categoryLabels[project.category]}
-                    </span>
-                  </div>
+        {status === "ready" && projects.length === 0 && (
+          <p className="mt-12 text-center text-gray-400">سيتم إضافة المشاريع قريباً.</p>
+        )}
 
-                  {/* Content */}
-                  <div className="absolute bottom-0 right-0 left-0 p-6">
-                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-gold transition-colors duration-300">
-                      {project.title}
-                    </h3>
-                    {project.location && (
-                      <p className="flex items-center gap-1.5 text-sm text-gray-300">
-                        <MapPin className="w-3.5 h-3.5 text-gold" />
-                        {project.location}
-                      </p>
-                    )}
-                  </div>
-                </div>
+        {status === "ready" && projects.length > 0 && (
+          <>
+            <Reveal delay={0.2} className="mt-12">
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    aria-pressed={activeCategory === category}
+                    onClick={() => setActiveCategory(category)}
+                    className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
+                      activeCategory === category
+                        ? "gold-gradient-bg text-navy-deep"
+                        : "glass-light text-gray-300 hover:text-gold hover:border-gold/30"
+                    }`}
+                  >
+                    {category === "all" ? "الكل" : categoryLabel(category)}
+                  </button>
+                ))}
               </div>
             </Reveal>
-          ))}
-        </div>
+
+            <div className="mt-12 columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+              {filtered.map((project, index) => (
+                <Reveal key={project.id} delay={(index % 3) * 0.1} y={40}>
+                  <button
+                    type="button"
+                    onClick={() => setSelected(project)}
+                    aria-label={`عرض تفاصيل مشروع ${project.title}`}
+                    className="group relative block w-full text-right break-inside-avoid rounded-2xl overflow-hidden glass cursor-pointer hover:border-gold/30 transition-all duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                  >
+                    <div className="zoom-container relative">
+                      <img
+                        src={project.hero_image}
+                        alt={project.title}
+                        loading="lazy"
+                        className="zoom-image w-full h-auto object-cover"
+                      />
+                      <div className="absolute inset-0 bg-image-scrim opacity-80 group-hover:opacity-90 transition-opacity duration-500" />
+
+                      <div className="absolute top-4 right-4">
+                        <span className="glass-gold text-gold text-xs font-bold px-3 py-1.5 rounded-full">
+                          {categoryLabel(project.category)}
+                        </span>
+                      </div>
+
+                      <div className="absolute bottom-0 right-0 left-0 p-6">
+                        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-gold transition-colors duration-300">
+                          {project.title}
+                        </h3>
+                        {project.location && (
+                          <p className="flex items-center gap-1.5 text-sm text-gray-300">
+                            <MapPin className="w-3.5 h-3.5 text-gold" aria-hidden="true" />
+                            {project.location}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                </Reveal>
+              ))}
+            </div>
+
+            {filtered.length === 0 && (
+              <p className="mt-10 text-center text-gray-400">لا توجد مشاريع في هذا التصنيف.</p>
+            )}
+          </>
+        )}
       </div>
 
-      {/* Lightbox modal */}
       <AnimatePresence>
-        {selected && (
-          <ProjectModal project={selected} onClose={() => setSelected(null)} />
-        )}
+        {selected && <ProjectModal project={selected} onClose={() => setSelected(null)} />}
       </AnimatePresence>
     </section>
   );
 }
 
 function ProjectModal({ project, onClose }: { project: Project; onClose: () => void }) {
+  // Close on Escape and stop the page behind the modal from scrolling.
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
   return (
     <>
       <motion.div
@@ -157,117 +228,121 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
         className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md"
       />
       <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-label={project.title}
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-        className="fixed inset-4 sm:inset-8 lg:inset-12 z-[70] rounded-3xl overflow-y-auto glass border border-gold/20"
-        style={{ backgroundColor: "rgba(11,31,58,0.95)" }}
+        className="fixed inset-4 sm:inset-8 lg:inset-12 z-[70] rounded-3xl overflow-y-auto glass border border-gold/20 bg-navy/95"
       >
-        {/* Close */}
         <button
+          type="button"
           onClick={onClose}
-          className="fixed top-6 left-6 z-[80] w-11 h-11 rounded-full glass-light flex items-center justify-center text-white hover:text-gold transition-colors"
+          className="fixed top-6 left-6 z-[80] w-11 h-11 rounded-full glass-light flex items-center justify-center text-white hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           aria-label="إغلاق"
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5" aria-hidden="true" />
         </button>
 
-        {/* Hero image */}
         <div className="relative h-72 sm:h-96 overflow-hidden">
-          <img src={project.hero_image} alt={project.title} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-navy to-transparent" style={{ background: "linear-gradient(180deg, transparent 0%, rgba(11,31,58,1) 100%)" }} />
+          <img src={project.hero_image} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-image-scrim" />
           <div className="absolute bottom-0 right-0 left-0 p-8">
             <span className="glass-gold text-gold text-xs font-bold px-3 py-1.5 rounded-full mb-3 inline-block">
-              {categoryLabels[project.category]}
+              {categoryLabel(project.category)}
             </span>
             <h2 className="text-3xl font-extrabold text-white">{project.title}</h2>
           </div>
         </div>
 
         <div className="p-6 sm:p-8 lg:p-12 space-y-10">
-          {/* Info grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {project.location && (
-              <InfoCard icon={MapPin} label="الموقع" value={project.location} />
-            )}
-            {project.area_sqm && (
+            {project.location && <InfoCard icon={MapPin} label="الموقع" value={project.location} />}
+            {project.area_sqm != null && (
               <InfoCard icon={Maximize} label="المساحة" value={`${project.area_sqm} م²`} />
             )}
-            {project.duration_days && (
+            {project.duration_days != null && (
               <InfoCard icon={Clock} label="المدة" value={`${project.duration_days} يوم`} />
             )}
             {project.execution_date && (
-              <InfoCard icon={Calendar} label="تاريخ التنفيذ" value={new Date(project.execution_date).toLocaleDateString("ar-SA")} />
+              <InfoCard
+                icon={Calendar}
+                label="تاريخ التنفيذ"
+                value={dateFormatter.format(new Date(project.execution_date))}
+              />
             )}
           </div>
 
-          {/* Gallery */}
           {project.gallery_images && project.gallery_images.length > 0 && (
             <div>
               <h3 className="text-xl font-bold text-white mb-5">معرض الصور</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {project.gallery_images.map((img, i) => (
-                  <div key={i} className="zoom-container rounded-xl overflow-hidden glass">
-                    <img src={img} alt={`${project.title} ${i + 1}`} className="zoom-image w-full h-56 object-cover" loading="lazy" />
+                {project.gallery_images.map((image, index) => (
+                  <div key={image} className="zoom-container rounded-xl overflow-hidden glass">
+                    <img
+                      src={image}
+                      alt={`${project.title} — صورة ${index + 1}`}
+                      loading="lazy"
+                      className="zoom-image w-full h-56 object-cover"
+                    />
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Before & After */}
           {project.before_image && project.after_image && (
             <div>
               <h3 className="text-xl font-bold text-white mb-5">قبل و بعد</h3>
-              <BeforeAfterSlider before={project.before_image} after={project.after_image} />
+              <BeforeAfterSlider
+                before={project.before_image}
+                after={project.after_image}
+                className="h-72 sm:h-96 rounded-2xl"
+              />
             </div>
           )}
 
-          {/* Services */}
           {project.services_included && project.services_included.length > 0 && (
             <div>
               <h3 className="text-xl font-bold text-white mb-5">الخدمات المضمنة</h3>
-              <div className="flex flex-wrap gap-3">
-                {project.services_included.map((s, i) => (
-                  <span key={i} className="glass-gold text-gold text-sm px-4 py-2 rounded-full flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4" />
-                    {s}
-                  </span>
+              <ul className="flex flex-wrap gap-3">
+                {project.services_included.map((service) => (
+                  <li
+                    key={service}
+                    className="glass-gold text-gold text-sm px-4 py-2 rounded-full flex items-center gap-2"
+                  >
+                    <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+                    {service}
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           )}
 
-          {/* Materials */}
           {project.materials_used && project.materials_used.length > 0 && (
             <div>
               <h3 className="text-xl font-bold text-white mb-5">الخامات المستخدمة</h3>
-              <div className="flex flex-wrap gap-3">
-                {project.materials_used.map((m, i) => (
-                  <span key={i} className="glass-light text-gray-300 text-sm px-4 py-2 rounded-full">
-                    {m}
-                  </span>
+              <ul className="flex flex-wrap gap-3">
+                {project.materials_used.map((material) => (
+                  <li key={material} className="glass-light text-gray-300 text-sm px-4 py-2 rounded-full">
+                    {material}
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           )}
 
-          {/* Testimonial */}
           {project.client_testimonial && (
-            <div className="glass rounded-2xl p-8">
-              <div className="flex items-center gap-1 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-gold text-lg">★</span>
-                ))}
-              </div>
-              <p className="text-lg text-gray-200 leading-relaxed mb-4 italic">
-                "{project.client_testimonial}"
-              </p>
+            <figure className="glass rounded-2xl p-8">
+              <blockquote className="text-lg text-gray-200 leading-relaxed mb-4 italic">
+                {project.client_testimonial}
+              </blockquote>
               {project.client_name && (
-                <p className="text-gold font-bold">— {project.client_name}</p>
+                <figcaption className="text-gold font-bold">— {project.client_name}</figcaption>
               )}
-            </div>
+            </figure>
           )}
         </div>
       </motion.div>
@@ -275,48 +350,20 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
   );
 }
 
-function InfoCard({ icon: Icon, label, value }: { icon: typeof MapPin; label: string; value: string }) {
+function InfoCard({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof MapPin;
+  label: string;
+  value: string;
+}) {
   return (
     <div className="glass rounded-xl p-5">
-      <Icon className="w-5 h-5 text-gold mb-3" />
+      <Icon className="w-5 h-5 text-gold mb-3" aria-hidden="true" />
       <p className="text-xs text-gray-400 mb-1">{label}</p>
       <p className="text-sm font-bold text-white">{value}</p>
-    </div>
-  );
-}
-
-function BeforeAfterSlider({ before, after }: { before: string; after: string }) {
-  const [pos, setPos] = useState(50);
-
-  return (
-    <div
-      className="relative w-full h-72 sm:h-96 rounded-2xl overflow-hidden glass select-none"
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        setPos(Math.max(0, Math.min(100, x)));
-      }}
-      onTouchMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = ((e.touches[0].clientX - rect.left) / rect.width) * 100;
-        setPos(Math.max(0, Math.min(100, x)));
-      }}
-    >
-      {/* After (full) */}
-      <img src={after} alt="بعد" className="absolute inset-0 w-full h-full object-cover" />
-      {/* Before (clipped) */}
-      <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
-        <img src={before} alt="قبل" className="absolute inset-0 w-full h-full object-cover" />
-      </div>
-      {/* Labels */}
-      <span className="absolute top-4 right-4 glass-gold text-gold text-xs font-bold px-3 py-1.5 rounded-full">قبل</span>
-      <span className="absolute top-4 left-4 glass-gold text-gold text-xs font-bold px-3 py-1.5 rounded-full">بعد</span>
-      {/* Divider */}
-      <div className="absolute top-0 bottom-0 w-1 bg-gold" style={{ left: `${pos}%`, transform: "translateX(-50%)" }}>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full gold-gradient-bg flex items-center justify-center shadow-lg">
-          <span className="text-navy text-xs font-bold" style={{ color: "#0B1F3A" }}>⟷</span>
-        </div>
-      </div>
     </div>
   );
 }
