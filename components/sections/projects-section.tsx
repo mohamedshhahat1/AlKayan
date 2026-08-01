@@ -6,6 +6,7 @@ import { X, MapPin, Calendar, Maximize, Clock, CheckCircle2 } from "lucide-react
 import { Reveal, SectionHeading } from "@/components/reveal";
 import { BeforeAfterSlider } from "@/components/before-after-slider";
 import { getSupabaseClient } from "@/lib/supabase";
+import { lockScroll, unlockScroll } from "@/lib/lenis";
 
 type Project = {
   id: string;
@@ -204,16 +205,19 @@ export function ProjectsSection() {
 }
 
 function ProjectModal({ project, onClose }: { project: Project; onClose: () => void }) {
-  // Close on Escape and stop the page behind the modal from scrolling.
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    // Setting body overflow alone is not enough: Lenis drives the page scroll
+    // from window-level wheel events and never looks at it. lockScroll pauses
+    // Lenis as well.
+    lockScroll();
     window.addEventListener("keydown", handleKeyDown);
+
     return () => {
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [onClose]);
@@ -231,16 +235,18 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
         role="dialog"
         aria-modal="true"
         aria-label={project.title}
+        // Keep wheel and touch scrolling inside the dialog.
+        data-lenis-prevent
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-        className="fixed inset-4 sm:inset-8 lg:inset-12 z-[70] rounded-3xl overflow-y-auto glass border border-gold/20 bg-navy/95"
+        className="fixed inset-4 sm:inset-8 lg:inset-12 z-[70] rounded-3xl overflow-y-auto overscroll-contain glass border border-gold/20 bg-navy/95"
       >
         <button
           type="button"
           onClick={onClose}
-          className="fixed top-6 left-6 z-[80] w-11 h-11 rounded-full glass-light flex items-center justify-center text-white hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          className="sticky top-6 float-left ml-6 z-[80] w-11 h-11 rounded-full glass-light flex items-center justify-center text-white hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           aria-label="إغلاق"
         >
           <X className="w-5 h-5" aria-hidden="true" />

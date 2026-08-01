@@ -2,16 +2,18 @@
 
 import { useEffect } from "react";
 import Lenis from "lenis";
+import { registerLenis } from "@/lib/lenis";
 
 /**
  * Lenis smooth scrolling.
  *
- * Two problems with the original version:
+ * Problems this addresses:
  *  1. the requestAnimationFrame loop was never cancelled, so a second loop was
  *     started on every remount and kept running after unmount;
  *  2. `html { scroll-behavior: smooth }` and Lenis both tried to own the scroll
  *     position, so in-page anchors jumped and then fought the easing. Anchors
- *     are now handed to Lenis explicitly.
+ *     are now handed to Lenis explicitly;
+ *  3. overlays had no way to stop background scrolling — see lib/lenis.ts.
  */
 export function SmoothScroll() {
   useEffect(() => {
@@ -22,7 +24,12 @@ export function SmoothScroll() {
       duration: 1.2,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
+      // Let natively scrollable overlays (modals, chat panel) keep their own
+      // wheel events instead of forwarding them to the page.
+      prevent: (node: Element) => node.hasAttribute("data-lenis-prevent"),
     });
+
+    registerLenis(lenis);
 
     let frame = 0;
     const raf = (time: number) => {
@@ -56,6 +63,7 @@ export function SmoothScroll() {
     return () => {
       document.removeEventListener("click", handleClick);
       cancelAnimationFrame(frame);
+      registerLenis(null);
       lenis.destroy();
     };
   }, []);
