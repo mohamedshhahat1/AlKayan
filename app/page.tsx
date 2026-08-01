@@ -11,31 +11,45 @@ import { TestimonialsSection } from "@/components/sections/testimonials-section"
 import { PartnersSection } from "@/components/sections/partners-section";
 import { FaqSection } from "@/components/sections/faq-section";
 import { ContactSection } from "@/components/sections/contact-section";
+import { siteConfig } from "@/lib/site-config";
+
+/** Structured data, built from site config so it cannot drift from the footer. */
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "GeneralContractor",
+  "@id": `${siteConfig.url}#organization`,
+  name: siteConfig.name,
+  alternateName: siteConfig.nameEn,
+  legalName: siteConfig.legalName,
+  description: siteConfig.description,
+  url: siteConfig.url,
+  telephone: siteConfig.contact.phoneE164,
+  email: siteConfig.contact.email,
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: siteConfig.contact.city,
+    addressCountry: siteConfig.contact.countryCode,
+  },
+  areaServed: {
+    "@type": "Country",
+    name: "Saudi Arabia",
+  },
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
+    opens: "09:00",
+    closes: "21:00",
+  },
+  sameAs: [siteConfig.social.facebook, siteConfig.social.instagram].filter(Boolean),
+  priceRange: "$$$",
+};
 
 export default function Home() {
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "GeneralContractor",
-            name: "الكيان",
-            alternateName: "AL-KAYAN",
-            description:
-              "شركة رائدة في مجال المقاولات والتشطيبات الداخلية والتصميم الداخلي والخارجي",
-            telephone: "+966501234567",
-            email: "info@al-kayan.com",
-            address: {
-              "@type": "PostalAddress",
-              addressLocality: "الرياض",
-              addressCountry: "SA",
-            },
-            areaServed: "SA",
-            priceRange: "$$$",
-          }),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <HeroSection />
       <AboutSection />

@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { ChatWidget } from "@/components/chat-widget";
+import { siteConfig } from "@/lib/site-config";
 
 const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
@@ -15,34 +16,31 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: "الكيان | شركة مقاولات وتشطيبات داخلية فاخرة",
-  description:
-    "الكيان - شركة رائدة في مجال المقاولات والتشطيبات الداخلية والتصميم الداخلي والخارجي. من الفكرة إلى تسليم المفتاح بأعلى معايير الجودة والاحترافية.",
-  keywords: [
-    "تشطيبات",
-    "مقاولات",
-    "تصميم داخلي",
-    "تصميم خارجي",
-    "الكيان",
-    "تشطيب شقق",
-    "تشطيب فلل",
-    "تشطيب مكاتب",
-    "ديكور",
-    "مقاولات عامة",
-  ],
+  // Required for the relative openGraph/twitter image URLs below to be
+  // resolved into absolute ones.
+  metadataBase: new URL(siteConfig.url),
+  title: {
+    default: siteConfig.title,
+    template: `%s | ${siteConfig.name}`,
+  },
+  description: siteConfig.description,
+  keywords: [...siteConfig.keywords],
+  applicationName: siteConfig.name,
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "الكيان | شركة مقاولات وتشطيبات داخلية فاخرة",
-    description:
-      "نصمم، ننفذ، ونشرف على جميع أعمال التشطيبات والمقاولات بأعلى معايير الجودة والاحترافية.",
+    title: siteConfig.title,
+    description: siteConfig.shortDescription,
     type: "website",
-    locale: "ar_SA",
-    siteName: "الكيان",
+    locale: siteConfig.locale,
+    siteName: siteConfig.name,
+    url: siteConfig.url,
   },
   twitter: {
     card: "summary_large_image",
-    title: "الكيان | شركة مقاولات وتشطيبات داخلية فاخرة",
-    description:
-      "نصمم، ننفذ، ونشرف على جميع أعمال التشطيبات والمقاولات بأعلى معايير الجودة والاحترافية.",
+    title: siteConfig.title,
+    description: siteConfig.shortDescription,
   },
   robots: {
     index: true,
@@ -50,21 +48,29 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const viewport = {
+  themeColor: "#0B1F3A",
+  width: "device-width",
+  initialScale: 1,
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ar" dir="rtl" className={tajawal.variable}>
-      <body className={tajawal.className} style={{ fontFamily: "var(--font-tajawal), sans-serif" }}>
-        <SmoothScroll>
-          <SiteHeader />
-          <main>{children}</main>
-          <SiteFooter />
-          <WhatsAppButton />
-          <ChatWidget />
-        </SmoothScroll>
+      <body className={tajawal.className}>
+        {/* Side effect only — it does not render its children. */}
+        <SmoothScroll />
+        <a
+          href="#hero"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:right-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-full focus:gold-gradient-bg focus:text-navy-deep focus:font-bold"
+        >
+          تخطي إلى المحتوى
+        </a>
+        <SiteHeader />
+        <main>{children}</main>
+        <SiteFooter />
+        <WhatsAppButton />
+        <ChatWidget />
       </body>
     </html>
   );
