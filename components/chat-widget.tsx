@@ -1,189 +1,197 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
+import { siteConfig } from "@/lib/site-config";
 
-type Message = { role: "user" | "bot"; text: string };
+type Message = { id: number; from: "bot" | "user"; text: string };
 
-const botResponses: { keywords: string[]; reply: string }[] = [
+/**
+ * Keyword-matched automated assistant.
+ *
+ * This is deliberately labelled as automated: the previous version showed a
+ * "متصل الآن" (agent online) indicator, which implied a human was reading the
+ * messages. Anything it cannot answer is handed off to WhatsApp.
+ *
+ * All quoted facts come from siteConfig so they cannot drift from the FAQ.
+ */
+const { warranty, timelines, hours, contact } = siteConfig;
+
+const answers: Array<{ keywords: string[]; reply: string }> = [
   {
-    keywords: ["سعر", "تكلفة", "كم", "مبلغ", "رسوم"],
-    reply: "تختلف التكلفة حسب نوع وحجم المشروع والخامات المختارة. نقدم عرض سعر مجاني بعد زيارة الموقع. للحصول على تسعيرة دقيقة، احجز معاينة مجانية عبر نموذج التواصل أو واتساب.",
+    keywords: ["سعر", "اسعار", "أسعار", "تكلفة", "ميزانية", "كم يكلف"],
+    reply:
+      "تختلف التكلفة حسب المساحة ومستوى التشطيب والخامات المختارة. أرسل لنا تفاصيل مشروعك عبر نموذج الحجز وسنزودك بعرض سعر مفصل مجاناً.",
   },
   {
-    keywords: ["مدة", "وقت", "متى", "كم يوم", "كم شهر"],
-    reply: "تختلف مدة التنفيذ حسب المشروع: الشقق 60-90 يوماً، الفلل 120-180 يوماً، المكاتب 60-120 يوماً. نقدم جدولاً زمنياً دقيقاً بعد الاستشارة الأولى.",
+    keywords: ["ضمان", "الضمان"],
+    reply: `نقدم ضماناً لمدة ${warranty.structuralYears} سنتين على الأعمال الإنشائية وسنة واحدة على أعمال التشطيبات.`,
   },
   {
-    keywords: ["خدمات", "ماذا تقدم", "تختصون", "أعمال"],
-    reply: "نقدم خدمات شاملة: تشطيب شقق وفلل ومكاتب ومحلات وعيادات ومطاعم، تصميم داخلي وخارجي، تصميم 2D و3D، حدائق، إضاءة، سباكة، جبس بورد، دهانات، أرضيات، رخام، نجارة، ألمنيوم، سمارت هوم، ترميم وصيانة.",
+    keywords: ["مدة", "مده", "وقت", "كم يوم", "متى يخلص", "تسليم"],
+    reply: `متوسط مدة التنفيذ: الشقق ${timelines.apartments}، الفلل ${timelines.villas}، المكاتب ${timelines.offices}. تعتمد المدة النهائية على نطاق العمل.`,
   },
   {
-    keywords: ["ضمان", "كفالة"],
-    reply: "نعم، نقدم ضماناً شاملاً على جميع أعمالنا: سنتان للأعمال الإنشائية وسنة للتشطيبات والديكورات.",
+    keywords: ["دوام", "ساعات", "متى تفتح", "اوقات"],
+    reply: `أوقات العمل: ${hours.days} من ${hours.time}.`,
   },
   {
-    keywords: ["تواصل", "اتصال", "رقم", "هاتف", "واتساب"],
-    reply: "يمكنك التواصل معنا عبر الهاتف: ‎+966 50 123 4567 أو واتساب على نفس الرقم، أو عبر نموذج التواصل في الموقع. ساعات العمل: السبت - الخميس 9ص - 9م.",
+    keywords: ["جوال", "رقم", "اتصال", "تواصل", "هاتف"],
+    reply: `يمكنك الاتصال بنا على ${contact.phone} أو مراسلتنا عبر واتساب.`,
   },
   {
-    keywords: ["معاينة", "حجز", "موعد", "استشارة"],
-    reply: "يمكنك حجز معاينة مجانية عبر نموذج (احجز معاينة مجانية) في صفحة التواصل. سنزور موقعك ونقدم استشارة وعرض سعر بدون أي التزام.",
+    keywords: ["موقع", "عنوان", "وين", "أين"],
+    reply: `مقرنا في ${contact.address}، وننفذ مشاريع في مختلف مناطق المملكة.`,
   },
   {
-    keywords: ["موقع", "عنوان", "أين", "مكان"],
-    reply: "نقع في الرياض، المملكة العربية السعودية. نخدم جميع المدن الرئيسية في المملكة.",
-  },
-  {
-    keywords: ["شكرا", "شكراً", "مشكور", "تسلم"],
-    reply: "العفو! نحن سعداء بمساعدتك. لا تتردد في التواصل إذا كان لديك أي استفسار آخر.",
+    keywords: ["تصميم", "ديكور", "3d", "مخطط"],
+    reply:
+      "نقدم خدمات التصميم الداخلي والخارجي والمخططات ثنائية وثلاثية الأبعاد والجولات الافتراضية. تصفح قسم التصاميم للاطلاع.",
   },
 ];
 
-function getBotReply(text: string): string {
-  const lower = text.toLowerCase();
-  for (const r of botResponses) {
-    if (r.keywords.some((k) => lower.includes(k))) return r.reply;
-  }
-  return "شكراً لرسالتك! لمساعدتك بشكل أفضل، يمكنك التواصل معنا عبر الهاتف ‎+966 50 123 4567 أو حجز معاينة مجانية من نموذج التواصل. فريقنا جاهز لخدمتك.";
+const fallback =
+  "لم أفهم سؤالك تماماً. يسعدنا مساعدتك مباشرة عبر واتساب أو من خلال نموذج الحجز.";
+
+const quickQuestions = ["كم تكلفة التشطيب؟", "ما مدة التنفيذ؟", "هل يوجد ضمان؟", "ما هي أوقات الدوام؟"];
+
+function findReply(input: string) {
+  const normalized = input.toLowerCase();
+  const match = answers.find((answer) =>
+    answer.keywords.some((keyword) => normalized.includes(keyword.toLowerCase()))
+  );
+  return match ? match.reply : fallback;
 }
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "bot", text: "مرحباً بك في الكيان! 👋 كيف يمكنني مساعدتك اليوم؟" },
-  ]);
   const [input, setInput] = useState("");
-  const [typing, setTyping] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 0,
+      from: "bot",
+      text: `مرحباً بك في ${siteConfig.name}. أنا مساعد آلي وأستطيع الإجابة عن الأسئلة الشائعة. كيف يمكنني مساعدتك؟`,
+    },
+  ]);
+
+  const endRef = useRef<HTMLDivElement>(null);
+  const nextId = useRef(1);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, typing]);
+    if (open) endRef.current?.scrollIntoView({ block: "end" });
+  }, [messages, open]);
 
-  function send() {
-    if (!input.trim()) return;
-    const userMsg = input.trim();
-    setMessages((m) => [...m, { role: "user", text: userMsg }]);
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
+  function send(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    const userMessage: Message = { id: nextId.current++, from: "user", text: trimmed };
+    const botMessage: Message = { id: nextId.current++, from: "bot", text: findReply(trimmed) };
+
+    setMessages((current) => [...current, userMessage, botMessage]);
     setInput("");
-    setTyping(true);
-    setTimeout(() => {
-      const reply = getBotReply(userMsg);
-      setMessages((m) => [...m, { role: "bot", text: reply }]);
-      setTyping(false);
-    }, 1200);
   }
 
   return (
     <>
-      {/* Chat button */}
-      <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 1.5, type: "spring" }}
-        onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full glass-gold flex items-center justify-center shadow-2xl shadow-gold/20 hover:scale-110 transition-transform duration-300"
-        aria-label="المساعد الذكي"
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-controls="chat-panel"
+        aria-label={open ? "إغلاق المحادثة" : "فتح المحادثة"}
+        className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full glass-gold flex items-center justify-center text-gold hover:scale-110 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       >
-        <AnimatePresence mode="wait">
-          {open ? (
-            <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
-              <X className="w-6 h-6 text-gold" />
-            </motion.div>
-          ) : (
-            <motion.div key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}>
-              <MessageCircle className="w-6 h-6 text-gold" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.button>
+        {open ? <X className="w-6 h-6" aria-hidden="true" /> : <MessageCircle className="w-6 h-6" aria-hidden="true" />}
+      </button>
 
-      {/* Chat panel */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed bottom-24 right-6 z-50 w-[calc(100vw-3rem)] sm:w-80 h-96 rounded-3xl glass flex flex-col overflow-hidden shadow-2xl"
-            style={{ backgroundColor: "rgba(11,31,58,0.95)" }}
+      <div
+        id="chat-panel"
+        role="dialog"
+        aria-label="المساعد الآلي"
+        hidden={!open}
+        className="fixed bottom-24 left-6 z-50 w-[min(22rem,calc(100vw-3rem))] rounded-3xl glass border border-gold/20 overflow-hidden flex flex-col"
+      >
+        <div className="p-4 border-b border-white/10">
+          <p className="font-bold text-white">{siteConfig.name}</p>
+          <p className="text-xs text-gray-400 mt-0.5">مساعد آلي — للتحدث مع فريقنا استخدم واتساب</p>
+        </div>
+
+        <div className="flex-1 max-h-80 overflow-y-auto p-4 space-y-3" aria-live="polite">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                message.from === "bot"
+                  ? "glass-light text-gray-200"
+                  : "gold-gradient-bg text-navy-deep font-medium mr-auto"
+              }`}
+            >
+              {message.text}
+            </div>
+          ))}
+          <div ref={endRef} />
+        </div>
+
+        <div className="px-4 pb-2 flex flex-wrap gap-2">
+          {quickQuestions.map((question) => (
+            <button
+              key={question}
+              type="button"
+              onClick={() => send(question)}
+              className="text-[11px] px-3 py-1.5 rounded-full glass-light text-gray-300 hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            >
+              {question}
+            </button>
+          ))}
+        </div>
+
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            send(input);
+          }}
+          className="p-4 pt-2 border-t border-white/10 flex items-center gap-2"
+        >
+          <label htmlFor="chat-input" className="sr-only">
+            اكتب رسالتك
+          </label>
+          <input
+            id="chat-input"
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            placeholder="اكتب سؤالك..."
+            className="flex-1 min-w-0 rounded-full bg-navy-light border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-gold/50"
+          />
+          <button
+            type="submit"
+            aria-label="إرسال"
+            className="w-10 h-10 rounded-full gold-gradient-bg flex items-center justify-center text-navy-deep flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           >
-            {/* Header */}
-            <div className="glass-gold px-5 py-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full gold-gradient-bg flex items-center justify-center">
-                <span className="font-bold" style={{ color: "#0B1F3A" }}>الك</span>
-              </div>
-              <div>
-                <p className="font-bold text-white text-sm">مساعد الكيان</p>
-                <p className="text-xs text-gold">متصل الآن</p>
-              </div>
-            </div>
+            <Send className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </form>
 
-            {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.map((msg, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${msg.role === "user" ? "justify-start" : "justify-end"}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                      msg.role === "user"
-                        ? "glass-light text-white"
-                        : "glass-gold text-gray-100"
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </motion.div>
-              ))}
-              {typing && (
-                <div className="flex justify-end">
-                  <div className="glass-gold rounded-2xl px-4 py-3 flex items-center gap-1">
-                    {[0, 1, 2].map((i) => (
-                      <motion.span
-                        key={i}
-                        animate={{ y: [0, -5, 0] }}
-                        transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
-                        className="w-2 h-2 rounded-full bg-gold"
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Input */}
-            <div className="p-4 border-t border-white/10">
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && send()}
-                  placeholder="اكتب رسالتك..."
-                  className="flex-1 bg-navy-light/50 border border-white/10 rounded-full px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:border-gold/50 focus:outline-none transition-colors"
-                  style={{ backgroundColor: "rgba(19,42,77,0.5)" }}
-                />
-                <button
-                  onClick={send}
-                  className="w-10 h-10 rounded-full gold-gradient-bg flex items-center justify-center flex-shrink-0 hover:scale-110 transition-transform"
-                  style={{ color: "#0B1F3A" }}
-                  aria-label="إرسال"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        <a
+          href={contact.whatsappHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 py-3 bg-[#25D366]/10 text-[#25D366] text-sm font-medium hover:bg-[#25D366]/20 transition-colors"
+        >
+          <WhatsAppIcon className="w-4 h-4 fill-current" />
+          التحدث مع فريقنا على واتساب
+        </a>
+      </div>
     </>
   );
 }
