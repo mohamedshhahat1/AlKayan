@@ -17,13 +17,13 @@ export function HeroSection() {
 
   return (
     <section ref={ref} id="hero" className="relative h-screen min-h-[700px] w-full overflow-hidden">
-      {/* Background image with parallax */}
+      {/* Background image with parallax + Ken Burns cinematic zoom */}
       <motion.div
         style={{ y, scale }}
         className="absolute inset-0 z-0"
       >
         <div
-          className="w-full h-full bg-cover bg-center"
+          className="w-full h-full bg-cover bg-center ken-burns"
           style={{
             backgroundImage:
               "url(https://images.pexels.com/photos/33529500/pexels-photo-33529500.jpeg?auto=compress&cs=tinysrgb&w=1920)",

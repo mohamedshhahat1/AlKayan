@@ -249,6 +249,12 @@
     width: 24px;
     background: var(--gold);
   }
+
+  /* Ken Burns — slow cinematic zoom + pan for hero background */
+  .ken-burns {
+    will-change: transform;
+    animation: ken-burns 20s ease-in-out infinite alternate;
+  }
 }
 
 @layer utilities {
@@ -315,6 +321,19 @@
   }
 }
 
+/* Ken Burns — slow cinematic zoom and pan */
+@keyframes ken-burns {
+  0% {
+    transform: scale(1.1) translate(0%, 0%);
+  }
+  50% {
+    transform: scale(1.18) translate(-1.5%, -1%);
+  }
+  100% {
+    transform: scale(1.12) translate(1.5%, 1%);
+  }
+}
+
 /* Lenis */
 html.lenis {
   height: auto;
@@ -342,7 +361,8 @@ html.lenis {
   .animate-float,
   .animate-float-slow,
   .pulse-ring,
-  .shimmer-btn::after {
+  .shimmer-btn::after,
+  .ken-burns {
     animation: none !important;
   }
 }
