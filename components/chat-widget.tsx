@@ -127,7 +127,13 @@ export function ChatWidget() {
           <p className="text-xs text-gray-400 mt-0.5">مساعد آلي — للتحدث مع فريقنا استخدم واتساب</p>
         </div>
 
-        <div className="flex-1 max-h-80 overflow-y-auto p-4 space-y-3" aria-live="polite">
+        {/* data-lenis-prevent: without it Lenis swallows the wheel event and
+            scrolls the page instead of this list. */}
+        <div
+          data-lenis-prevent
+          className="flex-1 max-h-80 overflow-y-auto overscroll-contain p-4 space-y-3"
+          aria-live="polite"
+        >
           {messages.map((message) => (
             <div
               key={message.id}
