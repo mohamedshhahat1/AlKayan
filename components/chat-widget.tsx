@@ -115,89 +115,95 @@ export function ChatWidget() {
         {open ? <X className="w-6 h-6" aria-hidden="true" /> : <MessageCircle className="w-6 h-6" aria-hidden="true" />}
       </button>
 
-      <div
-        id="chat-panel"
-        role="dialog"
-        aria-label="المساعد الآلي"
-        hidden={!open}
-        className="fixed bottom-24 left-6 z-50 w-[min(22rem,calc(100vw-3rem))] rounded-3xl glass border border-gold/20 overflow-hidden flex flex-col"
-      >
-        <div className="p-4 border-b border-white/10">
-          <p className="font-bold text-white">{siteConfig.name}</p>
-          <p className="text-xs text-gray-400 mt-0.5">مساعد آلي — للتحدث مع فريقنا استخدم واتساب</p>
-        </div>
-
-        {/* data-lenis-prevent: without it Lenis swallows the wheel event and
-            scrolls the page instead of this list. */}
+      {/*
+        Rendered conditionally rather than with the `hidden` attribute. `hidden`
+        is only `display: none` from the UA stylesheet, so the `flex` class on
+        this element overrode it and the panel was always on screen.
+      */}
+      {open && (
         <div
-          data-lenis-prevent
-          className="flex-1 max-h-80 overflow-y-auto overscroll-contain p-4 space-y-3"
-          aria-live="polite"
+          id="chat-panel"
+          role="dialog"
+          aria-label="المساعد الآلي"
+          className="fixed bottom-24 left-6 z-50 w-[min(22rem,calc(100vw-3rem))] rounded-3xl glass border border-gold/20 overflow-hidden flex flex-col"
         >
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                message.from === "bot"
-                  ? "glass-light text-gray-200"
-                  : "gold-gradient-bg text-navy-deep font-medium mr-auto"
-              }`}
-            >
-              {message.text}
-            </div>
-          ))}
-          <div ref={endRef} />
-        </div>
+          <div className="p-4 border-b border-white/10">
+            <p className="font-bold text-white">{siteConfig.name}</p>
+            <p className="text-xs text-gray-400 mt-0.5">مساعد آلي — للتحدث مع فريقنا استخدم واتساب</p>
+          </div>
 
-        <div className="px-4 pb-2 flex flex-wrap gap-2">
-          {quickQuestions.map((question) => (
-            <button
-              key={question}
-              type="button"
-              onClick={() => send(question)}
-              className="text-[11px] px-3 py-1.5 rounded-full glass-light text-gray-300 hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-            >
-              {question}
-            </button>
-          ))}
-        </div>
-
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            send(input);
-          }}
-          className="p-4 pt-2 border-t border-white/10 flex items-center gap-2"
-        >
-          <label htmlFor="chat-input" className="sr-only">
-            اكتب رسالتك
-          </label>
-          <input
-            id="chat-input"
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            placeholder="اكتب سؤالك..."
-            className="flex-1 min-w-0 rounded-full bg-navy-light border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-gold/50"
-          />
-          <button
-            type="submit"
-            aria-label="إرسال"
-            className="w-10 h-10 rounded-full gold-gradient-bg flex items-center justify-center text-navy-deep flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          {/* data-lenis-prevent: without it Lenis swallows the wheel event and
+              scrolls the page instead of this list. */}
+          <div
+            data-lenis-prevent
+            className="flex-1 max-h-80 overflow-y-auto overscroll-contain p-4 space-y-3"
+            aria-live="polite"
           >
-            <Send className="w-4 h-4" aria-hidden="true" />
-          </button>
-        </form>
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                  message.from === "bot"
+                    ? "glass-light text-gray-200"
+                    : "gold-gradient-bg text-navy-deep font-medium mr-auto"
+                }`}
+              >
+                {message.text}
+              </div>
+            ))}
+            <div ref={endRef} />
+          </div>
 
-        <a
-          href={contact.whatsappHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 py-3 bg-[#25D366]/10 text-[#25D366] text-sm font-medium hover:bg-[#25D366]/20 transition-colors"
-        >
-          <WhatsAppIcon className="w-4 h-4 fill-current" />
-          التحدث مع فريقنا على واتساب
-        </a>
-      </div>
+          <div className="px-4 pb-2 flex flex-wrap gap-2">
+            {quickQuestions.map((question) => (
+              <button
+                key={question}
+                type="button"
+                onClick={() => send(question)}
+                className="text-[11px] px-3 py-1.5 rounded-full glass-light text-gray-300 hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              send(input);
+            }}
+            className="p-4 pt-2 border-t border-white/10 flex items-center gap-2"
+          >
+            <label htmlFor="chat-input" className="sr-only">
+              اكتب رسالتك
+            </label>
+            <input
+              id="chat-input"
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              placeholder="اكتب سؤالك..."
+              className="flex-1 min-w-0 rounded-full bg-navy-light border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-gold/50"
+            />
+            <button
+              type="submit"
+              aria-label="إرسال"
+              className="w-10 h-10 rounded-full gold-gradient-bg flex items-center justify-center text-navy-deep flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            >
+              <Send className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </form>
+
+          <a
+            href={contact.whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 py-3 bg-[#25D366]/10 text-[#25D366] text-sm font-medium hover:bg-[#25D366]/20 transition-colors"
+          >
+            <WhatsAppIcon className="w-4 h-4 fill-current" />
+            التحدث مع فريقنا على واتساب
+          </a>
+        </div>
+      )}
     </>
   );
 }
