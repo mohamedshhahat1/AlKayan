@@ -170,7 +170,11 @@
   }
 
   .bg-image-scrim {
-    background: linear-gradient(to top, rgba(8, 24, 48, 0.95) 0%, rgba(8, 24, 48, 0.35) 45%, transparent 100%);
+    background: linear-gradient(to top,
+      rgba(8, 24, 48, 0.7) 0%,
+      rgba(8, 24, 48, 0.45) 25%,
+      rgba(8, 24, 48, 0.15) 55%,
+      transparent 85%);
   }
 
   .bg-gold-radial {

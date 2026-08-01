@@ -166,7 +166,7 @@ export function ProjectsSection() {
                         loading="lazy"
                         className="zoom-image w-full h-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-image-scrim opacity-80 group-hover:opacity-90 transition-opacity duration-500" />
+                      <div className="absolute inset-0 bg-image-scrim transition-opacity duration-500" />
 
                       <div className="absolute top-4 right-4">
                         <span className="glass-gold text-gold text-xs font-bold px-3 py-1.5 rounded-full">
@@ -201,6 +201,8 @@ export function ProjectsSection() {
       <AnimatePresence>
         {selected && <ProjectModal project={selected} onClose={() => setSelected(null)} />}
       </AnimatePresence>
+
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-background" />
     </section>
   );
 }
