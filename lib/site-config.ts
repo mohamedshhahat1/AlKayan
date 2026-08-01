@@ -58,19 +58,17 @@ export const siteConfig = {
   ],
   contact: {
     phone: formatPhone(phoneDigits),
-    phoneE164: `+${phoneDigits}`,
-    telHref: `tel:+${phoneDigits}`,
-    whatsappHref: `https://wa.me/${phoneDigits}`,
+    phoneE164: "+" + phoneDigits,
+    telHref: "tel:+" + phoneDigits,
+    whatsappHref: "https://wa.me/" + phoneDigits,
     email,
-    mailtoHref: `mailto:${email}`,
+    mailtoHref: "mailto:" + email,
     address: "الرياض، المملكة العربية السعودية",
     addressShort: "الرياض، السعودية",
     city: "الرياض",
     countryCode: "SA",
     mapsHref:
       "https://www.google.com/maps/search/?api=1&query=Riyadh%2C+Saudi+Arabia",
-    mapEmbedSrc:
-      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d463895.7002415764!2d46.575583!3d24.713552!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e2f03890d489399%3A0xba974d1c98e79fd5!2sRiyadh%20Saudi%20Arabia!5e0!3m2!1sen!2s!4v1700000000000",
   },
   hours: {
     days: "السبت - الخميس",
@@ -97,3 +95,9 @@ export const siteConfig = {
 } as const;
 
 export type SiteConfig = typeof siteConfig;
+
+/** Social profiles that are actually configured, ready to map over. */
+export const socialLinks = [
+  { key: "facebook", label: "فيسبوك", href: siteConfig.social.facebook },
+  { key: "instagram", label: "انستغرام", href: siteConfig.social.instagram },
+].filter((link): link is { key: string; label: string; href: string } => Boolean(link.href));
