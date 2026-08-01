@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, MapPin, Calendar, Maximize, Clock, CheckCircle2 } from "lucide-react";
 import { Reveal, SectionHeading } from "@/components/reveal";
@@ -222,7 +223,11 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
     };
   }, [onClose]);
 
-  return (
+  // Rendered on document.body rather than inside <section id="projects">. A
+  // dialog nested in the section is subject to that subtree's stacking context
+  // and to any ancestor that establishes a containing block, which would pin
+  // this "fixed" overlay to the section instead of the viewport.
+  return createPortal(
     <>
       <motion.div
         initial={{ opacity: 0 }}
@@ -352,7 +357,8 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
           )}
         </div>
       </motion.div>
-    </>
+    </>,
+    document.body
   );
 }
 
