@@ -48,7 +48,7 @@ export function SiteHeader() {
     <header
       className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${
         scrolled ? "glass py-3 border-b border-border" : "bg-transparent py-5"
-      }`
+      }`}
     >
       <div className="container-luxury flex items-center justify-between gap-4">
         <a

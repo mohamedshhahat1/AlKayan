@@ -10,7 +10,6 @@ export function ThemeToggle() {
 
   useEffect(() => setMounted(true), []);
 
-  // Avoid hydration mismatch — render a placeholder until mounted.
   if (!mounted) {
     return <div className="w-11 h-11 rounded-xl glass-light" />;
   }
