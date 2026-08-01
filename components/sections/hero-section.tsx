@@ -31,8 +31,14 @@ export function HeroSection() {
         />
       </motion.div>
 
-      {/* Dark overlay */}
-      <div className="absolute inset-0 z-10 bg-gradient-to-b from-navy/80 via-navy/70 to-navy" style={{ background: "linear-gradient(180deg, rgba(11,31,58,0.85) 0%, rgba(11,31,58,0.7) 50%, rgba(11,31,58,1) 100%)" }} />
+      {/* Theme-aware overlay */}
+      <div
+        className="absolute inset-0 z-10"
+        style={{
+          background:
+            "linear-gradient(180deg, var(--hero-overlay-from) 0%, var(--hero-overlay-mid) 50%, var(--hero-overlay-to) 100%)",
+        }}
+      />
 
       {/* Animated architectural lines */}
       <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
@@ -103,7 +109,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.5, ease: [0.4, 0, 0.2, 1] }}
-            className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold text-white leading-[1.1] mb-8 text-balance"
+            className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold text-foreground leading-[1.1] mb-8 text-balance"
           >
             من الفكرة...
             <br />
@@ -114,7 +120,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="text-lg sm:text-xl text-gray-200 max-w-2xl mx-auto mb-12 leading-relaxed text-balance"
+            className="text-lg sm:text-xl text-foreground/90 max-w-2xl mx-auto mb-12 leading-relaxed text-balance"
           >
             نصمم، ننفذ، ونشرف على جميع أعمال التشطيبات والمقاولات بأعلى معايير الجودة والاحترافية
           </motion.p>
@@ -135,7 +141,7 @@ export function HeroSection() {
             </a>
             <a
               href="#projects"
-              className="glass-light text-white font-bold text-base px-8 py-4 rounded-full hover:bg-white/10 transition-all duration-300 hover:scale-105 flex items-center gap-2 border border-white/20"
+              className="glass-light text-foreground font-bold text-base px-8 py-4 rounded-full hover:bg-foreground/10 transition-all duration-300 hover:scale-105 flex items-center gap-2 border border-border"
             >
               تصفح أعمالنا
               <ArrowLeft className="w-5 h-5" />
@@ -149,7 +155,7 @@ export function HeroSection() {
         style={{ opacity }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
       >
-        <span className="text-xs text-gray-400 tracking-widest">اكتشف المزيد</span>
+        <span className="text-xs text-muted-foreground tracking-widest">اكتشف المزيد</span>
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
