@@ -35,7 +35,7 @@ export function WorkProcessSection() {
 
         <div ref={ref} className="mt-20 relative">
           {/* Background line */}
-          <div className="absolute top-0 bottom-0 right-1/2 translate-x-1/2 w-1 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.06)" }} />
+          <div className="absolute top-0 bottom-0 right-1/2 translate-x-1/2 w-1 rounded-full" style={{ backgroundColor: "var(--line-bg)" }} />
 
           {/* Animated progress line */}
           <motion.div
@@ -56,14 +56,14 @@ export function WorkProcessSection() {
                         </div>
                         <span className="text-3xl font-extrabold text-gold opacity-30">0{i + 1}</span>
                       </div>
-                      <h3 className="text-lg font-bold text-white mb-2">{step.title}</h3>
-                      <p className="text-sm text-gray-400 leading-relaxed">{step.desc}</p>
+                      <h3 className="text-lg font-bold text-foreground mb-2">{step.title}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
                     </div>
                   </div>
 
                   {/* Center dot */}
                   <div className="relative z-10 flex-shrink-0">
-                    <div className="w-6 h-6 rounded-full gold-gradient-bg ring-4 ring-navy" style={{ boxShadow: "0 0 20px rgba(212,175,55,0.4)" }} />
+                    <div className="w-6 h-6 rounded-full gold-gradient-bg ring-4 ring-background" style={{ boxShadow: "0 0 20px rgba(212,175,55,0.4)" }} />
                   </div>
 
                   {/* Spacer */}

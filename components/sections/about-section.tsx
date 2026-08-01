@@ -44,8 +44,8 @@ export function AboutSection() {
                       </div>
                       <span className="text-5xl font-extrabold opacity-10 text-gold">{item.step}</span>
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
-                    <p className="text-gray-300 text-sm leading-relaxed">{item.desc}</p>
+                    <h3 className="text-xl font-bold text-foreground mb-3">{item.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
                   </div>
 
                   {/* Arrow between items (desktop) */}
@@ -72,13 +72,13 @@ export function AboutSection() {
                   "url(https://images.pexels.com/photos/7722168/pexels-photo-7722168.jpeg?auto=compress&cs=tinysrgb&w=1920)",
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/50 to-transparent" style={{ background: "linear-gradient(90deg, rgba(11,31,58,0.95), rgba(11,31,58,0.4), transparent)" }} />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, var(--scrim-h-from), var(--scrim-h-mid), transparent)" }} />
             <div className="relative h-full flex items-center px-8 lg:px-16">
               <div className="max-w-lg">
-                <h3 className="text-2xl lg:text-3xl font-bold text-white mb-4">
+                <h3 className="text-2xl lg:text-3xl font-bold text-foreground mb-4">
                   نحوّل المساحات إلى <span className="gold-gradient-text">تحف فنية</span>
                 </h3>
-                <p className="text-gray-300 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   نمتلك خبرة تمتد لأكثر من 15 عاماً في تنفيذ مشاريع سكنية وتجارية فاخرة بأعلى معايير الجودة العالمية
                 </p>
               </div>

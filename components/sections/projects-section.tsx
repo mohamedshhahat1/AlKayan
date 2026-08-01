@@ -119,13 +119,13 @@ export function ProjectsSection() {
         )}
 
         {status === "error" && (
-          <p role="status" className="mt-12 text-center text-gray-400">
+          <p role="status" className="mt-12 text-center text-muted-foreground">
             تعذر تحميل المشاريع حالياً. يرجى المحاولة لاحقاً.
           </p>
         )}
 
         {status === "ready" && projects.length === 0 && (
-          <p className="mt-12 text-center text-gray-400">سيتم إضافة المشاريع قريباً.</p>
+          <p className="mt-12 text-center text-muted-foreground">سيتم إضافة المشاريع قريباً.</p>
         )}
 
         {status === "ready" && projects.length > 0 && (
@@ -141,7 +141,7 @@ export function ProjectsSection() {
                     className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
                       activeCategory === category
                         ? "gold-gradient-bg text-navy-deep"
-                        : "glass-light text-gray-300 hover:text-gold hover:border-gold/30"
+                        : "glass-light text-muted-foreground hover:text-gold hover:border-gold/30"
                     }`}
                   >
                     {category === "all" ? "الكل" : categoryLabel(category)}
@@ -192,7 +192,7 @@ export function ProjectsSection() {
             </div>
 
             {filtered.length === 0 && (
-              <p className="mt-10 text-center text-gray-400">لا توجد مشاريع في هذا التصنيف.</p>
+              <p className="mt-10 text-center text-muted-foreground">لا توجد مشاريع في هذا التصنيف.</p>
             )}
           </>
         )}
@@ -246,12 +246,12 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-        className="fixed inset-4 sm:inset-8 lg:inset-12 z-[70] rounded-3xl overflow-y-auto overscroll-contain glass border border-gold/20 bg-navy/95"
+        className="fixed inset-4 sm:inset-8 lg:inset-12 z-[70] rounded-3xl overflow-y-auto overscroll-contain glass border border-gold/20 bg-card/95"
       >
         <button
           type="button"
           onClick={onClose}
-          className="sticky top-6 float-left ml-6 z-[80] w-11 h-11 rounded-full glass-light flex items-center justify-center text-white hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          className="sticky top-6 float-left ml-6 z-[80] w-11 h-11 rounded-full glass-light flex items-center justify-center text-foreground hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           aria-label="إغلاق"
         >
           <X className="w-5 h-5" aria-hidden="true" />
@@ -288,7 +288,7 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
 
           {project.gallery_images && project.gallery_images.length > 0 && (
             <div>
-              <h3 className="text-xl font-bold text-white mb-5">معرض الصور</h3>
+              <h3 className="text-xl font-bold text-foreground mb-5">معرض الصور</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {project.gallery_images.map((image, index) => (
                   <div key={image} className="zoom-container rounded-xl overflow-hidden glass">
@@ -306,7 +306,7 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
 
           {project.before_image && project.after_image && (
             <div>
-              <h3 className="text-xl font-bold text-white mb-5">قبل و بعد</h3>
+              <h3 className="text-xl font-bold text-foreground mb-5">قبل و بعد</h3>
               <BeforeAfterSlider
                 before={project.before_image}
                 after={project.after_image}
@@ -317,7 +317,7 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
 
           {project.services_included && project.services_included.length > 0 && (
             <div>
-              <h3 className="text-xl font-bold text-white mb-5">الخدمات المضمنة</h3>
+              <h3 className="text-xl font-bold text-foreground mb-5">الخدمات المضمنة</h3>
               <ul className="flex flex-wrap gap-3">
                 {project.services_included.map((service) => (
                   <li
@@ -334,10 +334,10 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
 
           {project.materials_used && project.materials_used.length > 0 && (
             <div>
-              <h3 className="text-xl font-bold text-white mb-5">الخامات المستخدمة</h3>
+              <h3 className="text-xl font-bold text-foreground mb-5">الخامات المستخدمة</h3>
               <ul className="flex flex-wrap gap-3">
                 {project.materials_used.map((material) => (
-                  <li key={material} className="glass-light text-gray-300 text-sm px-4 py-2 rounded-full">
+                  <li key={material} className="glass-light text-muted-foreground text-sm px-4 py-2 rounded-full">
                     {material}
                   </li>
                 ))}
@@ -347,7 +347,7 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
 
           {project.client_testimonial && (
             <figure className="glass rounded-2xl p-8">
-              <blockquote className="text-lg text-gray-200 leading-relaxed mb-4 italic">
+              <blockquote className="text-lg text-foreground/90 leading-relaxed mb-4 italic">
                 {project.client_testimonial}
               </blockquote>
               {project.client_name && (
@@ -374,8 +374,8 @@ function InfoCard({
   return (
     <div className="glass rounded-xl p-5">
       <Icon className="w-5 h-5 text-gold mb-3" aria-hidden="true" />
-      <p className="text-xs text-gray-400 mb-1">{label}</p>
-      <p className="text-sm font-bold text-white">{value}</p>
+      <p className="text-xs text-muted-foreground mb-1">{label}</p>
+      <p className="text-sm font-bold text-foreground">{value}</p>
     </div>
   );
 }

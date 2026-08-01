@@ -75,13 +75,13 @@ export function TestimonialsSection() {
           )}
 
           {status === "error" && (
-            <p role="status" className="text-center text-gray-400">
+            <p role="status" className="text-center text-muted-foreground">
               تعذر تحميل آراء العملاء حالياً. يرجى المحاولة لاحقاً.
             </p>
           )}
 
           {status === "ready" && testimonials.length === 0 && (
-            <p className="text-center text-gray-400">لا توجد آراء منشورة بعد.</p>
+            <p className="text-center text-muted-foreground">لا توجد آراء منشورة بعد.</p>
           )}
 
           {status === "ready" && testimonials.length > 0 && (
@@ -112,18 +112,18 @@ export function TestimonialsSection() {
                           <span
                             key={index}
                             aria-hidden="true"
-                            className={index < testimonial.rating ? "text-gold text-lg" : "text-gray-600 text-lg"}
+                            className={index < testimonial.rating ? "text-gold text-lg" : "text-muted-foreground/50 text-lg"}
                           >
                             ★
                           </span>
                         ))}
                       </div>
 
-                      <blockquote className="text-gray-200 leading-relaxed flex-1 mb-6 text-balance">
+                      <blockquote className="text-foreground/90 leading-relaxed flex-1 mb-6 text-balance">
                         {testimonial.content}
                       </blockquote>
 
-                      <figcaption className="flex items-center gap-4 pt-4 border-t border-white/10">
+                      <figcaption className="flex items-center gap-4 pt-4 border-t border-border">
                         {testimonial.avatar_url ? (
                           <img
                             src={testimonial.avatar_url}
@@ -139,9 +139,9 @@ export function TestimonialsSection() {
                           </div>
                         )}
                         <div>
-                          <p className="font-bold text-white text-sm">{testimonial.client_name}</p>
+                          <p className="font-bold text-foreground text-sm">{testimonial.client_name}</p>
                           {testimonial.client_title && (
-                            <p className="text-xs text-gray-400 mt-0.5">{testimonial.client_title}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{testimonial.client_title}</p>
                           )}
                         </div>
                       </figcaption>

@@ -56,17 +56,17 @@ export function FaqSection() {
               <AccordionItem
                 key={i}
                 value={`item-${i}`}
-                className="glass rounded-2xl px-6 border border-white/10 data-[state=open]:border-gold/30 transition-colors duration-300"
+                className="glass rounded-2xl px-6 border border-border data-[state=open]:border-gold/30 transition-colors duration-300"
               >
                 <AccordionTrigger className="text-right hover:no-underline py-6 group">
                   <span className="flex items-center justify-between w-full gap-4">
-                    <span className="text-base font-bold text-white group-data-[state=open]:text-gold transition-colors duration-300">
+                    <span className="text-base font-bold text-foreground group-data-[state=open]:text-gold transition-colors duration-300">
                       {faq.q}
                     </span>
                     <ChevronDown className="w-5 h-5 text-gold flex-shrink-0 transition-transform duration-300 group-data-[state=open]:rotate-180" />
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="text-gray-300 leading-relaxed pb-6 pt-2">
+                <AccordionContent className="text-muted-foreground leading-relaxed pb-6 pt-2">
                   {faq.a}
                 </AccordionContent>
               </AccordionItem>

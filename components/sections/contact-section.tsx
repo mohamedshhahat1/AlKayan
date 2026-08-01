@@ -116,8 +116,8 @@ export function ContactSection() {
                     <Phone className="w-5 h-5 text-gold" aria-hidden="true" />
                   </span>
                   <span>
-                    <span className="block text-sm text-gray-400 mb-1">اتصل بنا</span>
-                    <span className="block font-bold text-white" dir="ltr">
+                    <span className="block text-sm text-muted-foreground mb-1">اتصل بنا</span>
+                    <span className="block font-bold text-foreground" dir="ltr">
                       {siteConfig.contact.phone}
                     </span>
                   </span>
@@ -135,8 +135,8 @@ export function ContactSection() {
                     <WhatsAppIcon className="w-5 h-5 fill-gold" />
                   </span>
                   <span>
-                    <span className="block text-sm text-gray-400 mb-1">واتساب</span>
-                    <span className="block font-bold text-white">راسلنا مباشرة</span>
+                    <span className="block text-sm text-muted-foreground mb-1">واتساب</span>
+                    <span className="block font-bold text-foreground">راسلنا مباشرة</span>
                   </span>
                 </a>
               </li>
@@ -150,8 +150,8 @@ export function ContactSection() {
                     <Mail className="w-5 h-5 text-gold" aria-hidden="true" />
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-sm text-gray-400 mb-1">البريد الإلكتروني</span>
-                    <span className="block font-bold text-white break-all">{siteConfig.contact.email}</span>
+                    <span className="block text-sm text-muted-foreground mb-1">البريد الإلكتروني</span>
+                    <span className="block font-bold text-foreground break-all">{siteConfig.contact.email}</span>
                   </span>
                 </a>
               </li>
@@ -167,8 +167,8 @@ export function ContactSection() {
                     <MapPin className="w-5 h-5 text-gold" aria-hidden="true" />
                   </span>
                   <span>
-                    <span className="block text-sm text-gray-400 mb-1">العنوان</span>
-                    <span className="block font-bold text-white">{siteConfig.contact.address}</span>
+                    <span className="block text-sm text-muted-foreground mb-1">العنوان</span>
+                    <span className="block font-bold text-foreground">{siteConfig.contact.address}</span>
                   </span>
                 </a>
               </li>
@@ -179,9 +179,9 @@ export function ContactSection() {
                   <Clock className="w-5 h-5 text-gold" aria-hidden="true" />
                 </span>
                 <span>
-                  <span className="block text-sm text-gray-400 mb-1">ساعات العمل</span>
-                  <span className="block font-bold text-white">{siteConfig.hours.days}</span>
-                  <span className="block text-sm text-gray-300">{siteConfig.hours.time}</span>
+                  <span className="block text-sm text-muted-foreground mb-1">ساعات العمل</span>
+                  <span className="block font-bold text-foreground">{siteConfig.hours.days}</span>
+                  <span className="block text-sm text-muted-foreground">{siteConfig.hours.time}</span>
                 </span>
               </li>
             </ul>
@@ -232,14 +232,14 @@ export function ContactSection() {
                 />
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="service_type" className="block text-sm text-gray-300 mb-2">
+                  <label htmlFor="service_type" className="block text-sm text-muted-foreground mb-2">
                     نوع الخدمة (اختياري)
                   </label>
                   <select
                     id="service_type"
                     value={form.service_type}
                     onChange={(event) => update("service_type", event.target.value)}
-                    className="w-full rounded-xl bg-navy-light border border-white/10 px-4 py-3 text-white focus:outline-none focus:border-gold/50 focus-visible:ring-2 focus-visible:ring-gold transition-colors"
+                    className="w-full rounded-xl bg-input border border-border px-4 py-3 text-foreground focus:outline-none focus:border-gold/50 focus-visible:ring-2 focus-visible:ring-gold transition-colors"
                   >
                     <option value="">اختر الخدمة</option>
                     {serviceOptions.map((service) => (
@@ -251,7 +251,7 @@ export function ContactSection() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="message" className="block text-sm text-gray-300 mb-2">
+                  <label htmlFor="message" className="block text-sm text-muted-foreground mb-2">
                     تفاصيل المشروع (اختياري)
                   </label>
                   <textarea
@@ -262,7 +262,7 @@ export function ContactSection() {
                     onChange={(event) => update("message", event.target.value)}
                     aria-invalid={Boolean(errors.message)}
                     aria-describedby={errors.message ? "message-error" : undefined}
-                    className="w-full rounded-xl bg-navy-light border border-white/10 px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-gold/50 focus-visible:ring-2 focus-visible:ring-gold transition-colors resize-y"
+                    className="w-full rounded-xl bg-input border border-border px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-gold/50 focus-visible:ring-2 focus-visible:ring-gold transition-colors resize-y"
                     placeholder="المساحة، الموقع، وما تحتاجه بالتحديد..."
                   />
                   {errors.message && (
@@ -344,7 +344,7 @@ function Field({
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "id" | "value" | "onChange" | "type">) {
   return (
     <div>
-      <label htmlFor={id} className="block text-sm text-gray-300 mb-2">
+      <label htmlFor={id} className="block text-sm text-muted-foreground mb-2">
         {label}
         {required && (
           <span className="text-gold" aria-hidden="true">
@@ -360,7 +360,7 @@ function Field({
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-error` : undefined}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-xl bg-navy-light border border-white/10 px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-gold/50 focus-visible:ring-2 focus-visible:ring-gold transition-colors"
+        className="w-full rounded-xl bg-input border border-border px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-gold/50 focus-visible:ring-2 focus-visible:ring-gold transition-colors"
         {...rest}
       />
       {error && (

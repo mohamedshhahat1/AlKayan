@@ -55,8 +55,8 @@ export function PartnersSection() {
       </div>
 
       <div className="relative overflow-hidden">
-        <div className="absolute top-0 bottom-0 right-0 z-10 w-32 pointer-events-none bg-gradient-to-l from-navy-deep to-transparent" />
-        <div className="absolute top-0 bottom-0 left-0 z-10 w-32 pointer-events-none bg-gradient-to-r from-navy-deep to-transparent" />
+        <div className="absolute top-0 bottom-0 right-0 z-10 w-32 pointer-events-none bg-gradient-to-l from-background to-transparent" />
+        <div className="absolute top-0 bottom-0 left-0 z-10 w-32 pointer-events-none bg-gradient-to-r from-background to-transparent" />
 
         <div className="flex animate-marquee gap-12 w-max">
           {loop.map((partner, index) => (
@@ -74,7 +74,7 @@ export function PartnersSection() {
                   className="max-h-16 opacity-50 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500"
                 />
               ) : (
-                <span className="text-xl font-bold text-gray-500 group-hover:text-gold transition-colors duration-500 whitespace-nowrap">
+                <span className="text-xl font-bold text-muted-foreground/70 group-hover:text-gold transition-colors duration-500 whitespace-nowrap">
                   {partner.name}
                 </span>
               )}

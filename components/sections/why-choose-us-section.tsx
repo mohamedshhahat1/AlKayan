@@ -33,10 +33,10 @@ export function WhyChooseUsSection() {
                 <div className="inline-flex w-16 h-16 rounded-2xl glass-gold items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   <f.icon className="w-7 h-7 text-gold" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-3 group-hover:text-gold transition-colors duration-300">
+                <h3 className="text-lg font-bold text-foreground mb-3 group-hover:text-gold transition-colors duration-300">
                   {f.title}
                 </h3>
-                <p className="text-sm text-gray-400 leading-relaxed">{f.desc}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
               </div>
             </Reveal>
           ))}

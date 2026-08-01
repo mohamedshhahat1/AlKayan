@@ -46,7 +46,7 @@ export function BeforeAfterSection() {
                 className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
                   active === index
                     ? "gold-gradient-bg text-navy-deep"
-                    : "glass-light text-gray-300 hover:text-gold hover:border-gold/30"
+                    : "glass-light text-muted-foreground hover:text-gold hover:border-gold/30"
                 }`}
               >
                 {item.title}
@@ -62,7 +62,7 @@ export function BeforeAfterSection() {
             after={project.after}
             className="h-72 sm:h-96 lg:h-[500px] rounded-3xl"
           />
-          <p className="text-center text-gray-400 text-sm mt-4">
+          <p className="text-center text-muted-foreground text-sm mt-4">
             اسحب المقبض أو استخدم أسهم لوحة المفاتيح لرؤية الفرق
           </p>
         </Reveal>

@@ -75,7 +75,7 @@ export function DesignsSection() {
                 className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
                   active === cat.id
                     ? "gold-gradient-bg text-navy"
-                    : "glass-light text-gray-300 hover:text-gold hover:border-gold/30"
+                    : "glass-light text-muted-foreground hover:text-gold hover:border-gold/30"
                 }`}
                 style={active === cat.id ? { color: "#0B1F3A" } : {}}
               >
@@ -96,7 +96,7 @@ export function DesignsSection() {
                   className="zoom-image w-full h-64 object-cover"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-navy/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-5" style={{ background: "linear-gradient(180deg, transparent 50%, rgba(11,31,58,0.8) 100%)" }}>
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-5" style={{ background: "linear-gradient(180deg, transparent 50%, rgba(11,31,58,0.8) 100%)" }}>
                   <span className="text-white font-bold">{activeCategory.label}</span>
                 </div>
               </div>
