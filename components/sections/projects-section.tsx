@@ -414,11 +414,15 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
           {project.before_image && project.after_image && (
             <div>
               <h3 className="text-xl font-bold text-foreground mb-5">قبل و بعد</h3>
-              <BeforeAfterSlider
-                before={project.before_image}
-                after={project.after_image}
-                className="aspect-[4/3] sm:aspect-[3/2] lg:aspect-[16/9] rounded-2xl"
-              />
+              {/* Deliberately smaller than the section-level comparison: this is
+                  one detail among many in the dialog, not the headline. */}
+              <div className="w-full max-w-2xl">
+                <BeforeAfterSlider
+                  before={project.before_image}
+                  after={project.after_image}
+                  className="aspect-[3/2] sm:aspect-[16/9] rounded-2xl"
+                />
+              </div>
             </div>
           )}
 
