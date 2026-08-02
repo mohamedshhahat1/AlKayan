@@ -147,18 +147,19 @@ export function HeroSection() {
             ELITE CONSTRUCTION &amp; INTERIOR
           </span>
 
+          {/* Three lines: gold, white, gold. The middle word carries no colour
+              class — it inherits text-white from the h1. Both gold lines use
+              solid --gold to match the back-to-top button; the gradient
+              version reaches --gold-dark over a long line and reads duller. */}
           <h1
             className="hero-in text-4xl sm:text-5xl lg:text-7xl font-extrabold text-white leading-[1.1] mb-5 text-balance"
             style={{ textShadow: HEADING_SHADOW, animationDelay: "0.5s" }}
           >
-            من الفكرة...
+            <span className="text-gold">من الفكرة …</span>
             <br />
-            {/* Solid --gold, matching the back-to-top button. The gradient
-                version (.gold-gradient-text) is the same ramp the button uses,
-                but stretched over a headline it reaches --gold-dark and reads
-                duller than the button does. Solid text also takes the h1's
-                inherited text-shadow, which clipped gradient text cannot. */}
-            <span className="text-gold">إلى تسليم المفتاح</span>
+            الي
+            <br />
+            <span className="text-gold">تسليم المفتاح …</span>
           </h1>
 
           <p
