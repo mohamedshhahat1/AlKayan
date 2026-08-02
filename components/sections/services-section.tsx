@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
 import { Reveal, SectionHeading } from "@/components/reveal";
 import {
   Building2, Home, Briefcase, Store, Stethoscope, UtensilsCrossed,
@@ -15,92 +15,113 @@ type Service = {
   desc: string;
 };
 
-const serviceGroups: { label: string; services: Service[] }[] = [
+const serviceGroups: { id: string; label: string; services: Service[] }[] = [
   {
+    id: "finishing",
     label: "التشطيبات",
     services: [
-      { icon: Home, title: "تشطيب الشقق", desc: "تشطيب شقق سكنية بتصاميم عصرية وجودة عالية" },
-      { icon: Building2, title: "تشطيب الفلل", desc: "تشطيب فلل فاخرة بأدق التفاصيل والخامات" },
-      { icon: Briefcase, title: "تشطيب المكاتب", desc: "مساحات عمل احترافية تعكس هوية شركتك" },
-      { icon: Store, title: "تشطيب المحلات", desc: "تصاميم تجارية جذابة تجلب الزوار" },
-      { icon: Stethoscope, title: "تشطيب العيادات", desc: "بيئات طبية نظيفة ومريحة واحترافية" },
-      { icon: UtensilsCrossed, title: "تشطيب المطاعم والكافيهات", desc: "أجواء استثنائية تترك انطباعاً لا يُنسى" },
-      { icon: Building, title: "تشطيب الشركات", desc: "مقرات شركات تعكس الاحترافية والرقي" },
+      { icon: Home, title: "تشطيب الشقق", desc: "تصاميم عصرية وجودة عالية" },
+      { icon: Building2, title: "تشطيب الفلل", desc: "فلل فاخرة بأدق التفاصيل" },
+      { icon: Briefcase, title: "تشطيب المكاتب", desc: "مساحات عمل احترافية" },
+      { icon: Store, title: "تشطيب المحلات", desc: "تصاميم تجارية جذابة" },
+      { icon: Stethoscope, title: "تشطيب العيادات", desc: "بيئات طبية نظيفة ومريحة" },
+      { icon: UtensilsCrossed, title: "المطاعم والكافيهات", desc: "أجواء استثنائية لا تُنسى" },
+      { icon: Building, title: "تشطيب الشركات", desc: "مقرات تعكس الاحترافية" },
     ],
   },
   {
+    id: "design",
     label: "التصميم",
     services: [
-      { icon: Sofa, title: "تصميم داخلي", desc: "تصاميم داخلية فاخرة تناسب ذوقك الرفيع" },
-      { icon: Palette, title: "تصميم خارجي", desc: "واجهات معمارية تلفت الأنظار" },
-      { icon: Ruler, title: "تصميم 2D", desc: "مخططات دقيقة وشاملة لكل تفاصيل المشروع" },
-      { icon: Box, title: "تصميم 3D", desc: "مشاهدة واقعية لمشروعك قبل التنفيذ" },
-      { icon: Trees, title: "تصميم حدائق", desc: "مساحات خضراء ساحرة تبعث الراحة" },
-      { icon: Flower2, title: "تصميم المناظر", desc: "تنسيق خارجي متكامل يتناغم مع الطبيعة" },
-      { icon: DoorOpen, title: "المداخل", desc: "مداخل فاخرة تترك انطباعاً أولياً قوياً" },
-      { icon: Sun, title: "الواجهات", desc: "واجهات معمارية مبتكرة وعصرية" },
+      { icon: Sofa, title: "تصميم داخلي", desc: "تصاميم فاخرة تناسب ذوقك" },
+      { icon: Palette, title: "تصميم خارجي", desc: "واجهات معمارية لافتة" },
+      { icon: Ruler, title: "تصميم 2D", desc: "مخططات دقيقة وشاملة" },
+      { icon: Box, title: "تصميم 3D", desc: "مشاهدة واقعية قبل التنفيذ" },
+      { icon: Trees, title: "تصميم حدائق", desc: "مساحات خضراء ساحرة" },
+      { icon: Flower2, title: "تصميم المناظر", desc: "تنسيق خارجي متكامل" },
+      { icon: DoorOpen, title: "المداخل", desc: "انطباع أول قوي" },
+      { icon: Sun, title: "الواجهات", desc: "واجهات مبتكرة وعصرية" },
     ],
   },
   {
+    id: "specialized",
     label: "الأعمال المتخصصة",
     services: [
-      { icon: Zap, title: "الإضاءة", desc: "أنظمة إضاءة تخلق الأجواء المثالية" },
-      { icon: Droplets, title: "السباكة", desc: "أنظمة صحية متكاملة بأعلى المعايير" },
-      { icon: Layers, title: "الجبس بورد", desc: "تشكيلات جبسية ديكورية أنيقة" },
-      { icon: Paintbrush, title: "الدهانات", desc: "دهانات ديكورية فاخرة ودائمة" },
-      { icon: Grid3x3, title: "الأرضيات", desc: "أرضيات متنوعة بأفضل الخامات" },
-      { icon: Gem, title: "الرخام", desc: "أعمال رخام فاخرة بلمسة احترافية" },
-      { icon: TreePine, title: "النجارة", desc: "أعمال نجارة دقيقة وخامات ممتازة" },
-      { icon: DoorOpen, title: "الألمنيوم", desc: "أعمال ألمنيوم حراري وديكوري" },
+      { icon: Zap, title: "الإضاءة", desc: "أنظمة تخلق الأجواء المثالية" },
+      { icon: Droplets, title: "السباكة", desc: "أنظمة صحية متكاملة" },
+      { icon: Layers, title: "الجبس بورد", desc: "تشكيلات ديكورية أنيقة" },
+      { icon: Paintbrush, title: "الدهانات", desc: "دهانات فاخرة ودائمة" },
+      { icon: Grid3x3, title: "الأرضيات", desc: "أفضل الخامات والتشطيبات" },
+      { icon: Gem, title: "الرخام", desc: "أعمال رخام فاخرة" },
+      { icon: TreePine, title: "النجارة", desc: "دقة وخامات ممتازة" },
+      { icon: DoorOpen, title: "الألمنيوم", desc: "ألمنيوم حراري وديكوري" },
       { icon: Cpu, title: "السمارت هوم", desc: "أنظمة منزل ذكي متكاملة" },
-      { icon: RefreshCw, title: "الترميم", desc: "تجديد وترميم المساحات بلمسة عصرية" },
-      { icon: Wrench, title: "الصيانة", desc: "خدمات صيانة دورية احترافية" },
+      { icon: RefreshCw, title: "الترميم", desc: "تجديد بلمسة عصرية" },
+      { icon: Wrench, title: "الصيانة", desc: "صيانة دورية احترافية" },
     ],
   },
 ];
 
+/**
+ * All 26 services used to render at once in three stacked blocks. Same
+ * catalogue, but only the active group is in the DOM, so the section is a
+ * single screen instead of three.
+ */
 export function ServicesSection() {
+  const [active, setActive] = useState(serviceGroups[0].id);
+  const activeGroup = serviceGroups.find((group) => group.id === active)!;
+
   return (
-    <section id="services" className="relative py-24 lg:py-32">
+    <section id="services" className="relative py-14 lg:py-20">
       <div className="container-luxury">
         <SectionHeading
           eyebrow="خدماتنا"
           title="حلول متكاملة تحت سقف واحد"
-          subtitle="نقدم باقة شاملة من خدمات المقاولات والتشطيبات والتصميم لتلبية كل احتياجاتك"
+          subtitle="باقة شاملة من خدمات المقاولات والتشطيبات والتصميم لتلبية كل احتياجاتك"
         />
 
-        <div className="mt-20 space-y-16">
-          {serviceGroups.map((group, gi) => (
-            <div key={group.label}>
-              <Reveal>
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, rgba(212,175,55,0.4), transparent)" }} />
-                  <h3 className="text-lg font-bold text-gold tracking-wide">{group.label}</h3>
-                  <div className="h-px flex-1" style={{ background: "linear-gradient(270deg, rgba(212,175,55,0.4), transparent)" }} />
+        <Reveal delay={0.15} className="mt-8">
+          <div role="tablist" aria-label="تصنيفات الخدمات" className="flex flex-wrap items-center justify-center gap-3">
+            {serviceGroups.map((group) => (
+              <button
+                key={group.id}
+                type="button"
+                role="tab"
+                aria-selected={active === group.id}
+                onClick={() => setActive(group.id)}
+                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
+                  active === group.id
+                    ? "gold-gradient-bg"
+                    : "glass-light text-muted-foreground hover:text-gold hover:border-gold/30"
+                }`}
+                style={active === group.id ? { color: "#0B1F3A" } : {}}
+              >
+                {group.label}
+              </button>
+            ))}
+          </div>
+        </Reveal>
+
+        <div className="mt-8 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+          {activeGroup.services.map((service, i) => (
+            <Reveal key={`${active}-${service.title}`} delay={(i % 4) * 0.06} y={20}>
+              <div className="group relative glass rounded-xl p-4 sm:p-5 h-full hover:border-gold/30 transition-all duration-500 hover:-translate-y-1 cursor-default overflow-hidden">
+                <div
+                  className="absolute -top-10 -right-10 w-28 h-28 rounded-full opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500"
+                  style={{ background: "radial-gradient(circle, rgba(212,175,55,0.15), transparent)" }}
+                />
+
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-lg glass-gold flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                    <service.icon className="w-4 h-4 text-gold" aria-hidden="true" />
+                  </div>
+                  <h3 className="text-sm font-bold text-foreground mb-1 group-hover:text-gold transition-colors duration-300">
+                    {service.title}
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{service.desc}</p>
                 </div>
-              </Reveal>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {group.services.map((service, i) => (
-                  <Reveal key={service.title} delay={(i % 4) * 0.08} y={30}>
-                    <div className="group relative glass rounded-2xl p-6 h-full hover:border-gold/30 transition-all duration-500 hover:-translate-y-1.5 cursor-default overflow-hidden">
-                      {/* Hover glow */}
-                      <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500" style={{ background: "radial-gradient(circle, rgba(212,175,55,0.15), transparent)" }} />
-
-                      <div className="relative">
-                        <div className="w-12 h-12 rounded-xl glass-gold flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                          <service.icon className="w-5 h-5 text-gold" />
-                        </div>
-                        <h4 className="text-base font-bold text-foreground mb-2 group-hover:text-gold transition-colors duration-300">
-                          {service.title}
-                        </h4>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{service.desc}</p>
-                      </div>
-                    </div>
-                  </Reveal>
-                ))}
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>

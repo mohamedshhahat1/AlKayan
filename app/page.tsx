@@ -1,15 +1,11 @@
 import { HeroSection } from "@/components/sections/hero-section";
 import { AboutSection } from "@/components/sections/about-section";
 import { ServicesSection } from "@/components/sections/services-section";
-import { WhyChooseUsSection } from "@/components/sections/why-choose-us-section";
 import { ProjectsSection } from "@/components/sections/projects-section";
-import { BeforeAfterSection } from "@/components/sections/before-after-section";
 import { DesignsSection } from "@/components/sections/designs-section";
 import { WorkProcessSection } from "@/components/sections/work-process-section";
 import { StatsSection } from "@/components/sections/stats-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
-import { PartnersSection } from "@/components/sections/partners-section";
-import { FaqSection } from "@/components/sections/faq-section";
 import { ContactSection } from "@/components/sections/contact-section";
 import { siteConfig } from "@/lib/site-config";
 
@@ -44,6 +40,11 @@ const jsonLd = {
   priceRange: "$$$",
 };
 
+/**
+ * Section order is deliberately short: hero, who we are, what we do, proof,
+ * process, numbers, voices, and the ask. Anything that repeated another
+ * section was merged rather than stacked.
+ */
 export default function Home() {
   return (
     <>
@@ -54,15 +55,11 @@ export default function Home() {
       <HeroSection />
       <AboutSection />
       <ServicesSection />
-      <WhyChooseUsSection />
       <ProjectsSection />
-      <BeforeAfterSection />
       <DesignsSection />
       <WorkProcessSection />
       <StatsSection />
       <TestimonialsSection />
-      <PartnersSection />
-      <FaqSection />
       <ContactSection />
     </>
   );

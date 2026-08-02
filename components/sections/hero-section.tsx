@@ -2,7 +2,7 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import { ChevronDown, Calendar, ArrowLeft } from "lucide-react";
+import { Calendar, ArrowLeft } from "lucide-react";
 
 export function HeroSection() {
   const ref = useRef<HTMLElement>(null);
@@ -16,7 +16,13 @@ export function HeroSection() {
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
 
   return (
-    <section ref={ref} id="hero" className="relative h-screen min-h-[700px] w-full overflow-hidden">
+    // 80vh rather than a full screen: the fold still reads as a poster, but the
+    // next section is visible without a full page of scrolling.
+    <section
+      ref={ref}
+      id="hero"
+      className="relative h-[80vh] min-h-[560px] max-h-[880px] w-full overflow-hidden"
+    >
       {/* Background image with parallax + Ken Burns cinematic zoom */}
       <motion.div
         style={{ y, scale }}
@@ -100,16 +106,16 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="inline-block text-sm font-bold tracking-[0.4em] text-gold uppercase mb-6"
+            className="inline-block text-xs sm:text-sm font-bold tracking-[0.4em] text-gold uppercase mb-4"
           >
-            ELITE CONSTRUCTION & INTERIOR
+            ELITE CONSTRUCTION &amp; INTERIOR
           </motion.span>
 
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.5, ease: [0.4, 0, 0.2, 1] }}
-            className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold text-foreground leading-[1.1] mb-8 text-balance"
+            className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-foreground leading-[1.1] mb-5 text-balance"
           >
             من الفكرة...
             <br />
@@ -120,7 +126,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="text-lg sm:text-xl text-foreground/90 max-w-2xl mx-auto mb-12 leading-relaxed text-balance"
+            className="text-base sm:text-lg text-foreground/90 max-w-2xl mx-auto mb-8 leading-relaxed text-balance"
           >
             نصمم، ننفذ، ونشرف على جميع أعمال التشطيبات والمقاولات بأعلى معايير الجودة والاحترافية
           </motion.p>
@@ -133,7 +139,7 @@ export function HeroSection() {
           >
             <a
               href="#contact"
-              className="shimmer-btn gold-gradient-bg font-bold text-base px-8 py-4 rounded-full hover:shadow-2xl hover:shadow-gold/30 transition-all duration-300 hover:scale-105 flex items-center gap-2"
+              className="shimmer-btn gold-gradient-bg font-bold text-base px-8 py-3.5 rounded-full hover:shadow-2xl hover:shadow-gold/30 transition-all duration-300 hover:scale-105 flex items-center gap-2"
               style={{ color: "#0B1F3A" }}
             >
               <Calendar className="w-5 h-5" />
@@ -141,7 +147,7 @@ export function HeroSection() {
             </a>
             <a
               href="#projects"
-              className="glass-light text-foreground font-bold text-base px-8 py-4 rounded-full hover:bg-foreground/10 transition-all duration-300 hover:scale-105 flex items-center gap-2 border border-border"
+              className="glass-light text-foreground font-bold text-base px-8 py-3.5 rounded-full hover:bg-foreground/10 transition-all duration-300 hover:scale-105 flex items-center gap-2 border border-border"
             >
               تصفح أعمالنا
               <ArrowLeft className="w-5 h-5" />
@@ -153,9 +159,8 @@ export function HeroSection() {
       {/* Scroll indicator */}
       <motion.div
         style={{ opacity }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 hidden sm:flex flex-col items-center gap-2"
       >
-        <span className="text-xs text-muted-foreground tracking-widest">اكتشف المزيد</span>
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
