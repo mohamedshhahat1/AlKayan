@@ -125,28 +125,31 @@ export function HeroSection() {
         ))}
       </div>
 
-      {/* Content */}
+      {/* Content.
+
+          The wrapper keeps its scroll-linked fade because a MotionValue in
+          `style` renders at its current value on the server — it is never 0 on
+          a cold load.
+
+          The children below deliberately do NOT use framer initial/animate.
+          That pattern writes opacity: 0 into the server HTML and only lifts it
+          after hydration, which left the copy invisible until a refresh. They
+          use the .hero-in CSS animation instead, which runs at first paint. */}
       <motion.div
         style={{ opacity }}
         className="relative z-20 h-full flex items-center justify-center"
       >
         <div className="container-luxury text-center">
-          <motion.span
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="inline-block text-xs sm:text-sm font-bold tracking-[0.4em] text-gold uppercase mb-4"
-            style={{ textShadow: BODY_SHADOW }}
+          <span
+            className="hero-in inline-block text-xs sm:text-sm font-bold tracking-[0.4em] text-gold uppercase mb-4"
+            style={{ textShadow: BODY_SHADOW, animationDelay: "0.3s" }}
           >
             ELITE CONSTRUCTION &amp; INTERIOR
-          </motion.span>
+          </span>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.5, ease: [0.4, 0, 0.2, 1] }}
-            className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-white leading-[1.1] mb-5 text-balance"
-            style={{ textShadow: HEADING_SHADOW }}
+          <h1
+            className="hero-in text-4xl sm:text-5xl lg:text-7xl font-extrabold text-white leading-[1.1] mb-5 text-balance"
+            style={{ textShadow: HEADING_SHADOW, animationDelay: "0.5s" }}
           >
             من الفكرة...
             <br />
@@ -159,23 +162,18 @@ export function HeroSection() {
             >
               إلى تسليم المفتاح
             </span>
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="text-base sm:text-lg text-white/85 max-w-2xl mx-auto mb-8 leading-relaxed text-balance"
-            style={{ textShadow: BODY_SHADOW }}
+          <p
+            className="hero-in text-base sm:text-lg text-white/85 max-w-2xl mx-auto mb-8 leading-relaxed text-balance"
+            style={{ textShadow: BODY_SHADOW, animationDelay: "0.8s" }}
           >
             نصمم، ننفذ، ونشرف على جميع أعمال التشطيبات والمقاولات بأعلى معايير الجودة والاحترافية
-          </motion.p>
+          </p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          <div
+            className="hero-in flex flex-col sm:flex-row items-center justify-center gap-4"
+            style={{ animationDelay: "1s" }}
           >
             <a
               href="#contact"
@@ -195,7 +193,7 @@ export function HeroSection() {
               تصفح أعمالنا
               <ArrowLeft className="w-5 h-5" />
             </a>
-          </motion.div>
+          </div>
         </div>
       </motion.div>
 

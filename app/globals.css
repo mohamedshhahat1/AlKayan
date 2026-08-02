@@ -48,7 +48,8 @@
     --scrim-h-mid: rgba(255, 255, 255, 0.4);
     --line-bg: rgba(11, 31, 58, 0.06);
 
-    /* Hero overlay — light mode: light white wash so image is visible */
+    /* Hero overlay — no longer referenced. The hero keeps a navy scrim in both
+       themes so it can carry white text; see hero-section.tsx. */
     --hero-overlay-from: rgba(255, 255, 255, 0.5);
     --hero-overlay-mid: rgba(255, 255, 255, 0.35);
     --hero-overlay-to: rgba(255, 255, 255, 0.85);
@@ -87,7 +88,6 @@
     --scrim-h-mid: rgba(11, 31, 58, 0.4);
     --line-bg: rgba(255, 255, 255, 0.06);
 
-    /* Hero overlay — dark mode: lighter navy wash so image is visible */
     --hero-overlay-from: rgba(11, 31, 58, 0.5);
     --hero-overlay-mid: rgba(11, 31, 58, 0.35);
     --hero-overlay-to: rgba(11, 31, 58, 0.88);
@@ -141,6 +141,25 @@
     height: 100vh;
     height: 100dvh;
     min-height: 560px;
+  }
+
+  /*
+   * Entrance animation for the hero copy.
+   *
+   * This is CSS rather than framer-motion for a reason. framer serialises
+   * initial={{ opacity: 0 }} into the server HTML as an inline opacity: 0,
+   * and only raises it once React has hydrated and started the animation. On
+   * a cold load that left the headline, paragraph and buttons invisible until
+   * the user refreshed. A CSS animation starts at first paint and is
+   * completely independent of the JavaScript bundle.
+   *
+   * fill-mode `both` does the important work: it holds opacity at 0 during
+   * animation-delay and pins it at 1 once finished, so the staggered delays
+   * below cannot leave an element stuck invisible.
+   */
+  .hero-in {
+    opacity: 0;
+    animation: hero-in 0.85s cubic-bezier(0.4, 0, 0.2, 1) both;
   }
 
   .glass {
@@ -350,6 +369,17 @@
   }
 }
 
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes float {
   0%,
   100% {
@@ -443,5 +473,17 @@ html.lenis {
   .shimmer-btn::after,
   .ken-burns {
     animation: none !important;
+  }
+
+  /*
+   * .hero-in must not simply lose its animation: the class sets opacity: 0 and
+   * the keyframes are what restore it. Cancelling the animation on its own
+   * would leave the hero copy permanently invisible, so the final state is
+   * forced here instead.
+   */
+  .hero-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
