@@ -1,7 +1,8 @@
 "use client";
 
 import { Reveal, SectionHeading } from "@/components/reveal";
-import { useState } from "react";
+import { Lightbox, type LightboxImage } from "@/components/lightbox";
+import { useMemo, useState } from "react";
 
 const designCategories = [
   { id: "2d-plans", label: "مخططات 2D", images: [
@@ -50,9 +51,37 @@ const designCategories = [
   ]},
 ];
 
+/**
+ * The grid requests these at w=940. Re-point that parameter rather than reusing
+ * one size everywhere: a 940px file is wasteful as a 80px thumbnail and soft
+ * when blown up full-screen.
+ */
+const atWidth = (url: string, width: number) => url.replace("w=940", `w=${width}`);
+
 export function DesignsSection() {
   const [active, setActive] = useState(designCategories[0].id);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
   const activeCategory = designCategories.find((c) => c.id === active)!;
+
+  // Only the active category is passed to the viewer, which is what confines
+  // next/previous to the current tab. Memoised so navigating between images
+  // does not rebuild the array and re-render every thumbnail.
+  const lightboxImages = useMemo<LightboxImage[]>(
+    () =>
+      activeCategory.images.map((img, i) => ({
+        src: atWidth(img, 1600),
+        thumb: atWidth(img, 240),
+        alt: `${activeCategory.label} ${i + 1}`,
+      })),
+    [activeCategory]
+  );
+
+  const selectCategory = (id: string) => {
+    setActive(id);
+    // Indices refer to the previous array, so anything open is now meaningless.
+    setOpenIndex(null);
+  };
 
   return (
     <section id="designs" className="relative py-14 lg:py-20 overflow-hidden">
@@ -71,7 +100,7 @@ export function DesignsSection() {
             {designCategories.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => setActive(cat.id)}
+                onClick={() => selectCategory(cat.id)}
                 className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
                   active === cat.id
                     ? "gold-gradient-bg text-navy"
@@ -89,7 +118,14 @@ export function DesignsSection() {
         <div className="mt-8 grid grid-cols-2 lg:grid-cols-3 gap-4">
           {activeCategory.images.map((img, i) => (
             <Reveal key={`${active}-${i}`} delay={(i % 3) * 0.08} y={20}>
-              <div className="zoom-container relative rounded-2xl overflow-hidden glass group">
+              {/* A button rather than a div: this is now interactive, so it has
+                  to be reachable by keyboard and announced as an action. */}
+              <button
+                type="button"
+                onClick={() => setOpenIndex(i)}
+                aria-label={`عرض ${activeCategory.label} ${i + 1} بالحجم الكامل`}
+                className="zoom-container relative w-full rounded-2xl overflow-hidden glass group cursor-pointer text-right focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              >
                 <img
                   src={img}
                   alt={`${activeCategory.label} ${i + 1}`}
@@ -99,11 +135,19 @@ export function DesignsSection() {
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-4" style={{ background: "linear-gradient(180deg, transparent 50%, rgba(11,31,58,0.8) 100%)" }}>
                   <span className="text-white text-sm font-bold">{activeCategory.label}</span>
                 </div>
-              </div>
+              </button>
             </Reveal>
           ))}
         </div>
       </div>
+
+      <Lightbox
+        images={lightboxImages}
+        index={openIndex}
+        onIndexChange={setOpenIndex}
+        onClose={() => setOpenIndex(null)}
+        title={activeCategory.label}
+      />
     </section>
   );
 }
