@@ -41,3 +41,26 @@ export function unlockScroll() {
   document.body.style.overflow = previousOverflow;
   instance?.start();
 }
+
+/**
+ * Scrolls the page back to the top.
+ *
+ * This has to go through Lenis when Lenis is running. globals.css sets
+ * `.lenis.lenis-smooth { scroll-behavior: auto !important }` — that rule
+ * exists so anchor jumps do not fight the easing, but it also means a native
+ * `window.scrollTo({ behavior: "smooth" })` is downgraded to an instant jump.
+ *
+ * The native path is not dead code: <SmoothScroll /> returns early under
+ * prefers-reduced-motion and never creates an instance, so that is the branch
+ * that runs there. `behavior: "auto"` is deliberate in that case — a user who
+ * asked for less motion should not get a long animated scroll.
+ */
+export function scrollToTop() {
+  if (instance) {
+    instance.scrollTo(0);
+    return;
+  }
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
+}

@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { ChatWidget } from "@/components/chat-widget";
+import { BackToTop } from "@/components/back-to-top";
 import { siteConfig } from "@/lib/site-config";
 
 const tajawal = Tajawal({
@@ -71,6 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SiteFooter />
           <WhatsAppButton />
           <ChatWidget />
+          <BackToTop />
         </ThemeProvider>
       </body>
     </html>
