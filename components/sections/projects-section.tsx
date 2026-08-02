@@ -58,14 +58,6 @@ const dateFormatter = new Intl.DateTimeFormat("ar-SA-u-ca-gregory", {
 /** How many cards to show before the user asks for the rest. */
 const INITIAL_VISIBLE = 6;
 
-/**
- * Both comparison images are object-cover, so the visible crop is decided by
- * the box's aspect ratio. Fixed heights kept the box tall while the window
- * narrowed, which zoomed the photos into their centres. Ratios keep the crop
- * stable and only get slightly wider on large screens.
- */
-const COMPARISON_FRAME = "aspect-[4/3] sm:aspect-[3/2] lg:aspect-[16/9] rounded-3xl";
-
 const beforeAfterProjects = [
   {
     before:
@@ -295,15 +287,12 @@ function BeforeAfterBlock() {
       </Reveal>
 
       <Reveal delay={0.15} className="mt-6">
-        {/* Capped so the comparison still fits on screen on very wide monitors. */}
-        <div className="mx-auto w-full max-w-5xl">
-          <BeforeAfterSlider
-            key={project.title}
-            before={project.before}
-            after={project.after}
-            className={COMPARISON_FRAME}
-          />
-        </div>
+        <BeforeAfterSlider
+          key={project.title}
+          before={project.before}
+          after={project.after}
+          className="h-64 sm:h-80 lg:h-[420px] rounded-3xl"
+        />
         <p className="text-center text-muted-foreground text-xs mt-3">
           اسحب المقبض أو استخدم أسهم لوحة المفاتيح لرؤية الفرق
         </p>
@@ -364,7 +353,7 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
           <X className="w-5 h-5" aria-hidden="true" />
         </button>
 
-        <div className="relative aspect-[16/9] max-h-96 overflow-hidden">
+        <div className="relative h-72 sm:h-96 overflow-hidden">
           <img src={project.hero_image} alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-image-scrim" />
           <div className="absolute bottom-0 right-0 left-0 p-8">
@@ -398,12 +387,12 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
               <h3 className="text-xl font-bold text-foreground mb-5">معرض الصور</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {project.gallery_images.map((image, index) => (
-                  <div key={image} className="zoom-container rounded-xl overflow-hidden glass aspect-[4/3]">
+                  <div key={image} className="zoom-container rounded-xl overflow-hidden glass">
                     <img
                       src={image}
                       alt={`${project.title} — صورة ${index + 1}`}
                       loading="lazy"
-                      className="zoom-image w-full h-full object-cover"
+                      className="zoom-image w-full h-56 object-cover"
                     />
                   </div>
                 ))}
@@ -414,15 +403,11 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
           {project.before_image && project.after_image && (
             <div>
               <h3 className="text-xl font-bold text-foreground mb-5">قبل و بعد</h3>
-              {/* Deliberately smaller than the section-level comparison: this is
-                  one detail among many in the dialog, not the headline. */}
-              <div className="w-full max-w-2xl">
-                <BeforeAfterSlider
-                  before={project.before_image}
-                  after={project.after_image}
-                  className="aspect-[3/2] sm:aspect-[16/9] rounded-2xl"
-                />
-              </div>
+              <BeforeAfterSlider
+                before={project.before_image}
+                after={project.after_image}
+                className="h-72 sm:h-96 rounded-2xl"
+              />
             </div>
           )}
 
