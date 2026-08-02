@@ -16,22 +16,23 @@ export function HeroSection() {
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
 
   return (
-    // 80vh rather than a full screen: the fold still reads as a poster, but the
-    // next section is visible without a full page of scrolling.
+    // hero-viewport fills the screen with a 100vh -> 100dvh fallback pair.
     // fade-to-background dissolves the bottom edge into the About section so the
-    // two never meet at a visible line — see the class in globals.css.
+    // two never meet at a visible line. Both live in globals.css.
     <section
       ref={ref}
       id="hero"
-      className="fade-to-background relative h-[80vh] min-h-[560px] max-h-[880px] w-full overflow-hidden"
+      className="hero-viewport fade-to-background relative w-full overflow-hidden"
     >
-      {/* Background image with parallax + Ken Burns cinematic zoom */}
+      {/* Background image with parallax + Ken Burns cinematic zoom.
+          bg-cover crops to fill at any ratio and bg-center keeps the subject
+          put, so widening the window never letterboxes or stretches it. */}
       <motion.div
         style={{ y, scale }}
         className="absolute inset-0 z-0"
       >
         <div
-          className="w-full h-full bg-cover bg-center ken-burns"
+          className="w-full h-full bg-cover bg-center bg-no-repeat ken-burns"
           style={{
             backgroundImage:
               "url(https://images.pexels.com/photos/33529500/pexels-photo-33529500.jpeg?auto=compress&cs=tinysrgb&w=1920)",
@@ -39,7 +40,7 @@ export function HeroSection() {
         />
       </motion.div>
 
-      {/* Theme-aware overlay. The bottom stop is deliberately light now: the
+      {/* Theme-aware overlay. The bottom stop is deliberately light: the
           fade-to-background pseudo-element owns the lower third, and stacking
           two heavy washes there flattened the image before it dissolved. */}
       <div
@@ -175,4 +176,5 @@ export function HeroSection() {
       </motion.div>
     </section>
   );
+}
 }

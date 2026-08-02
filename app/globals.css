@@ -125,6 +125,24 @@
     @apply py-20 lg:py-28;
   }
 
+  /*
+   * Full-viewport hero.
+   *
+   * Declared twice on purpose: browsers that do not know the dynamic viewport
+   * unit keep the 100vh line, everything modern takes 100dvh. dvh tracks the
+   * mobile browser chrome as it collapses, which is what stops the hero from
+   * being pushed a toolbar's worth taller than the visible screen on iOS.
+   * Tailwind cannot express a fallback pair like this from a class name.
+   *
+   * The min-height floor keeps the copy from crushing on a short landscape
+   * phone, where 100dvh can be under 400px.
+   */
+  .hero-viewport {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 560px;
+  }
+
   .glass {
     background: var(--glass-bg);
     backdrop-filter: blur(16px);
@@ -192,8 +210,7 @@
    * - Height is a percentage, so it scales with the hero on every breakpoint
    *   without a media query.
    * - bottom: -1px absorbs the rounding seam that fractional viewport heights
-   *   (80vh on an odd-numbered screen) can leave behind; the overflow-hidden
-   *   on the hero clips it back.
+   *   can leave behind; the overflow-hidden on the hero clips it back.
    */
   .fade-to-background {
     position: relative;
@@ -205,7 +222,7 @@
     left: 0;
     right: 0;
     bottom: -1px;
-    height: 45%;
+    height: 38%;
     z-index: 15;
     pointer-events: none;
     background: linear-gradient(
