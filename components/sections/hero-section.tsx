@@ -153,15 +153,12 @@ export function HeroSection() {
           >
             من الفكرة...
             <br />
-            {/* drop-shadow, not text-shadow: background-clip: text leaves the
-                glyphs transparent, so a text-shadow would render the blur
-                behind the gradient instead of around the letters. */}
-            <span
-              className="gold-gradient-text"
-              style={{ filter: "drop-shadow(0 2px 10px rgba(8,24,48,0.5))" }}
-            >
-              إلى تسليم المفتاح
-            </span>
+            {/* Solid --gold, matching the back-to-top button. The gradient
+                version (.gold-gradient-text) is the same ramp the button uses,
+                but stretched over a headline it reaches --gold-dark and reads
+                duller than the button does. Solid text also takes the h1's
+                inherited text-shadow, which clipped gradient text cannot. */}
+            <span className="text-gold">إلى تسليم المفتاح</span>
           </h1>
 
           <p
