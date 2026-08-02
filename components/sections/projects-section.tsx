@@ -240,20 +240,7 @@ export function ProjectsSection() {
 
         {/* Before / after used to be a section of its own, arguing the same
             point as the gallery above it. */}
-        <div id="before-after" className="mt-14 pt-10 border-t border-border">
-          <Reveal>
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-              <div>
-                <span className="inline-block text-xs font-bold tracking-[0.3em] text-gold uppercase mb-2">
-                  قبل و بعد
-                </span>
-                <h3 className="text-2xl lg:text-3xl font-extrabold text-foreground">شاهد التحول بنفسك</h3>
-              </div>
-
-              <BeforeAfterTabs />
-            </div>
-          </Reveal>
-        </div>
+        <BeforeAfterBlock />
       </div>
 
       <AnimatePresence>
@@ -263,46 +250,54 @@ export function ProjectsSection() {
   );
 }
 
-/** Tab row plus the slider it controls, kept together so state stays local. */
-function BeforeAfterTabs() {
+function BeforeAfterBlock() {
   const [active, setActive] = useState(0);
   const project = beforeAfterProjects[active];
 
   return (
-    <>
-      <div role="tablist" aria-label="اختر المشروع" className="flex flex-wrap items-center gap-2">
-        {beforeAfterProjects.map((item, index) => (
-          <button
-            key={item.title}
-            type="button"
-            role="tab"
-            aria-selected={active === index}
-            onClick={() => setActive(index)}
-            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
-              active === index
-                ? "gold-gradient-bg text-navy-deep"
-                : "glass-light text-muted-foreground hover:text-gold hover:border-gold/30"
-            }`}
-          >
-            {item.title}
-          </button>
-        ))}
-      </div>
+    <div id="before-after" className="mt-14 pt-10 border-t border-border">
+      <Reveal>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <span className="inline-block text-xs font-bold tracking-[0.3em] text-gold uppercase mb-2">
+              قبل و بعد
+            </span>
+            <h3 className="text-2xl lg:text-3xl font-extrabold text-foreground">شاهد التحول بنفسك</h3>
+          </div>
 
-      <div className="w-full sm:w-auto sm:absolute sm:static" />
+          <div role="tablist" aria-label="اختر المشروع" className="flex flex-wrap items-center gap-2">
+            {beforeAfterProjects.map((item, index) => (
+              <button
+                key={item.title}
+                type="button"
+                role="tab"
+                aria-selected={active === index}
+                onClick={() => setActive(index)}
+                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
+                  active === index
+                    ? "gold-gradient-bg text-navy-deep"
+                    : "glass-light text-muted-foreground hover:text-gold hover:border-gold/30"
+                }`}
+              >
+                {item.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      </Reveal>
 
-      <div className="w-full order-last mt-6 sm:mt-0 sm:w-full sm:basis-full">
+      <Reveal delay={0.15} className="mt-6">
         <BeforeAfterSlider
           key={project.title}
           before={project.before}
           after={project.after}
-          className="h-64 sm:h-80 lg:h-[420px] rounded-3xl mt-6"
+          className="h-64 sm:h-80 lg:h-[420px] rounded-3xl"
         />
         <p className="text-center text-muted-foreground text-xs mt-3">
           اسحب المقبض أو استخدم أسهم لوحة المفاتيح لرؤية الفرق
         </p>
-      </div>
-    </>
+      </Reveal>
+    </div>
   );
 }
 
