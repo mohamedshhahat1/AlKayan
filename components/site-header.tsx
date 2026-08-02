@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Menu, X, Phone } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 import { lockScroll, unlockScroll } from "@/lib/lenis";
+import { getScrollOffset } from "@/lib/header-offset";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const navLinks = [
@@ -36,36 +37,68 @@ export function SiteHeader() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Scroll-spy for the gold active state.
+  // Active link tracking.
   //
-  // The root margin carves out a band just under the fixed header: -96px trims
-  // the header's own height, and -60% at the bottom means a section only counts
-  // as current once it has reached roughly the upper third of the viewport,
-  // rather than the moment its first pixel appears.
+  // A scroll scan rather than an IntersectionObserver. The observer version
+  // could only express "somewhere inside a band", and several sections occupy
+  // that band at once, so it needed a tiebreak that was wrong as often as it
+  // was right. Comparing positions directly answers the actual question: which
+  // section has most recently passed under the header.
   useEffect(() => {
-    const sections = navLinks
-      .map((link) => document.querySelector(link.href))
-      .filter((element): element is Element => element !== null);
+    let frame = 0;
 
-    if (sections.length === 0) return;
+    const update = () => {
+      frame = 0;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((entry) => entry.isIntersecting);
-        if (visible.length === 0) return;
+      const scrollY = window.scrollY;
+      const viewport = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
 
-        // Topmost wins when several sections share the band.
-        const topmost = visible.reduce((a, b) =>
-          a.boundingClientRect.top <= b.boundingClientRect.top ? a : b
-        );
+      // At the very bottom, the last section may be too short to ever reach the
+      // header line, so it would otherwise never light up. Pin it.
+      if (scrollY + viewport >= documentHeight - 2) {
+        setActiveHref(navLinks[navLinks.length - 1].href);
+        return;
+      }
 
-        setActiveHref(`#${topmost.target.id}`);
-      },
-      { rootMargin: "-96px 0px -60% 0px", threshold: 0 }
-    );
+      const line = getScrollOffset();
 
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
+      // Of every section already at or above the line, take the one furthest
+      // down the page. "Furthest down" rather than "first found" is what makes
+      // #faq work: it is nested inside #contact, so both qualify at the same
+      // time and the deeper, later one is the honest answer.
+      let current = navLinks[0].href;
+      let closest = -Infinity;
+
+      for (const link of navLinks) {
+        const element = document.querySelector(link.href);
+        if (!(element instanceof HTMLElement)) continue;
+
+        const top = element.getBoundingClientRect().top;
+        if (top <= line && top > closest) {
+          closest = top;
+          current = link.href;
+        }
+      }
+
+      setActiveHref(current);
+    };
+
+    // Coalesced into one measurement per frame. Reading getBoundingClientRect
+    // on every scroll event would force a layout flush per event.
+    const onScrollOrResize = () => {
+      if (frame === 0) frame = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
+      if (frame !== 0) cancelAnimationFrame(frame);
+    };
   }, []);
 
   useEffect(() => {
@@ -114,6 +147,10 @@ export function SiteHeader() {
                 key={link.href}
                 href={link.href}
                 aria-current={isActive ? "page" : undefined}
+                // Set eagerly so the underline moves on click rather than
+                // arriving a second later with the scroll. The scan corrects it
+                // if the target turns out not to reach the top of the page.
+                onClick={() => setActiveHref(link.href)}
                 // The underline is an ::after rule rather than a border so it
                 // can scale from 0 without ever affecting layout height.
                 // origin-right because the document is RTL: the line should
@@ -175,7 +212,10 @@ export function SiteHeader() {
               <li key={link.href}>
                 <a
                   href={link.href}
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => {
+                    setActiveHref(link.href);
+                    setMenuOpen(false);
+                  }}
                   aria-current={isActive ? "page" : undefined}
                   // No white here and no shadow: the mobile panel is a glass
                   // surface, not the photograph.

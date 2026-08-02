@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
 import { registerLenis } from "@/lib/lenis";
+import { getScrollOffset } from "@/lib/header-offset";
 
 /**
  * Lenis smooth scrolling.
@@ -49,9 +50,6 @@ export function SmoothScroll() {
     };
     frame = requestAnimationFrame(raf);
 
-    // Offset for the fixed header so the target heading is not covered.
-    const headerOffset = -96;
-
     const handleClick = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey) return;
 
@@ -62,10 +60,18 @@ export function SmoothScroll() {
       if (!hash || hash === "#") return;
 
       const target = document.querySelector(hash);
-      if (!target) return;
+      if (!(target instanceof HTMLElement)) return;
 
       event.preventDefault();
-      lenis.scrollTo(target as HTMLElement, { offset: headerOffset });
+
+      // Resolved to an absolute document position here rather than handed to
+      // Lenis as element + offset. getBoundingClientRect is viewport-relative,
+      // so adding the current scroll position converts it to a document
+      // coordinate; subtracting the measured header height is what leaves the
+      // section sitting just below the bar instead of underneath it.
+      const top = target.getBoundingClientRect().top + window.scrollY - getScrollOffset();
+
+      lenis.scrollTo(Math.max(0, top));
       history.replaceState(null, "", hash);
     };
 
