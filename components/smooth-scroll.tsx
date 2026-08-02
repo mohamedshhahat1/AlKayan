@@ -11,6 +11,9 @@ const LANDING_TOLERANCE = 2;
 /** Guards against a correction that keeps shifting layout looping forever. */
 const MAX_CORRECTIONS = 3;
 
+/** Frames the scroll position must hold still before we trust a measurement. */
+const STABLE_FRAMES = 4;
+
 /**
  * Lenis smooth scrolling.
  *
@@ -21,7 +24,7 @@ const MAX_CORRECTIONS = 3;
  *     position, so in-page anchors jumped and then fought the easing. Anchors
  *     are now handed to Lenis explicitly;
  *  3. overlays had no way to stop background scrolling — see lib/lenis.ts;
- *  4. anchor scrolls landed short of their target — see scrollToElement below.
+ *  4. anchor scrolls aligned the wrong edge and landed short — see below.
  */
 export function SmoothScroll() {
   useEffect(() => {
@@ -58,38 +61,80 @@ export function SmoothScroll() {
     frame = requestAnimationFrame(raf);
 
     /**
-     * Scroll an element to just below the fixed header, then verify it.
+     * Absolute scroll position that puts the section's *content* just below the
+     * header.
      *
-     * Lenis resolves the destination to a single pixel value at the moment it
-     * is called. Over the 1.2s animation, images between here and the target
-     * finish decoding and take up their real height, which pushes the target
-     * further down the document than it was when that number was captured. The
-     * scroll then finishes at a stale position, short of the section, with the
-     * previous one still sitting under the header.
+     * Every section is `<section id="..." class="py-14 lg:py-20">`, so the
+     * anchor is a box with 56-80px of its own top padding. Aligning that box's
+     * edge with the header parks the padding under the navbar and leaves the
+     * heading floating well down the viewport — which is the whole complaint.
+     * Adding the padding back aligns the heading instead.
      *
-     * So the landing is measured again once the animation completes and
-     * corrected if it drifted. The retry cap is there because a correction can
-     * itself reveal more images and shift things again; in practice it settles
-     * on the first pass.
+     * Read per element rather than assumed, so a section with different padding
+     * still lands in the same place, and it tracks the py-14 -> lg:py-20
+     * breakpoint change for free.
      */
-    const scrollToElement = (element: HTMLElement, attempt = 0) => {
-      const top = element.getBoundingClientRect().top + window.scrollY - getScrollOffset();
+    const getTargetTop = (element: HTMLElement) => {
+      const paddingTop = parseFloat(window.getComputedStyle(element).paddingTop) || 0;
+      const documentTop = element.getBoundingClientRect().top + window.scrollY;
 
-      lenis.scrollTo(Math.max(0, top), {
-        // Snappier than the initial 1.2s glide: this is a correction of a few
-        // dozen pixels, and easing it at full length reads as a second scroll.
-        duration: attempt === 0 ? undefined : 0.4,
-        onComplete: () => {
-          if (attempt >= MAX_CORRECTIONS) return;
+      return Math.max(0, documentTop + paddingTop - getScrollOffset());
+    };
 
-          // Positive means the section sits below where it should; negative
-          // means it is hidden behind the header.
-          const drift = element.getBoundingClientRect().top - getScrollOffset();
-          if (Math.abs(drift) <= LANDING_TOLERANCE) return;
+    let settleFrame = 0;
 
-          scrollToElement(element, attempt + 1);
-        },
-      });
+    const cancelSettle = () => {
+      if (settleFrame !== 0) {
+        cancelAnimationFrame(settleFrame);
+        settleFrame = 0;
+      }
+    };
+
+    /**
+     * Scroll to an element, then confirm it actually landed there.
+     *
+     * Lenis resolves its destination to a pixel value when called. Images above
+     * the target finish decoding during the 1.2s animation and take up their
+     * real height, moving the target after the number was captured, so the
+     * scroll finishes somewhere stale.
+     *
+     * Rather than trusting a completion callback — which can fire while layout
+     * is still moving — this watches until the scroll position holds still for
+     * a few frames, then re-measures and nudges if it drifted.
+     */
+    const scrollToElement = (element: HTMLElement) => {
+      cancelSettle();
+      lenis.scrollTo(getTargetTop(element));
+
+      let corrections = 0;
+      let lastY = Number.NaN;
+      let stableFrames = 0;
+
+      const watch = () => {
+        const y = window.scrollY;
+        stableFrames = Math.abs(y - lastY) < 0.5 ? stableFrames + 1 : 0;
+        lastY = y;
+
+        if (stableFrames < STABLE_FRAMES) {
+          settleFrame = requestAnimationFrame(watch);
+          return;
+        }
+
+        const drift = y - getTargetTop(element);
+        if (Math.abs(drift) > LANDING_TOLERANCE && corrections < MAX_CORRECTIONS) {
+          corrections += 1;
+          stableFrames = 0;
+          // Short: this is a nudge of a few dozen pixels, and easing it over
+          // the full 1.2s reads as a second, separate scroll.
+          lenis.scrollTo(getTargetTop(element), { duration: 0.35 });
+          settleFrame = requestAnimationFrame(watch);
+          return;
+        }
+
+        settleFrame = 0;
+      };
+
+      settleFrame = requestAnimationFrame(watch);
     };
 
     const handleClick = (event: MouseEvent) => {
@@ -111,8 +156,18 @@ export function SmoothScroll() {
 
     document.addEventListener("click", handleClick);
 
+    // If the reader takes over, stop watching immediately. A correction firing
+    // after someone has started scrolling would yank the page back.
+    window.addEventListener("wheel", cancelSettle, { passive: true });
+    window.addEventListener("touchstart", cancelSettle, { passive: true });
+    window.addEventListener("keydown", cancelSettle);
+
     return () => {
       document.removeEventListener("click", handleClick);
+      window.removeEventListener("wheel", cancelSettle);
+      window.removeEventListener("touchstart", cancelSettle);
+      window.removeEventListener("keydown", cancelSettle);
+      cancelSettle();
       cancelAnimationFrame(frame);
       registerLenis(null);
       lenis.destroy();
