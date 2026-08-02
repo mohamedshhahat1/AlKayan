@@ -18,10 +18,12 @@ export function HeroSection() {
   return (
     // 80vh rather than a full screen: the fold still reads as a poster, but the
     // next section is visible without a full page of scrolling.
+    // fade-to-background dissolves the bottom edge into the About section so the
+    // two never meet at a visible line — see the class in globals.css.
     <section
       ref={ref}
       id="hero"
-      className="relative h-[80vh] min-h-[560px] max-h-[880px] w-full overflow-hidden"
+      className="fade-to-background relative h-[80vh] min-h-[560px] max-h-[880px] w-full overflow-hidden"
     >
       {/* Background image with parallax + Ken Burns cinematic zoom */}
       <motion.div
@@ -37,12 +39,14 @@ export function HeroSection() {
         />
       </motion.div>
 
-      {/* Theme-aware overlay */}
+      {/* Theme-aware overlay. The bottom stop is deliberately light now: the
+          fade-to-background pseudo-element owns the lower third, and stacking
+          two heavy washes there flattened the image before it dissolved. */}
       <div
         className="absolute inset-0 z-10"
         style={{
           background:
-            "linear-gradient(180deg, var(--hero-overlay-from) 0%, var(--hero-overlay-mid) 50%, var(--hero-overlay-to) 100%)",
+            "linear-gradient(180deg, var(--hero-overlay-from) 0%, var(--hero-overlay-mid) 50%, var(--hero-overlay-mid) 100%)",
         }}
       />
 

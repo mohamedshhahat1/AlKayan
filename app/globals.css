@@ -177,6 +177,51 @@
       transparent 85%);
   }
 
+  /*
+   * Dissolves the bottom of a full-bleed image section into whatever the next
+   * section is painted on, so the two never meet at a visible line.
+   *
+   * Notes:
+   * - The colour is hsl(var(--background)), the same token the following
+   *   section renders, so this follows the theme with no second rule.
+   * - Many closely spaced stops rather than two: a plain two-stop gradient
+   *   ramps linearly and both banding and the start of the fade become
+   *   noticeable on a large flat area. These approximate an ease-in curve.
+   * - z-index 15 puts it over the photo and the hero overlay (z-10) but under
+   *   the copy and the scroll cue (z-20), so nothing readable is dimmed.
+   * - Height is a percentage, so it scales with the hero on every breakpoint
+   *   without a media query.
+   * - bottom: -1px absorbs the rounding seam that fractional viewport heights
+   *   (80vh on an odd-numbered screen) can leave behind; the overflow-hidden
+   *   on the hero clips it back.
+   */
+  .fade-to-background {
+    position: relative;
+  }
+
+  .fade-to-background::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 45%;
+    z-index: 15;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      hsl(var(--background) / 0) 0%,
+      hsl(var(--background) / 0.04) 18%,
+      hsl(var(--background) / 0.12) 34%,
+      hsl(var(--background) / 0.26) 48%,
+      hsl(var(--background) / 0.45) 61%,
+      hsl(var(--background) / 0.66) 73%,
+      hsl(var(--background) / 0.85) 84%,
+      hsl(var(--background) / 0.96) 93%,
+      hsl(var(--background)) 100%
+    );
+  }
+
   .bg-gold-radial {
     background: radial-gradient(circle, var(--gold) 0%, transparent 70%);
   }
