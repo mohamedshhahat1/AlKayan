@@ -18,12 +18,6 @@ const navLinks = [
 ];
 
 /**
- * Nav face, with the site font as the fallback so the labels never reflow into
- * a system Arabic font while Plex is still loading.
- */
-const NAV_FONT = "var(--font-plex-arabic), var(--font-tajawal), sans-serif";
-
-/**
  * Applied only while the header is transparent over the hero photograph.
  * Deliberately a single tight layer — anything wider reads as a grey smear
  * behind small text rather than as separation.
@@ -132,7 +126,6 @@ export function SiteHeader() {
                       } hover:text-gold after:scale-x-0 hover:after:scale-x-100`
                 }`}
                 style={{
-                  fontFamily: NAV_FONT,
                   textRendering: "optimizeLegibility",
                   textShadow: scrolled ? undefined : NAV_SHADOW,
                 }}
@@ -189,7 +182,7 @@ export function SiteHeader() {
                   className={`block px-2 py-3 text-[1.05rem] font-medium antialiased border-b border-border/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
                     isActive ? "text-gold" : "text-foreground hover:text-gold"
                   }`}
-                  style={{ fontFamily: NAV_FONT, textRendering: "optimizeLegibility" }}
+                  style={{ textRendering: "optimizeLegibility" }}
                 >
                   {link.label}
                 </a>
