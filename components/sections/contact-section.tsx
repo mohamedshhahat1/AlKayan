@@ -1,12 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, Mail, MapPin, Clock, Send, CheckCircle2, AlertCircle } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, Send, CheckCircle2, AlertCircle, ChevronDown } from "lucide-react";
 import { Reveal, SectionHeading } from "@/components/reveal";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import { bookingSchema, collectErrors, type BookingErrors } from "@/lib/validation";
 import { siteConfig } from "@/lib/site-config";
+
+/** Top six only, and collapsed by default so the block starts short. */
+const faqs = [
+  {
+    q: "ما هي مدة تنفيذ المشروع؟",
+    a: "تختلف مدة التنفيذ حسب نوع وحجم المشروع. الشقق السكنية تستغرق عادة 60-90 يوماً، بينما الفلل قد تستغرق 120-180 يوماً. نقدم لك جدولاً زمنياً دقيقاً بعد الاستشارة الأولى.",
+  },
+  {
+    q: "هل تقدمون ضماناً على الأعمال؟",
+    a: "نعم، نقدم ضماناً شاملاً على جميع أعمالنا. مدة الضمان تختلف حسب نوع العمل، وتصل إلى سنتين للأعمال الإنشائية وسنة للتشطيبات والديكورات.",
+  },
+  {
+    q: "هل يمكنني رؤية المشروع قبل التنفيذ؟",
+    a: "بالتأكيد. نوفر تصاميم ثلاثية الأبعاد وعروضاً واقعية لمشروعك قبل بدء التنفيذ، حتى تتمكن من رؤية كل تفصيلة والموافقة عليها.",
+  },
+  {
+    q: "كيف يتم تحديد تكلفة المشروع؟",
+    a: "نقوم بزيارة الموقع مجاناً ثم نقدم عرض سعر مفصلاً وشفافاً يشمل جميع التكاليف بدون أي رسوم خفية. السعر يعتمد على المساحة، الخامات المطلوبة، ونوع التشطيب.",
+  },
+  {
+    q: "هل تعملون في جميع المدن؟",
+    a: "نعمل في جميع المدن الرئيسية بالمملكة العربية السعودية. للاستفسار عن توفر الخدمة في مدينتك، يرجى التواصل معنا عبر نموذج الاتصال أو الواتساب.",
+  },
+  {
+    q: "ما هي طرق الدفع المتاحة؟",
+    a: "نقدم خطط دفع مرنة على دفعات مرتبطة بمراحل المشروع. نقبل التحويل البنكي والشيكات. يتم الاتفاق على جدول الدفع في عقد المشروع.",
+  },
+];
 
 const serviceOptions = [
   "تشطيب شقة",
@@ -35,6 +69,10 @@ const emptyForm = {
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
+/**
+ * The closing block: objections, then the ask, then the form. These were two
+ * separate full-height sections making the same move.
+ */
 export function ContactSection() {
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<BookingErrors>({});
@@ -96,28 +134,89 @@ export function ContactSection() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <section id="contact" className="relative py-24 lg:py-32">
+    <section id="contact" className="relative py-14 lg:py-20">
       <div className="container-luxury">
-        <SectionHeading
-          eyebrow="تواصل معنا"
-          title="احجز استشارتك المجانية"
-          subtitle="أخبرنا عن مشروعك وسيتواصل معك فريقنا خلال 24 ساعة"
-        />
+        {/* FAQ */}
+        <div id="faq">
+          <SectionHeading
+            eyebrow="الأسئلة الشائعة"
+            title="إجابات على أكثر تساؤلاتكم"
+          />
 
-        <div className="mt-14 grid grid-cols-1 lg:grid-cols-5 gap-8">
+          <Reveal delay={0.15} className="mt-8 max-w-3xl mx-auto">
+            <Accordion type="single" collapsible className="space-y-3">
+              {faqs.map((faq, i) => (
+                <AccordionItem
+                  key={i}
+                  value={`item-${i}`}
+                  className="glass rounded-xl px-5 border border-border data-[state=open]:border-gold/30 transition-colors duration-300"
+                >
+                  <AccordionTrigger className="text-right hover:no-underline py-4 group">
+                    <span className="flex items-center justify-between w-full gap-4">
+                      <span className="text-sm font-bold text-foreground group-data-[state=open]:text-gold transition-colors duration-300">
+                        {faq.q}
+                      </span>
+                      <ChevronDown className="w-4 h-4 text-gold flex-shrink-0 transition-transform duration-300 group-data-[state=open]:rotate-180" />
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-5 pt-1">
+                    {faq.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </Reveal>
+        </div>
+
+        {/* Compact CTA, replacing the old full-width contact header */}
+        <Reveal className="mt-12">
+          <div className="glass rounded-3xl border border-gold/20 p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 text-center lg:text-right">
+            <div>
+              <h2 className="text-2xl lg:text-3xl font-extrabold text-foreground">
+                جاهز لبدء <span className="gold-gradient-text">مشروعك؟</span>
+              </h2>
+              <p className="text-sm text-muted-foreground mt-2">
+                معاينة واستشارة مجانية، ورد من فريقنا خلال 24 ساعة
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-shrink-0">
+              <a
+                href={siteConfig.contact.telHref}
+                className="shimmer-btn gold-gradient-bg font-bold text-sm px-7 py-3 rounded-full flex items-center justify-center gap-2 hover:scale-105 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                style={{ color: "#0B1F3A" }}
+              >
+                <Phone className="w-4 h-4" aria-hidden="true" />
+                اتصل الآن
+              </a>
+              <a
+                href={siteConfig.contact.whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="glass-light border border-border text-foreground font-bold text-sm px-7 py-3 rounded-full flex items-center justify-center gap-2 hover:text-gold hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              >
+                <WhatsAppIcon className="w-4 h-4 fill-gold" />
+                واتساب
+              </a>
+            </div>
+          </div>
+        </Reveal>
+
+        {/* Details + booking form */}
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-5 gap-6">
           <Reveal className="lg:col-span-2">
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               <li>
                 <a
                   href={siteConfig.contact.telHref}
-                  className="flex items-start gap-4 glass rounded-2xl p-6 hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                  className="flex items-start gap-3 glass rounded-xl p-4 hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                 >
-                  <span className="w-11 h-11 rounded-xl glass-gold flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-5 h-5 text-gold" aria-hidden="true" />
+                  <span className="w-9 h-9 rounded-lg glass-gold flex items-center justify-center flex-shrink-0">
+                    <Phone className="w-4 h-4 text-gold" aria-hidden="true" />
                   </span>
                   <span>
-                    <span className="block text-sm text-muted-foreground mb-1">اتصل بنا</span>
-                    <span className="block font-bold text-foreground" dir="ltr">
+                    <span className="block text-xs text-muted-foreground mb-0.5">اتصل بنا</span>
+                    <span className="block text-sm font-bold text-foreground" dir="ltr">
                       {siteConfig.contact.phone}
                     </span>
                   </span>
@@ -126,32 +225,15 @@ export function ContactSection() {
 
               <li>
                 <a
-                  href={siteConfig.contact.whatsappHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-start gap-4 glass rounded-2xl p-6 hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-                >
-                  <span className="w-11 h-11 rounded-xl glass-gold flex items-center justify-center flex-shrink-0">
-                    <WhatsAppIcon className="w-5 h-5 fill-gold" />
-                  </span>
-                  <span>
-                    <span className="block text-sm text-muted-foreground mb-1">واتساب</span>
-                    <span className="block font-bold text-foreground">راسلنا مباشرة</span>
-                  </span>
-                </a>
-              </li>
-
-              <li>
-                <a
                   href={siteConfig.contact.mailtoHref}
-                  className="flex items-start gap-4 glass rounded-2xl p-6 hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                  className="flex items-start gap-3 glass rounded-xl p-4 hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                 >
-                  <span className="w-11 h-11 rounded-xl glass-gold flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-5 h-5 text-gold" aria-hidden="true" />
+                  <span className="w-9 h-9 rounded-lg glass-gold flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-4 h-4 text-gold" aria-hidden="true" />
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-sm text-muted-foreground mb-1">البريد الإلكتروني</span>
-                    <span className="block font-bold text-foreground break-all">{siteConfig.contact.email}</span>
+                    <span className="block text-xs text-muted-foreground mb-0.5">البريد الإلكتروني</span>
+                    <span className="block text-sm font-bold text-foreground break-all">{siteConfig.contact.email}</span>
                   </span>
                 </a>
               </li>
@@ -161,35 +243,35 @@ export function ContactSection() {
                   href={siteConfig.contact.mapsHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-start gap-4 glass rounded-2xl p-6 hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                  className="flex items-start gap-3 glass rounded-xl p-4 hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                 >
-                  <span className="w-11 h-11 rounded-xl glass-gold flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-5 h-5 text-gold" aria-hidden="true" />
+                  <span className="w-9 h-9 rounded-lg glass-gold flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-4 h-4 text-gold" aria-hidden="true" />
                   </span>
                   <span>
-                    <span className="block text-sm text-muted-foreground mb-1">العنوان</span>
-                    <span className="block font-bold text-foreground">{siteConfig.contact.address}</span>
+                    <span className="block text-xs text-muted-foreground mb-0.5">العنوان</span>
+                    <span className="block text-sm font-bold text-foreground">{siteConfig.contact.address}</span>
                   </span>
                 </a>
               </li>
 
               {/* Static information, so a div rather than a dead anchor. */}
-              <li className="flex items-start gap-4 glass rounded-2xl p-6">
-                <span className="w-11 h-11 rounded-xl glass-gold flex items-center justify-center flex-shrink-0">
-                  <Clock className="w-5 h-5 text-gold" aria-hidden="true" />
+              <li className="flex items-start gap-3 glass rounded-xl p-4">
+                <span className="w-9 h-9 rounded-lg glass-gold flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-4 h-4 text-gold" aria-hidden="true" />
                 </span>
                 <span>
-                  <span className="block text-sm text-muted-foreground mb-1">ساعات العمل</span>
-                  <span className="block font-bold text-foreground">{siteConfig.hours.days}</span>
-                  <span className="block text-sm text-muted-foreground">{siteConfig.hours.time}</span>
+                  <span className="block text-xs text-muted-foreground mb-0.5">ساعات العمل</span>
+                  <span className="block text-sm font-bold text-foreground">{siteConfig.hours.days}</span>
+                  <span className="block text-xs text-muted-foreground">{siteConfig.hours.time}</span>
                 </span>
               </li>
             </ul>
           </Reveal>
 
           <Reveal delay={0.15} className="lg:col-span-3">
-            <form onSubmit={handleSubmit} noValidate className="glass rounded-3xl p-6 sm:p-8 lg:p-10">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <form onSubmit={handleSubmit} noValidate className="glass rounded-3xl p-6 sm:p-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field
                   id="name"
                   label="الاسم الكامل"
@@ -256,7 +338,7 @@ export function ContactSection() {
                   </label>
                   <textarea
                     id="message"
-                    rows={4}
+                    rows={3}
                     maxLength={1000}
                     value={form.message}
                     onChange={(event) => update("message", event.target.value)}
@@ -290,13 +372,13 @@ export function ContactSection() {
               <button
                 type="submit"
                 disabled={state === "submitting" || !isSupabaseConfigured}
-                className="mt-7 w-full flex items-center justify-center gap-2 px-6 py-4 rounded-full gold-gradient-bg text-navy-deep font-bold shimmer-btn hover:scale-[1.02] transition-transform duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                className="mt-6 w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-full gold-gradient-bg text-navy-deep font-bold shimmer-btn hover:scale-[1.02] transition-transform duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 <Send className="w-4 h-4" aria-hidden="true" />
                 {state === "submitting" ? "جارٍ الإرسال..." : "احجز استشارتك المجانية"}
               </button>
 
-              <div aria-live="polite" className="mt-4">
+              <div aria-live="polite" className="mt-3">
                 {!isSupabaseConfigured && (
                   <p className="flex items-center gap-2 text-sm text-amber-400">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
