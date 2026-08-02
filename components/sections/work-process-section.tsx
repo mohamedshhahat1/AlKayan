@@ -1,31 +1,25 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
 import { Reveal, SectionHeading } from "@/components/reveal";
-import { MessageSquare, Search, PencilRuler, Box, FileText, Hammer, KeyRound } from "lucide-react";
+import { MessageSquare, PencilRuler, Box, FileText, KeyRound } from "lucide-react";
 
+/**
+ * Five milestones, not seven steps. Consultation and the site visit happen in
+ * one appointment, and quoting and contracting are a single decision point.
+ * Rendered as a horizontal rail so the whole process reads in one screen
+ * rather than seven alternating cards down the page.
+ */
 const steps = [
-  { icon: MessageSquare, title: "الاستشارة", desc: "نستمع لاحتياجاتك ونناقش رؤيتك للمشروع" },
-  { icon: Search, title: "زيارة الموقع", desc: "نمعن النظر في المساحة ونحدد المتطلبات" },
-  { icon: PencilRuler, title: "التصميم 2D", desc: "نضع المخططات الأولية الدقيقة" },
-  { icon: Box, title: "التصور 3D", desc: "نعرض المشروع بشكل واقعي ثلاثي الأبعاد" },
-  { icon: FileText, title: "عرض السعر", desc: "نقدم عرضاً مفصلاً وشفافاً" },
-  { icon: Hammer, title: "التنفيذ", desc: "ننفذ المشروع بأعلى معايير الجودة" },
-  { icon: KeyRound, title: "التسليم النهائي", desc: "نسلمك المفتاح بمشروع جاهز" },
+  { icon: MessageSquare, title: "الاستشارة والمعاينة", desc: "نستمع لرؤيتك ونزور الموقع لتحديد المتطلبات" },
+  { icon: PencilRuler, title: "التصميم 2D", desc: "مخططات أولية دقيقة للمساحة" },
+  { icon: Box, title: "التصور 3D", desc: "ترى مشروعك واقعياً قبل التنفيذ" },
+  { icon: FileText, title: "العرض والتعاقد", desc: "عرض سعر مفصل وشفاف بلا رسوم خفية" },
+  { icon: KeyRound, title: "التنفيذ والتسليم", desc: "تنفيذ بأعلى المعايير حتى تسليم المفتاح" },
 ];
 
 export function WorkProcessSection() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start center", "end center"],
-  });
-
-  const lineHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
-
   return (
-    <section className="relative py-24 lg:py-32">
+    <section className="relative py-14 lg:py-20">
       <div className="container-luxury">
         <SectionHeading
           eyebrow="آلية العمل"
@@ -33,45 +27,45 @@ export function WorkProcessSection() {
           subtitle="منهجية واضحة ومنظمة تضمن وصولك لنتيجة تفوق توقعاتك"
         />
 
-        <div ref={ref} className="mt-20 relative">
-          {/* Background line */}
-          <div className="absolute top-0 bottom-0 right-1/2 translate-x-1/2 w-1 rounded-full" style={{ backgroundColor: "var(--line-bg)" }} />
-
-          {/* Animated progress line */}
-          <motion.div
-            style={{ height: lineHeight }}
-            className="absolute top-0 right-1/2 translate-x-1/2 w-1 rounded-full gold-gradient-bg"
+        <div className="relative mt-10">
+          {/* The rail the nodes sit on. Desktop only; stacked cards on mobile
+              have no shared axis to draw. */}
+          <div
+            className="hidden lg:block absolute top-7 right-[10%] left-[10%] h-px"
+            style={{ backgroundColor: "var(--line-bg)" }}
+            aria-hidden="true"
+          />
+          <div
+            className="hidden lg:block absolute top-7 right-[10%] left-[10%] h-px opacity-60"
+            style={{ background: "linear-gradient(90deg, transparent, rgba(212,175,55,0.6), transparent)" }}
+            aria-hidden="true"
           />
 
-          <div className="space-y-12">
+          <ol className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
             {steps.map((step, i) => (
-              <Reveal key={i} delay={0.1} y={40}>
-                <div className={`flex items-center gap-6 ${i % 2 === 0 ? "flex-row" : "flex-row-reverse"}`}>
-                  {/* Card */}
-                  <div className="flex-1">
-                    <div className="glass rounded-2xl p-6 hover:border-gold/30 transition-all duration-500 hover:-translate-y-1 max-w-md mx-auto">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-xl glass-gold flex items-center justify-center">
-                          <step.icon className="w-5 h-5 text-gold" />
-                        </div>
-                        <span className="text-3xl font-extrabold text-gold opacity-30">0{i + 1}</span>
+              <li key={step.title}>
+                <Reveal delay={i * 0.08} y={24}>
+                  <div className="group flex lg:flex-col items-start lg:items-center gap-4 lg:gap-0 lg:text-center">
+                    <div className="relative flex-shrink-0 lg:mb-4">
+                      <div className="w-14 h-14 rounded-2xl glass-gold flex items-center justify-center ring-4 ring-background group-hover:scale-110 transition-transform duration-300">
+                        <step.icon className="w-5 h-5 text-gold" aria-hidden="true" />
                       </div>
-                      <h3 className="text-lg font-bold text-foreground mb-2">{step.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
+                      <span className="absolute -top-2 -left-2 w-6 h-6 rounded-full gold-gradient-bg text-[11px] font-extrabold flex items-center justify-center" style={{ color: "#0B1F3A" }}>
+                        {i + 1}
+                      </span>
+                    </div>
+
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-bold text-foreground mb-1 group-hover:text-gold transition-colors duration-300">
+                        {step.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{step.desc}</p>
                     </div>
                   </div>
-
-                  {/* Center dot */}
-                  <div className="relative z-10 flex-shrink-0">
-                    <div className="w-6 h-6 rounded-full gold-gradient-bg ring-4 ring-background" style={{ boxShadow: "0 0 20px rgba(212,175,55,0.4)" }} />
-                  </div>
-
-                  {/* Spacer */}
-                  <div className="flex-1 hidden sm:block" />
-                </div>
-              </Reveal>
+                </Reveal>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </div>
     </section>

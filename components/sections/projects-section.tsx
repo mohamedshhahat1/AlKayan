@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MapPin, Calendar, Maximize, Clock, CheckCircle2 } from "lucide-react";
+import { X, MapPin, Calendar, Maximize, Clock, CheckCircle2, Plus } from "lucide-react";
 import { Reveal, SectionHeading } from "@/components/reveal";
 import { BeforeAfterSlider } from "@/components/before-after-slider";
 import { getSupabaseClient } from "@/lib/supabase";
@@ -55,10 +55,31 @@ const dateFormatter = new Intl.DateTimeFormat("ar-SA-u-ca-gregory", {
   month: "long",
 });
 
+/** How many cards to show before the user asks for the rest. */
+const INITIAL_VISIBLE = 6;
+
+const beforeAfterProjects = [
+  {
+    before:
+      "https://images.pexels.com/photos/15087186/pexels-photo-15087186.jpeg?auto=compress&cs=tinysrgb&w=1920",
+    after:
+      "https://images.pexels.com/photos/7546323/pexels-photo-7546323.jpeg?auto=compress&cs=tinysrgb&w=1920",
+    title: "شقة النخبة - جدة",
+  },
+  {
+    before:
+      "https://images.pexels.com/photos/19408681/pexels-photo-19408681.jpeg?auto=compress&cs=tinysrgb&w=1920",
+    after:
+      "https://images.pexels.com/photos/16573669/pexels-photo-16573669.jpeg?auto=compress&cs=tinysrgb&w=1920",
+    title: "فيلا الياسمين - الرياض",
+  },
+];
+
 export function ProjectsSection() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [status, setStatus] = useState<Status>("loading");
   const [activeCategory, setActiveCategory] = useState("all");
+  const [showAll, setShowAll] = useState(false);
   const [selected, setSelected] = useState<Project | null>(null);
 
   useEffect(() => {
@@ -101,8 +122,11 @@ export function ProjectsSection() {
       ? projects
       : projects.filter((project) => project.category === activeCategory);
 
+  const visible = showAll ? filtered : filtered.slice(0, INITIAL_VISIBLE);
+  const hiddenCount = filtered.length - visible.length;
+
   return (
-    <section id="projects" className="relative py-24 lg:py-32">
+    <section id="projects" className="relative py-14 lg:py-20">
       <div className="container-luxury">
         <SectionHeading
           eyebrow="مشاريعنا"
@@ -111,33 +135,36 @@ export function ProjectsSection() {
         />
 
         {status === "loading" && (
-          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-hidden="true">
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" aria-hidden="true">
             {[0, 1, 2, 3, 4, 5].map((index) => (
-              <div key={index} className="glass rounded-2xl h-64 animate-pulse" />
+              <div key={index} className="glass rounded-2xl h-56 animate-pulse" />
             ))}
           </div>
         )}
 
         {status === "error" && (
-          <p role="status" className="mt-12 text-center text-muted-foreground">
+          <p role="status" className="mt-8 text-center text-muted-foreground">
             تعذر تحميل المشاريع حالياً. يرجى المحاولة لاحقاً.
           </p>
         )}
 
         {status === "ready" && projects.length === 0 && (
-          <p className="mt-12 text-center text-muted-foreground">سيتم إضافة المشاريع قريباً.</p>
+          <p className="mt-8 text-center text-muted-foreground">سيتم إضافة المشاريع قريباً.</p>
         )}
 
         {status === "ready" && projects.length > 0 && (
           <>
-            <Reveal delay={0.2} className="mt-12">
+            <Reveal delay={0.15} className="mt-8">
               <div className="flex flex-wrap items-center justify-center gap-3">
                 {categories.map((category) => (
                   <button
                     key={category}
                     type="button"
                     aria-pressed={activeCategory === category}
-                    onClick={() => setActiveCategory(category)}
+                    onClick={() => {
+                      setActiveCategory(category);
+                      setShowAll(false);
+                    }}
                     className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
                       activeCategory === category
                         ? "gold-gradient-bg text-navy-deep"
@@ -150,16 +177,16 @@ export function ProjectsSection() {
               </div>
             </Reveal>
 
-            <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filtered.map((project, index) => (
-                <Reveal key={project.id} delay={(index % 3) * 0.1} y={40}>
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {visible.map((project, index) => (
+                <Reveal key={project.id} delay={(index % 3) * 0.08} y={30}>
                   <button
                     type="button"
                     onClick={() => setSelected(project)}
                     aria-label={`عرض تفاصيل مشروع ${project.title}`}
                     className="group relative block w-full text-right rounded-2xl overflow-hidden glass cursor-pointer hover:border-gold/30 transition-all duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                   >
-                    <div className="zoom-container relative aspect-[4/3]">
+                    <div className="zoom-container relative aspect-[16/11]">
                       <img
                         src={project.hero_image}
                         alt={project.title}
@@ -168,18 +195,18 @@ export function ProjectsSection() {
                       />
                       <div className="absolute inset-0 bg-image-scrim transition-opacity duration-500" />
 
-                      <div className="absolute top-4 right-4">
-                        <span className="glass-gold text-gold text-xs font-bold px-3 py-1.5 rounded-full">
+                      <div className="absolute top-3 right-3">
+                        <span className="glass-gold text-gold text-xs font-bold px-3 py-1 rounded-full">
                           {categoryLabel(project.category)}
                         </span>
                       </div>
 
-                      <div className="absolute bottom-0 right-0 left-0 p-6">
-                        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-gold transition-colors duration-300">
+                      <div className="absolute bottom-0 right-0 left-0 p-5">
+                        <h3 className="text-lg font-bold text-white mb-1 group-hover:text-gold transition-colors duration-300">
                           {project.title}
                         </h3>
                         {project.location && (
-                          <p className="flex items-center gap-1.5 text-sm text-gray-300">
+                          <p className="flex items-center gap-1.5 text-xs text-gray-300">
                             <MapPin className="w-3.5 h-3.5 text-gold" aria-hidden="true" />
                             {project.location}
                           </p>
@@ -192,18 +219,90 @@ export function ProjectsSection() {
             </div>
 
             {filtered.length === 0 && (
-              <p className="mt-10 text-center text-muted-foreground">لا توجد مشاريع في هذا التصنيف.</p>
+              <p className="mt-8 text-center text-muted-foreground">لا توجد مشاريع في هذا التصنيف.</p>
+            )}
+
+            {hiddenCount > 0 && (
+              <div className="mt-8 text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowAll(true)}
+                  className="inline-flex items-center gap-2 glass-light border border-border text-foreground font-bold text-sm px-7 py-3 rounded-full hover:text-gold hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                >
+                  <Plus className="w-4 h-4 text-gold" aria-hidden="true" />
+                  عرض كل المشاريع
+                  <span className="text-muted-foreground">({hiddenCount})</span>
+                </button>
+              </div>
             )}
           </>
         )}
+
+        {/* Before / after used to be a section of its own, arguing the same
+            point as the gallery above it. */}
+        <div id="before-after" className="mt-14 pt-10 border-t border-border">
+          <Reveal>
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+              <div>
+                <span className="inline-block text-xs font-bold tracking-[0.3em] text-gold uppercase mb-2">
+                  قبل و بعد
+                </span>
+                <h3 className="text-2xl lg:text-3xl font-extrabold text-foreground">شاهد التحول بنفسك</h3>
+              </div>
+
+              <BeforeAfterTabs />
+            </div>
+          </Reveal>
+        </div>
       </div>
 
       <AnimatePresence>
         {selected && <ProjectModal project={selected} onClose={() => setSelected(null)} />}
       </AnimatePresence>
-
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-background" />
     </section>
+  );
+}
+
+/** Tab row plus the slider it controls, kept together so state stays local. */
+function BeforeAfterTabs() {
+  const [active, setActive] = useState(0);
+  const project = beforeAfterProjects[active];
+
+  return (
+    <>
+      <div role="tablist" aria-label="اختر المشروع" className="flex flex-wrap items-center gap-2">
+        {beforeAfterProjects.map((item, index) => (
+          <button
+            key={item.title}
+            type="button"
+            role="tab"
+            aria-selected={active === index}
+            onClick={() => setActive(index)}
+            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
+              active === index
+                ? "gold-gradient-bg text-navy-deep"
+                : "glass-light text-muted-foreground hover:text-gold hover:border-gold/30"
+            }`}
+          >
+            {item.title}
+          </button>
+        ))}
+      </div>
+
+      <div className="w-full sm:w-auto sm:absolute sm:static" />
+
+      <div className="w-full order-last mt-6 sm:mt-0 sm:w-full sm:basis-full">
+        <BeforeAfterSlider
+          key={project.title}
+          before={project.before}
+          after={project.after}
+          className="h-64 sm:h-80 lg:h-[420px] rounded-3xl mt-6"
+        />
+        <p className="text-center text-muted-foreground text-xs mt-3">
+          اسحب المقبض أو استخدم أسهم لوحة المفاتيح لرؤية الفرق
+        </p>
+      </div>
+    </>
   );
 }
 

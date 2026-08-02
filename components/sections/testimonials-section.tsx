@@ -55,21 +55,21 @@ export function TestimonialsSection() {
   }, []);
 
   return (
-    <section id="testimonials" className="relative py-24 lg:py-32 overflow-hidden">
+    <section id="testimonials" className="relative py-14 lg:py-20 overflow-hidden">
       <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full opacity-5 blur-3xl bg-gold-radial" />
 
       <div className="container-luxury">
         <SectionHeading
           eyebrow="آراء العملاء"
           title="ماذا يقول عملاؤنا"
-          subtitle="ثقة عملائنا هي أكبر إنجازاتنا، وكلماتهم هي شهادة على جودة عملنا"
+          subtitle="ثقة عملائنا هي أكبر إنجازاتنا"
         />
 
-        <div className="mt-16">
+        <div className="mt-8">
           {status === "loading" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-hidden="true">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" aria-hidden="true">
               {[0, 1, 2].map((index) => (
-                <div key={index} className="glass rounded-2xl p-8 h-56 animate-pulse" />
+                <div key={index} className="glass rounded-2xl p-6 h-44 animate-pulse" />
               ))}
             </div>
           )}
@@ -88,7 +88,7 @@ export function TestimonialsSection() {
             <Reveal delay={0.1}>
               <Swiper
                 modules={[Autoplay, Pagination]}
-                spaceBetween={24}
+                spaceBetween={20}
                 slidesPerView={1}
                 autoplay={{ delay: 5000, disableOnInteraction: false, pauseOnMouseEnter: true }}
                 pagination={{
@@ -98,13 +98,13 @@ export function TestimonialsSection() {
                 }}
                 breakpoints={{ 640: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }}
                 loop={testimonials.length > 3}
-                className="!overflow-visible !pb-14"
+                className="!overflow-visible !pb-10"
               >
                 {testimonials.map((testimonial) => (
                   <SwiperSlide key={testimonial.id} className="h-auto">
-                    <figure className="glass rounded-2xl p-8 h-full flex flex-col hover:border-gold/30 transition-all duration-500 hover:-translate-y-1.5">
+                    <figure className="glass rounded-2xl p-6 h-full flex flex-col hover:border-gold/30 transition-all duration-500 hover:-translate-y-1.5">
                       <div
-                        className="flex items-center gap-1 mb-5"
+                        className="flex items-center gap-1 mb-3"
                         role="img"
                         aria-label={`${testimonial.rating} من 5 نجوم`}
                       >
@@ -112,33 +112,33 @@ export function TestimonialsSection() {
                           <span
                             key={index}
                             aria-hidden="true"
-                            className={index < testimonial.rating ? "text-gold text-lg" : "text-muted-foreground/50 text-lg"}
+                            className={index < testimonial.rating ? "text-gold text-sm" : "text-muted-foreground/50 text-sm"}
                           >
                             ★
                           </span>
                         ))}
                       </div>
 
-                      <blockquote className="text-foreground/90 leading-relaxed flex-1 mb-6 text-balance">
+                      <blockquote className="text-sm text-foreground/90 leading-relaxed flex-1 mb-4 text-balance">
                         {testimonial.content}
                       </blockquote>
 
-                      <figcaption className="flex items-center gap-4 pt-4 border-t border-border">
+                      <figcaption className="flex items-center gap-3 pt-3 border-t border-border">
                         {testimonial.avatar_url ? (
                           <img
                             src={testimonial.avatar_url}
                             alt=""
                             loading="lazy"
-                            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                            className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-full gold-gradient-bg flex items-center justify-center flex-shrink-0 text-navy-deep">
-                            <span aria-hidden="true" className="font-bold text-lg">
+                          <div className="w-10 h-10 rounded-full gold-gradient-bg flex items-center justify-center flex-shrink-0 text-navy-deep">
+                            <span aria-hidden="true" className="font-bold">
                               {testimonial.client_name.charAt(0)}
                             </span>
                           </div>
                         )}
-                        <div>
+                        <div className="min-w-0">
                           <p className="font-bold text-foreground text-sm">{testimonial.client_name}</p>
                           {testimonial.client_title && (
                             <p className="text-xs text-muted-foreground mt-0.5">{testimonial.client_title}</p>
