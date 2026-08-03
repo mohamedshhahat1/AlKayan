@@ -367,6 +367,17 @@
   .animate-float-slow {
     animation: float-slow 9s ease-in-out infinite;
   }
+
+  /*
+   * Small-amplitude drift for icon-sized elements.
+   *
+   * .animate-float travels 14px, which is fine for a decorative blob but is
+   * close to half the height of a 32px glyph — at that scale it reads as
+   * bouncing rather than floating. 5px over a shorter cycle keeps it subtle.
+   */
+  .animate-float-subtle {
+    animation: float-subtle 3.5s ease-in-out infinite;
+  }
 }
 
 @keyframes hero-in {
@@ -397,6 +408,16 @@
   }
   50% {
     transform: translateY(-24px);
+  }
+}
+
+@keyframes float-subtle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
   }
 }
 
@@ -469,6 +490,7 @@ html.lenis {
   .animate-marquee,
   .animate-float,
   .animate-float-slow,
+  .animate-float-subtle,
   .pulse-ring,
   .shimmer-btn::after,
   .ken-burns {
