@@ -26,6 +26,20 @@ type LightboxProps = {
 /** Minimum horizontal travel before a touch counts as a swipe, in pixels. */
 const SWIPE_THRESHOLD = 50;
 
+/** Must match the duration-300 transition classes below. */
+const TRANSITION_MS = 300;
+
+/**
+ * Marks the image and every control. A click landing inside one of these does
+ * not dismiss the viewer; anything else is backdrop.
+ *
+ * An allowlist rather than a comparison against the event's currentTarget: the
+ * root is completely covered by the bar, the stage and the strip, so it is
+ * almost never the direct target of a click and such a check silently never
+ * fires.
+ */
+const KEEP_OPEN_ATTRIBUTE = "data-lightbox-keep-open";
+
 /**
  * Full-screen image viewer.
  *
@@ -41,8 +55,9 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
 
   const containerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const thumbStripRef = useRef<HTMLDivElement>(null);
+  const thumbRowRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
+  const closeTimer = useRef<number | null>(null);
   /** Whatever was focused before opening, so focus can be handed back. */
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
@@ -50,6 +65,31 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
   const total = images.length;
 
   useEffect(() => setMounted(true), []);
+
+  /**
+   * Play the exit transition, then unmount.
+   *
+   * Every dismissal inside the component goes through here rather than calling
+   * onClose directly. onClose clears the parent's index, which removes this
+   * subtree on the very next render — so calling it straight away means there
+   * is nothing left on screen to animate.
+   */
+  const beginClose = useCallback(() => {
+    if (closeTimer.current !== null) return;
+
+    setEntered(false);
+    closeTimer.current = window.setTimeout(() => {
+      closeTimer.current = null;
+      onClose();
+    }, TRANSITION_MS);
+  }, [onClose]);
+
+  useEffect(
+    () => () => {
+      if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
+    },
+    []
+  );
 
   const goTo = useCallback(
     (next: number) => {
@@ -84,7 +124,8 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
     return () => cancelAnimationFrame(frame);
   }, [isOpen]);
 
-  // Scroll lock and focus handling.
+  // Scroll lock and focus handling. lockScroll only freezes overflow, so the
+  // page keeps its scroll position and is exactly where it was on release.
   useEffect(() => {
     if (!isOpen) return;
 
@@ -107,7 +148,7 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        onClose();
+        beginClose();
         return;
       }
 
@@ -150,7 +191,7 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isOpen, goNext, goPrevious, onClose]);
+  }, [isOpen, goNext, goPrevious, beginClose]);
 
   // Warm the neighbours so stepping through feels instant. Browser-cached, no
   // DOM involved.
@@ -166,12 +207,13 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
     }
   }, [images, index, total]);
 
-  // Keep the active thumbnail in view when navigating by keyboard or arrows.
+  // Keep the active thumbnail centred in the strip. scrollIntoView rather than
+  // arithmetic on scrollLeft, whose sign and origin differ between browsers in
+  // an RTL container.
   useEffect(() => {
     if (index === null) return;
 
-    const strip = thumbStripRef.current;
-    const activeThumb = strip?.children[index];
+    const activeThumb = thumbRowRef.current?.children[index];
     activeThumb?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
   }, [index]);
 
@@ -192,6 +234,13 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
     else goPrevious();
   };
 
+  const onBackdropClick = (event: React.MouseEvent) => {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest(`[${KEEP_OPEN_ATTRIBUTE}]`)) return;
+
+    beginClose();
+  };
+
   if (!mounted || index === null) return null;
 
   const current = images[index];
@@ -206,11 +255,7 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
       data-lenis-prevent
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
-      // Closes only on the backdrop itself. Without the target check, a click
-      // that started on the image would bubble up and close the viewer.
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
+      onClick={onBackdropClick}
       className={`fixed inset-0 z-[90] flex flex-col transition-opacity duration-300 ${
         entered ? "opacity-100" : "opacity-0"
       }`}
@@ -218,7 +263,7 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
     >
       {/* Top bar: counter, title, close. */}
       <div className="relative z-10 flex items-center justify-between gap-4 px-4 sm:px-6 py-4 pointer-events-none">
-        <div className="flex items-center gap-3 pointer-events-auto">
+        <div className="flex items-center gap-3 pointer-events-auto" {...{ [KEEP_OPEN_ATTRIBUTE]: "" }}>
           <span
             dir="ltr"
             className="px-3 py-1.5 rounded-full bg-white/10 text-white text-sm font-medium tabular-nums"
@@ -232,8 +277,9 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
         <button
           ref={closeButtonRef}
           type="button"
-          onClick={onClose}
+          onClick={beginClose}
           aria-label="إغلاق معرض الصور"
+          {...{ [KEEP_OPEN_ATTRIBUTE]: "" }}
           className="pointer-events-auto w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
         >
           <X className="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true" />
@@ -241,13 +287,15 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
       </div>
 
       {/* Stage. min-h-0 lets this flex child shrink so the strip is never pushed
-          off-screen on short viewports. */}
+          off-screen on short viewports. The empty area either side of a
+          portrait image is backdrop and closes on click. */}
       <div className="relative flex-1 min-h-0 flex items-center justify-center px-2 sm:px-20">
         <img
           key={current.src}
           src={current.src}
           alt={current.alt}
           onLoad={() => setImageLoaded(true)}
+          {...{ [KEEP_OPEN_ATTRIBUTE]: "" }}
           className={`max-w-full max-h-full object-contain rounded-lg sm:rounded-xl transition-all duration-300 ${
             imageLoaded && entered ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
@@ -260,6 +308,7 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
               type="button"
               onClick={goNext}
               aria-label="الصورة التالية"
+              {...{ [KEEP_OPEN_ATTRIBUTE]: "" }}
               className="absolute left-2 sm:left-5 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             >
               <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" aria-hidden="true" />
@@ -269,6 +318,7 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
               type="button"
               onClick={goPrevious}
               aria-label="الصورة السابقة"
+              {...{ [KEEP_OPEN_ATTRIBUTE]: "" }}
               className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             >
               <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" aria-hidden="true" />
@@ -277,34 +327,46 @@ export function Lightbox({ images, index, onIndexChange, onClose, title }: Light
         ) : null}
       </div>
 
-      {/* Thumbnail strip. */}
+      {/* Thumbnail strip.
+
+          Two elements on purpose. Putting justify-center on the scrolling
+          element itself centres the row but overflows it in both directions,
+          and a scroll container cannot reach content that starts before its
+          own start edge — the first thumbnails become unreachable. An inner
+          w-max row with mx-auto centres while it fits and becomes a no-op once
+          it does not, so both cases work without a breakpoint. */}
       {total > 1 ? (
         <div
-          ref={thumbStripRef}
-          className="flex-shrink-0 flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-4 overflow-x-auto overscroll-contain"
+          className="flex-shrink-0 w-full overflow-x-auto overscroll-contain"
+          {...{ [KEEP_OPEN_ATTRIBUTE]: "" }}
         >
-          {images.map((image, i) => (
-            <button
-              key={image.src}
-              type="button"
-              onClick={() => onIndexChange(i)}
-              aria-label={`عرض الصورة ${i + 1}`}
-              aria-current={i === index ? "true" : undefined}
-              className={`flex-shrink-0 w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
-                i === index
-                  ? "ring-2 ring-gold opacity-100 scale-105"
-                  : "opacity-50 hover:opacity-90"
-              }`}
-            >
-              <img
-                src={image.thumb ?? image.src}
-                alt=""
-                aria-hidden="true"
-                loading="lazy"
-                className="w-full h-full object-cover"
-              />
-            </button>
-          ))}
+          <div
+            ref={thumbRowRef}
+            className="flex items-center gap-2 sm:gap-3 w-max mx-auto px-4 sm:px-6 py-4"
+          >
+            {images.map((image, i) => (
+              <button
+                key={image.src}
+                type="button"
+                onClick={() => onIndexChange(i)}
+                aria-label={`عرض الصورة ${i + 1}`}
+                aria-current={i === index ? "true" : undefined}
+                className={`flex-shrink-0 w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
+                  i === index
+                    ? "ring-2 ring-gold opacity-100 scale-105"
+                    : "opacity-50 hover:opacity-90"
+                }`}
+              >
+                <img
+                  src={image.thumb ?? image.src}
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
     </div>,
