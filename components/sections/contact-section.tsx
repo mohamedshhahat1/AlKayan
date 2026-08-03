@@ -450,6 +450,7 @@ function Field({
         aria-describedby={error ? `${id}-error` : undefined}
         onChange={(event) => onChange(event.target.value)}
         className="w-full rounded-xl bg-input border border-border px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-gold/50 focus-visible:ring-2 focus-visible:ring-gold transition-colors"
+        {...rest}
       />
       {error && (
         <p id={`${id}-error`} className="mt-2 text-sm text-red-400">
@@ -458,5 +459,4 @@ function Field({
       )}
     </div>
   );
-}
 }
