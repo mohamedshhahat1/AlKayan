@@ -11,14 +11,20 @@
  * See .env.example for the full list.
  */
 
-const phoneRaw = process.env.NEXT_PUBLIC_COMPANY_PHONE ?? "+966501234567";
+const phoneRaw = process.env.NEXT_PUBLIC_COMPANY_PHONE ?? "+201001234567";
 
 /** Digits only — required by `tel:` and `wa.me` links. */
 const phoneDigits = phoneRaw.replace(/\D/g, "");
 
-/** Renders "966501234567" as "+966 50 123 4567". */
+/**
+ * Renders "201012345678" as "+20 10 1234 5678".
+ *
+ * Egyptian mobiles are the country code plus ten digits beginning with 1,
+ * conventionally grouped 2-4-4. Anything that does not match is returned
+ * unformatted rather than mis-spaced.
+ */
 function formatPhone(digits: string): string {
-  const match = digits.match(/^(\d{3})(\d{2})(\d{3})(\d{4})$/);
+  const match = digits.match(/^(20)(1\d)(\d{4})(\d{4})$/);
   return match ? `+${match[1]} ${match[2]} ${match[3]} ${match[4]}` : `+${digits}`;
 }
 
@@ -43,7 +49,7 @@ export const siteConfig = {
   shortDescription:
     "نصمم، ننفذ، ونشرف على جميع أعمال التشطيبات والمقاولات بأعلى معايير الجودة والاحترافية.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://al-kayan.com",
-  locale: "ar_SA",
+  locale: "ar_EG",
   keywords: [
     "تشطيبات",
     "مقاولات",
@@ -55,6 +61,8 @@ export const siteConfig = {
     "تشطيب مكاتب",
     "ديكور",
     "مقاولات عامة",
+    "تشطيبات القاهرة الجديدة",
+    "مقاولات مصر",
   ],
   contact: {
     phone: formatPhone(phoneDigits),
@@ -63,12 +71,12 @@ export const siteConfig = {
     whatsappHref: "https://wa.me/" + phoneDigits,
     email,
     mailtoHref: "mailto:" + email,
-    address: "الرياض، المملكة العربية السعودية",
-    addressShort: "الرياض، السعودية",
-    city: "الرياض",
-    countryCode: "SA",
+    address: "القاهرة الجديدة، القاهرة، مصر",
+    addressShort: "القاهرة الجديدة، مصر",
+    city: "القاهرة الجديدة",
+    countryCode: "EG",
     mapsHref:
-      "https://www.google.com/maps/search/?api=1&query=Riyadh%2C+Saudi+Arabia",
+      "https://www.google.com/maps/search/?api=1&query=New+Cairo%2C+Egypt",
   },
   hours: {
     days: "السبت - الخميس",

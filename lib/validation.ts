@@ -8,8 +8,14 @@ import { z } from "zod";
  * was already a dependency but unused.
  */
 
-/** Saudi mobile numbers: 05xxxxxxxx, 5xxxxxxxx, +9665xxxxxxxx or 009665xxxxxxxx. */
-const saudiMobile = /^(?:\+?966|00966|0)?5\d{8}$/;
+/**
+ * Egyptian mobile numbers.
+ *
+ * Ten digits beginning with 1, where the second digit identifies the network
+ * (10 Vodafone, 11 Etisalat, 12 Orange, 15 WE). Accepts the local 01xxxxxxxxx
+ * form as well as +20 / 0020 / bare prefixes, since people type all four.
+ */
+const egyptianMobile = /^(?:\+?20|0020|0)?1[0125]\d{8}$/;
 
 export const bookingSchema = z.object({
   name: z
@@ -21,7 +27,7 @@ export const bookingSchema = z.object({
     .string()
     .trim()
     .transform((value) => value.replace(/[\s-]/g, ""))
-    .refine((value) => saudiMobile.test(value), "رقم جوال غير صحيح (مثال: 0501234567)"),
+    .refine((value) => egyptianMobile.test(value), "رقم موبايل غير صحيح (مثال: 01012345678)"),
   email: z
     .string()
     .trim()

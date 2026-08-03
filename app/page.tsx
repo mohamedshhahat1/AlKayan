@@ -28,7 +28,7 @@ const jsonLd = {
   },
   areaServed: {
     "@type": "Country",
-    name: "Saudi Arabia",
+    name: "Egypt",
   },
   openingHoursSpecification: {
     "@type": "OpeningHoursSpecification",
