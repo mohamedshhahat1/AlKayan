@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowUp } from "lucide-react";
+import { ArrowUpIcon } from "@/components/icons/arrow-up-icon";
 import { scrollToTop } from "@/lib/lenis";
 
 /**
@@ -35,15 +35,20 @@ export function BackToTop() {
   }, []);
 
   return (
+    // The button no longer lifts on hover; the arrow inside does. Three
+    // transforms already share this element — the centring -translate-x-1/2,
+    // the visibility translate-y, and the hover scale — and adding a hover
+    // translate-y on top would fight the visibility one on the same axis.
     <button
       type="button"
       onClick={scrollToTop}
       aria-label="العودة إلى الأعلى"
-      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full gold-gradient-bg text-navy-deep shadow-lg shadow-black/30 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:-translate-y-1 hover:shadow-xl hover:shadow-gold/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+      className={`group fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full gold-gradient-bg text-navy-deep shadow-lg shadow-black/30 flex items-center justify-center transition-all duration-[250ms] ease-out hover:scale-105 hover:shadow-xl hover:shadow-gold/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8 pointer-events-none"
       }`}
     >
-      <ArrowUp className="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true" />
+      {/* 28px on a 48px button and 32px on a 56px one — about 57% either way. */}
+      <ArrowUpIcon className="w-7 h-7 sm:w-8 sm:h-8 transition-transform duration-[250ms] ease-out group-hover:-translate-y-[3px]" />
     </button>
   );
 }
