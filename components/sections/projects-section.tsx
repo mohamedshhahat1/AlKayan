@@ -47,10 +47,10 @@ function categoryLabel(category: string) {
 }
 
 /**
- * Gregorian formatting. `toLocaleDateString("ar-SA")` resolves to the Islamic
+ * Gregorian formatting. `toLocaleDateString("ar-EG")` resolves to the Islamic
  * calendar in most browsers, which is not what a completion date should show.
  */
-const dateFormatter = new Intl.DateTimeFormat("ar-SA-u-ca-gregory", {
+const dateFormatter = new Intl.DateTimeFormat("ar-EG-u-ca-gregory", {
   year: "numeric",
   month: "long",
 });
@@ -64,14 +64,14 @@ const beforeAfterProjects = [
       "https://images.pexels.com/photos/15087186/pexels-photo-15087186.jpeg?auto=compress&cs=tinysrgb&w=1920",
     after:
       "https://images.pexels.com/photos/7546323/pexels-photo-7546323.jpeg?auto=compress&cs=tinysrgb&w=1920",
-    title: "شقة النخبة - جدة",
+    title: "شقة النخبة - التجمع الخامس",
   },
   {
     before:
       "https://images.pexels.com/photos/19408681/pexels-photo-19408681.jpeg?auto=compress&cs=tinysrgb&w=1920",
     after:
       "https://images.pexels.com/photos/16573669/pexels-photo-16573669.jpeg?auto=compress&cs=tinysrgb&w=1920",
-    title: "فيلا الياسمين - الرياض",
+    title: "فيلا الياسمين - الشيخ زايد",
   },
 ];
 
