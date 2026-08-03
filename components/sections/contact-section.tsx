@@ -72,6 +72,10 @@ type SubmitState = "idle" | "submitting" | "success" | "error";
 /**
  * The closing block: objections, then the ask, then the form. These were two
  * separate full-height sections making the same move.
+ *
+ * Note that #faq and #contact are two anchors inside this one section. The
+ * section element itself carries no id: if it did, it would start at the FAQ
+ * heading, and the "تواصل معنا" nav link would scroll to the FAQ.
  */
 export function ContactSection() {
   const [form, setForm] = useState(emptyForm);
@@ -134,7 +138,7 @@ export function ContactSection() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <section id="contact" className="relative py-14 lg:py-20">
+    <section className="relative py-14 lg:py-20">
       <div className="container-luxury">
         {/* FAQ */}
         <div id="faq">
@@ -168,39 +172,42 @@ export function ContactSection() {
           </Reveal>
         </div>
 
-        {/* Compact CTA, replacing the old full-width contact header */}
-        <Reveal className="mt-12">
-          <div className="glass rounded-3xl border border-gold/20 p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 text-center lg:text-right">
-            <div>
-              <h2 className="text-2xl lg:text-3xl font-extrabold text-foreground">
-                جاهز لبدء <span className="gold-gradient-text">مشروعك؟</span>
-              </h2>
-              <p className="text-sm text-muted-foreground mt-2">
-                معاينة واستشارة مجانية، ورد من فريقنا خلال 24 ساعة
-              </p>
-            </div>
+        {/* Compact CTA, replacing the old full-width contact header. This is
+            where "تواصل معنا" lands. */}
+        <div id="contact" className="mt-12">
+          <Reveal>
+            <div className="glass rounded-3xl border border-gold/20 p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 text-center lg:text-right">
+              <div>
+                <h2 className="text-2xl lg:text-3xl font-extrabold text-foreground">
+                  جاهز لبدء <span className="gold-gradient-text">مشروعك؟</span>
+                </h2>
+                <p className="text-sm text-muted-foreground mt-2">
+                  معاينة واستشارة مجانية، ورد من فريقنا خلال 24 ساعة
+                </p>
+              </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-shrink-0">
-              <a
-                href={siteConfig.contact.telHref}
-                className="shimmer-btn gold-gradient-bg font-bold text-sm px-7 py-3 rounded-full flex items-center justify-center gap-2 hover:scale-105 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                style={{ color: "#0B1F3A" }}
-              >
-                <Phone className="w-4 h-4" aria-hidden="true" />
-                اتصل الآن
-              </a>
-              <a
-                href={siteConfig.contact.whatsappHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="glass-light border border-border text-foreground font-bold text-sm px-7 py-3 rounded-full flex items-center justify-center gap-2 hover:text-gold hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-              >
-                <WhatsAppIcon className="w-4 h-4 fill-gold" />
-                واتساب
-              </a>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-shrink-0">
+                <a
+                  href={siteConfig.contact.telHref}
+                  className="shimmer-btn gold-gradient-bg font-bold text-sm px-7 py-3 rounded-full flex items-center justify-center gap-2 hover:scale-105 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  style={{ color: "#0B1F3A" }}
+                >
+                  <Phone className="w-4 h-4" aria-hidden="true" />
+                  اتصل الآن
+                </a>
+                <a
+                  href={siteConfig.contact.whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="glass-light border border-border text-foreground font-bold text-sm px-7 py-3 rounded-full flex items-center justify-center gap-2 hover:text-gold hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                >
+                  <WhatsAppIcon className="w-4 h-4 fill-gold" />
+                  واتساب
+                </a>
+              </div>
             </div>
-          </div>
-        </Reveal>
+          </Reveal>
+        </div>
 
         {/* Details + booking form */}
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -443,7 +450,6 @@ function Field({
         aria-describedby={error ? `${id}-error` : undefined}
         onChange={(event) => onChange(event.target.value)}
         className="w-full rounded-xl bg-input border border-border px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-gold/50 focus-visible:ring-2 focus-visible:ring-gold transition-colors"
-        {...rest}
       />
       {error && (
         <p id={`${id}-error`} className="mt-2 text-sm text-red-400">
@@ -452,4 +458,5 @@ function Field({
       )}
     </div>
   );
+}
 }
