@@ -9,11 +9,16 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 /**
- * Generated social preview card.
+ * Generated social preview card, on the official palette.
  *
  * Deliberately Latin-only: the fonts bundled with Satori do not cover Arabic
  * glyphs, so Arabic text would render as blank boxes. Swap in a Tajawal .ttf
  * via the `fonts` option if an Arabic card is needed.
+ *
+ * The card should eventually carry the real logo rather than set type — the
+ * pattern is to read the file with
+ * fetch(new URL("./file.png", import.meta.url)).arrayBuffer() and pass it to
+ * an <img>. That needs the artwork committed inside app/ first.
  */
 export default function Image() {
   return new ImageResponse(
@@ -26,9 +31,9 @@ export default function Image() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#0B1F3A",
+          backgroundColor: "#111111",
           backgroundImage:
-            "radial-gradient(circle at 25% 20%, rgba(212,175,55,0.22) 0%, transparent 55%)",
+            "radial-gradient(circle at 25% 20%, rgba(201,161,90,0.22) 0%, transparent 55%)",
         }}
       >
         <div
@@ -36,12 +41,12 @@ export default function Image() {
             fontSize: 108,
             fontWeight: 800,
             letterSpacing: 12,
-            color: "#D4AF37",
+            color: "#C9A15A",
           }}
         >
           {siteConfig.nameEn}
         </div>
-        <div style={{ marginTop: 12, fontSize: 34, color: "#E6EDF7" }}>
+        <div style={{ marginTop: 12, fontSize: 34, color: "#F3F0E8" }}>
           Contracting &amp; Luxury Interior Finishing
         </div>
         <div
@@ -50,10 +55,10 @@ export default function Image() {
             width: 220,
             height: 5,
             borderRadius: 999,
-            backgroundColor: "#D4AF37",
+            backgroundColor: "#C9A15A",
           }}
         />
-        <div style={{ marginTop: 44, fontSize: 26, color: "#93A4BC" }}>
+        <div style={{ marginTop: 44, fontSize: 26, color: "#8F8A82" }}>
           {siteConfig.url.replace(/^https?:\/\//, "")}
         </div>
       </div>
