@@ -1,0 +1,96 @@
+/*
+ * SECTION RHYTHM
+ * ===========================================================================
+ *
+ * The page alternates charcoal and warm-light bands instead of running dark
+ * end to end. Rather than rewriting colours inside each section, a band
+ * redefines the semantic tokens on its own element and lets the cascade do the
+ * work: every token-driven utility inside it resolves to the band's palette.
+ *
+ * Loaded after globals.css so these declarations win on equal specificity.
+ */
+
+.band-warm {
+  /* Surfaces: warm architectural, not white. */
+  --bg: 44 31% 93%;           /* #F3F0E8 */
+  --surface: 43 27% 90%;      /* #ECE8DE */
+  --elevated: 43 41% 97%;     /* #FAF8F3 */
+  --card-bg: 0 0% 100%;       /* #FFFFFF */
+  --card-hover: 43 41% 97%;   /* #FAF8F3 */
+  --alt-section: 40 24% 88%;  /* #E7E2D8 */
+
+  /* Text. */
+  --text-primary: 0 0% 9%;    /* #171717 */
+  --text-secondary: 38 6% 25%; /* #44413C */
+  --text-muted: 40 5% 44%;    /* #77736B */
+  --text-disabled: 42 7% 63%; /* #A7A39A */
+
+  /* Borders. */
+  --border: 40 24% 88%;       /* #E7E2D8 */
+  --border-subtle: 43 27% 90%; /* #ECE8DE */
+  --border-gold: 37 54% 43%;  /* #A77A32 */
+
+  /*
+   * Gold steps down inside a warm band.
+   *
+   * This is the whole reason gold is tokenised: #C9A15A on #F3F0E8 is roughly
+   * 2.6:1 and fails text contrast, so text-gold has to mean #A77A32 here while
+   * still meaning #C9A15A on charcoal. Same class, both accessible.
+   */
+  --gold: var(--brand-gold-deep);
+  --gold-hover: var(--brand-gold-darker);
+  --gold-active: var(--brand-gold-darker);
+  --on-gold: 44 31% 93%;
+
+  /* Photography and incidental surfaces. */
+  --scrim-h-from: rgba(243, 240, 232, 0.96);
+  --scrim-h-mid: rgba(243, 240, 232, 0.55);
+  --swiper-bullet-bg: rgba(23, 23, 23, 0.25);
+  --line-bg: rgba(23, 23, 23, 0.06);
+  --photo-scrim: 23, 23, 23;
+
+  /*
+   * The shadcn bridge has to be repeated here, and this is the non-obvious
+   * part.
+   *
+   * `--background: var(--bg)` is substituted where it is *declared*. Declared
+   * on :root, it captures the charcoal value and descendants inherit that
+   * already-resolved colour — redefining --bg further down the tree does
+   * nothing to it. Re-declaring the bridge inside the band re-substitutes it
+   * against the band's own tokens.
+   *
+   * Without these lines, bg-background, text-foreground, bg-card and
+   * text-muted-foreground would all stay dark inside a warm section.
+   */
+  --background: var(--bg);
+  --foreground: var(--text-primary);
+  --card: var(--card-bg);
+  --card-foreground: var(--text-primary);
+  --popover: var(--elevated);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--gold);
+  --primary-foreground: var(--on-gold);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--surface);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--gold);
+  --accent-foreground: var(--on-gold);
+  --input: var(--card-bg);
+  --ring: var(--gold);
+
+  background-color: hsl(var(--bg));
+  color: hsl(var(--text-primary));
+}
+
+/*
+ * Faint facade lines for a warm band. The dark-band version in globals.css sits
+ * at 0.07 alpha, which disappears entirely on beige.
+ */
+.band-warm .facade-lines {
+  background-image: repeating-linear-gradient(
+    to right,
+    hsl(var(--gold) / 0.1) 0 1px,
+    transparent 1px 88px
+  );
+}
