@@ -11,21 +11,25 @@ const config: Config = {
     extend: {
       colors: {
         /**
-         * Brand palette. These used to live only in :root as CSS variables,
-         * which meant Tailwind could not generate variants or opacity
-         * modifiers for them and components resorted to inline hex values.
+         * Official brand palette. The site is dark-only, so these are the only
+         * surfaces and golds in use.
+         *
+         * The `navy` key name is historical and deliberately preserved: the
+         * component layer references navy-deep / navy-deepest in a lot of
+         * places, and renaming the key would turn a palette change into a
+         * markup rewrite. It now holds the neutral darks.
          */
         navy: {
-          DEFAULT: "#0B1F3A",
-          light: "#132A4D",
-          lighter: "#1A3A63",
-          deep: "#0B1F3A",
-          deepest: "#081830",
+          DEFAULT: "#111111",
+          light: "#202020",
+          lighter: "#242424",
+          deep: "#111111",
+          deepest: "#171717",
         },
         gold: {
-          DEFAULT: "#D4AF37",
-          light: "#E4C558",
-          dark: "#B8962E",
+          DEFAULT: "#C9A15A",
+          light: "#E5C98A",
+          dark: "#A77A32",
         },
 
         border: "hsl(var(--border))",

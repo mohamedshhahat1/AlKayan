@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Tajawal } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { SiteHeader } from "@/components/site-header";
@@ -49,31 +48,35 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#0B1F3A",
+  themeColor: "#111111",
   width: "device-width",
   initialScale: 1,
 };
 
+/**
+ * The site is dark-only, so `dark` is a static class on <html> rather than
+ * something a provider writes at runtime. Keeping the class (instead of
+ * deleting the darkMode strategy) means any dark: utility already in the
+ * component layer resolves the same way it always did.
+ */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" className={tajawal.variable} suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className={`dark ${tajawal.variable}`}>
       <body className={tajawal.className}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          {/* Side effect only — it does not render its children. */}
-          <SmoothScroll />
-          <a
-            href="#hero"
-            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:right-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-full focus:gold-gradient-bg focus:text-navy-deep focus:font-bold"
-          >
-            تخطي إلى المحتوى
-          </a>
-          <SiteHeader />
-          <main>{children}</main>
-          <SiteFooter />
-          <WhatsAppButton />
-          <ChatWidget />
-          <BackToTop />
-        </ThemeProvider>
+        {/* Side effect only — it does not render its children. */}
+        <SmoothScroll />
+        <a
+          href="#hero"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:right-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-full focus:gold-gradient-bg focus:text-navy-deep focus:font-bold"
+        >
+          تخطي إلى المحتوى
+        </a>
+        <SiteHeader />
+        <main>{children}</main>
+        <SiteFooter />
+        <WhatsAppButton />
+        <ChatWidget />
+        <BackToTop />
       </body>
     </html>
   );
