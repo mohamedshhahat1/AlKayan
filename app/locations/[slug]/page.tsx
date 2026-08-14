@@ -22,7 +22,7 @@ export default function LocationPage({ params }: { params: { slug: string } }) {
   const location = locationPages.find((item) => item.slug === params.slug);
   if (!location) notFound();
   const url = `${siteConfig.url}/locations/${location.slug}`;
-  const jsonLd = { "@context": "https://schema.org", "@type": "LocalBusiness", "@id": `${url}#localbusiness`, name: siteConfig.legalName, url, telephone: siteConfig.contact.phoneE164, description: location.description, areaServed: [{ "@type": "City", name: location.name }, ...location.areas.map((name) => ({ "@type": "Place", name }))], address: { "@type": "PostalAddress", addressLocality: siteConfig.contact.city, addressCountry: siteConfig.contact.countryCode } };
+  const jsonLd = { "@context": "https://schema.org", "@type": "Service", "@id": `${url}#service`, name: `تشطيبات ومقاولات في ${location.name}`, description: location.description, url, provider: { "@type": "GeneralContractor", name: siteConfig.legalName, url: siteConfig.url }, areaServed: [{ "@type": "City", name: location.name }, ...location.areas.map((name) => ({ "@type": "Place", name }))], serviceType: "تشطيبات ومقاولات" };
 
   return (
     <>
@@ -35,24 +35,9 @@ export default function LocationPage({ params }: { params: { slug: string } }) {
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight">شركة تشطيبات ومقاولات في {location.name}</h1>
             <p className="mt-6 text-lg text-muted-foreground leading-9">{location.description}</p>
           </header>
-
-          <section className="mt-12 rounded-2xl border border-border p-7 lg:p-10">
-            <h2 className="text-2xl font-bold text-foreground">خدماتنا في {location.name}</h2>
-            <p className="mt-3 text-muted-foreground leading-8">نوفر حلول التشطيبات والتصميم والتنفيذ للمنازل والفلل والمكاتب والمشروعات التجارية، مع متابعة مراحل المشروع من البداية حتى التسليم.</p>
-            <div className="mt-7 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {servicePages.map((service) => <Link key={service.slug} href={`/services/${service.slug}`} className="rounded-xl border border-border px-5 py-4 font-semibold text-foreground hover:border-gold/50 hover:text-gold transition-colors">{service.name}</Link>)}
-            </div>
-          </section>
-
-          <section className="mt-12">
-            <h2 className="text-2xl font-bold text-foreground">المناطق القريبة التي نخدمها</h2>
-            <div className="mt-5 flex flex-wrap gap-3">{location.areas.map((area) => <span key={area} className="rounded-full border border-border px-5 py-2.5 text-sm text-muted-foreground">{area}</span>)}</div>
-          </section>
-
-          <section className="mt-12 rounded-2xl border border-gold/30 bg-card p-7 lg:p-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-            <div><h2 className="text-2xl font-bold text-foreground">هل لديك مشروع في {location.name}؟</h2><p className="mt-2 text-muted-foreground">تواصل معنا لمناقشة المساحة، النطاق والميزانية المبدئية.</p></div>
-            <a href={siteConfig.contact.whatsappHref} className="shrink-0 inline-flex items-center justify-center rounded-full gold-gradient-bg text-navy-deep font-bold px-7 py-3">تواصل عبر واتساب</a>
-          </section>
+          <section className="mt-12 rounded-2xl border border-border p-7 lg:p-10"><h2 className="text-2xl font-bold text-foreground">خدماتنا في {location.name}</h2><p className="mt-3 text-muted-foreground leading-8">نوفر حلول التشطيبات والتصميم والتنفيذ للمنازل والفلل والمكاتب والمشروعات التجارية، مع متابعة مراحل المشروع من البداية حتى التسليم.</p><div className="mt-7 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">{servicePages.map((service) => <Link key={service.slug} href={`/services/${service.slug}`} className="rounded-xl border border-border px-5 py-4 font-semibold text-foreground hover:border-gold/50 hover:text-gold transition-colors">{service.name}</Link>)}</div></section>
+          <section className="mt-12"><h2 className="text-2xl font-bold text-foreground">المناطق القريبة التي نخدمها</h2><div className="mt-5 flex flex-wrap gap-3">{location.areas.map((area) => <span key={area} className="rounded-full border border-border px-5 py-2.5 text-sm text-muted-foreground">{area}</span>)}</div></section>
+          <section className="mt-12 rounded-2xl border border-gold/30 bg-card p-7 lg:p-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6"><div><h2 className="text-2xl font-bold text-foreground">هل لديك مشروع في {location.name}؟</h2><p className="mt-2 text-muted-foreground">تواصل معنا لمناقشة المساحة، النطاق والميزانية المبدئية.</p></div><a href={siteConfig.contact.whatsappHref} className="shrink-0 inline-flex items-center justify-center rounded-full gold-gradient-bg text-navy-deep font-bold px-7 py-3">تواصل عبر واتساب</a></section>
         </div>
       </main>
     </>
