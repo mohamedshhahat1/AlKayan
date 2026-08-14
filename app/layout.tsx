@@ -10,17 +10,6 @@ import { ChatWidget } from "@/components/chat-widget";
 import { BackToTop } from "@/components/back-to-top";
 import { siteConfig } from "@/lib/site-config";
 
-/**
- * Two faces, one family of shapes.
- *
- * Cairo carries the headings: geometric, high-contrast at large sizes, and it
- * keeps the counters open in الكيان at display scale. Tajawal stays on body
- * copy, where its narrower forms fit more Arabic per line without crowding.
- *
- * Cairo is a variable font, so `weight` is intentionally omitted — next/font
- * only requires it for static families. Subsets are arabic + latin; both are
- * published for Cairo, which is what the Noto Kufi Arabic attempt got wrong.
- */
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
   variable: "--font-cairo",
@@ -43,6 +32,10 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   keywords: [...siteConfig.keywords],
   applicationName: siteConfig.name,
+  authors: [{ name: siteConfig.legalName }],
+  creator: siteConfig.legalName,
+  publisher: siteConfig.legalName,
+  category: "construction and interior finishing",
   alternates: {
     canonical: "/",
   },
@@ -53,15 +46,31 @@ export const metadata: Metadata = {
     locale: siteConfig.locale,
     siteName: siteConfig.name,
     url: siteConfig.url,
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: siteConfig.title,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: siteConfig.title,
     description: siteConfig.shortDescription,
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 
@@ -71,21 +80,10 @@ export const viewport = {
   initialScale: 1,
 };
 
-/**
- * Dark is the default theme, so `dark` is a static class on <html> rather than
- * something a provider writes at runtime.
- *
- * The token layer also defines a full warm palette under `.light`, so enabling
- * a theme switch is a matter of swapping this one class — no component rule
- * needs a second definition. Keeping `dark` here (rather than dropping the
- * class strategy) also means every dark: utility already in the component layer
- * resolves exactly as before.
- */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ar" dir="rtl" className={`dark ${cairo.variable} ${tajawal.variable}`}>
       <body className={tajawal.className}>
-        {/* Side effect only — it does not render its children. */}
         <SmoothScroll />
         <a
           href="#hero"
