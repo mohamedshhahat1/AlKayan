@@ -3,94 +3,72 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Single dark theme.
+   *
+   * The site is dark-only. There is no light palette and no theme class to
+   * flip, so the tokens live on :root rather than under .dark — the palette
+   * then applies even if <html> carries no class at all, which removes the
+   * flash-of-wrong-theme problem along with the provider.
+   *
+   * Official brand values, and the only surfaces and inks used anywhere:
+   *   #111111 page       #C9A15A gold        #F3F0E8 primary text
+   *   #171717 raised     #E5C98A light gold  #C9C5BC secondary text
+   *   #202020 elevated   #A77A32 deep gold   #8F8A82 muted text
+   *   #242424 muted
+   */
   :root {
-    /* Brand palette. Also registered as Tailwind colours in tailwind.config.ts;
-       these variables remain for gradients and raw CSS below. */
-    --navy: #0b1f3a;
-    --navy-light: #132a4d;
-    --navy-lighter: #1a3a63;
-    --navy-deepest: #081830;
-    --gold: #d4af37;
-    --gold-light: #e4c558;
-    --gold-dark: #b8962e;
+    /* Raw brand hexes, for the gradients and raw CSS further down. The
+       --navy-* names are kept deliberately: components across the site
+       reference the matching Tailwind keys, and renaming them would mean
+       rewriting markup rather than tokens. They now hold neutral darks. */
+    --navy: #111111;
+    --navy-light: #202020;
+    --navy-lighter: #242424;
+    --navy-deepest: #171717;
+    --gold: #c9a15a;
+    --gold-light: #e5c98a;
+    --gold-dark: #a77a32;
 
-    /* Light mode — clean white + navy + bright gold */
-    --background: 0 0% 100%;
-    --foreground: 213 60% 14%;
-    --card: 210 40% 98%;
-    --card-foreground: 213 60% 14%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 213 60% 14%;
-    --primary: 43 65% 52%;
-    --primary-foreground: 213 60% 14%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 213 60% 14%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 213 15% 40%;
-    --accent: 43 65% 52%;
-    --accent-foreground: 213 60% 14%;
+    --background: 0 0% 7%;
+    --foreground: 44 31% 93%;
+    --card: 0 0% 9%;
+    --card-foreground: 44 31% 93%;
+    --popover: 0 0% 13%;
+    --popover-foreground: 44 31% 93%;
+    --primary: 38 51% 57%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 0 0% 13%;
+    --secondary-foreground: 44 31% 93%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 37 5% 54%;
+    --accent: 38 51% 57%;
+    --accent-foreground: 0 0% 7%;
     --destructive: 0 62% 45%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 213 30% 20% / 0.12;
-    --input: 210 40% 96%;
-    --ring: 43 65% 52%;
+    --destructive-foreground: 44 31% 93%;
+    --border: 0 0% 100% / 0.08;
+    --input: 0 0% 14%;
+    --ring: 38 51% 57%;
     --radius: 0.75rem;
 
-    /* Theme-aware surface variables */
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(11, 31, 58, 0.1);
-    --glass-light-bg: rgba(11, 31, 58, 0.03);
-    --glass-light-border: rgba(11, 31, 58, 0.08);
-    --navy-grad-from: #ffffff;
-    --navy-grad-to: #f0f4f8;
-    --swiper-bullet-bg: rgba(11, 31, 58, 0.25);
-    --scrim-h-from: rgba(255, 255, 255, 0.95);
-    --scrim-h-mid: rgba(255, 255, 255, 0.4);
-    --line-bg: rgba(11, 31, 58, 0.06);
-
-    /* Hero overlay — no longer referenced. The hero keeps a navy scrim in both
-       themes so it can carry white text; see hero-section.tsx. */
-    --hero-overlay-from: rgba(255, 255, 255, 0.5);
-    --hero-overlay-mid: rgba(255, 255, 255, 0.35);
-    --hero-overlay-to: rgba(255, 255, 255, 0.85);
-  }
-
-  .dark {
-    /* Night mode — navy + gold (original theme) */
-    --background: 210 50% 7%;
-    --foreground: 0 0% 98%;
-    --card: 213 58% 11%;
-    --card-foreground: 0 0% 98%;
-    --popover: 213 58% 11%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 43 65% 52%;
-    --primary-foreground: 210 60% 13%;
-    --secondary: 213 50% 18%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 213 50% 18%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 43 65% 52%;
-    --accent-foreground: 210 60% 13%;
-    --destructive: 0 62% 45%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 100% / 0.1;
-    --input: 213 50% 18%;
-    --ring: 43 65% 52%;
-
-    --glass-bg: rgba(19, 42, 77, 0.55);
+    /* Surface variables. Previously these had to differ per theme; with one
+       palette they are simply the brand darks. */
+    --glass-bg: rgba(23, 23, 23, 0.72);
     --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-light-bg: rgba(255, 255, 255, 0.05);
-    --glass-light-border: rgba(255, 255, 255, 0.1);
-    --navy-grad-from: #0b1f3a;
-    --navy-grad-to: #132a4d;
-    --swiper-bullet-bg: rgba(255, 255, 255, 0.25);
-    --scrim-h-from: rgba(11, 31, 58, 0.95);
-    --scrim-h-mid: rgba(11, 31, 58, 0.4);
+    --glass-light-bg: rgba(255, 255, 255, 0.04);
+    --glass-light-border: rgba(255, 255, 255, 0.09);
+    --navy-grad-from: #111111;
+    --navy-grad-to: #202020;
+    --swiper-bullet-bg: rgba(255, 255, 255, 0.22);
+    --scrim-h-from: rgba(17, 17, 17, 0.95);
+    --scrim-h-mid: rgba(17, 17, 17, 0.4);
     --line-bg: rgba(255, 255, 255, 0.06);
 
-    --hero-overlay-from: rgba(11, 31, 58, 0.5);
-    --hero-overlay-mid: rgba(11, 31, 58, 0.35);
-    --hero-overlay-to: rgba(11, 31, 58, 0.88);
+    /* Hero overlay — no longer referenced. The hero keeps its own scrim so it
+       can carry light text over photography; see hero-section.tsx. */
+    --hero-overlay-from: rgba(17, 17, 17, 0.5);
+    --hero-overlay-mid: rgba(17, 17, 17, 0.35);
+    --hero-overlay-to: rgba(17, 17, 17, 0.88);
   }
 
   * {
@@ -99,6 +77,7 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    color-scheme: dark;
   }
 
   body {
@@ -176,7 +155,8 @@
     border: 1px solid var(--glass-light-border);
   }
 
-  /* Always-dark glass for surfaces that sit on navy regardless of theme. */
+  /* Kept as a named surface for elements sitting directly on photography,
+     where the page background is not what is behind them. */
   .glass-on-dark {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(12px);
@@ -185,10 +165,10 @@
   }
 
   .glass-gold {
-    background: rgba(212, 175, 55, 0.1);
+    background: rgba(201, 161, 90, 0.1);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(212, 175, 55, 0.25);
+    border: 1px solid rgba(201, 161, 90, 0.25);
   }
 
   .gold-gradient-text {
@@ -208,9 +188,9 @@
 
   .bg-image-scrim {
     background: linear-gradient(to top,
-      rgba(8, 24, 48, 0.7) 0%,
-      rgba(8, 24, 48, 0.45) 25%,
-      rgba(8, 24, 48, 0.15) 55%,
+      rgba(17, 17, 17, 0.72) 0%,
+      rgba(17, 17, 17, 0.46) 25%,
+      rgba(17, 17, 17, 0.16) 55%,
       transparent 85%);
   }
 
@@ -220,7 +200,7 @@
    *
    * Notes:
    * - The colour is hsl(var(--background)), the same token the following
-   *   section renders, so this follows the theme with no second rule.
+   *   section renders, so this follows the palette with no second rule.
    * - Many closely spaced stops rather than two: a plain two-stop gradient
    *   ramps linearly and both banding and the start of the fade become
    *   noticeable on a large flat area. These approximate an ease-in curve.
@@ -275,12 +255,12 @@
     z-index: -1;
     margin: -1px;
     border-radius: inherit;
-    background: linear-gradient(135deg, rgba(212, 175, 55, 0.6), transparent 60%);
+    background: linear-gradient(135deg, rgba(201, 161, 90, 0.55), transparent 60%);
   }
 
   .section-divider {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent);
+    background: linear-gradient(90deg, transparent, rgba(201, 161, 90, 0.4), transparent);
   }
 
   .shimmer-btn {
