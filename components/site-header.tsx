@@ -5,7 +5,6 @@ import { Menu, X, Phone } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 import { lockScroll, unlockScroll } from "@/lib/lenis";
 import { getScrollOffset } from "@/lib/header-offset";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 const navLinks = [
   { href: "#hero", label: "الرئيسية" },
@@ -181,8 +180,6 @@ export function SiteHeader() {
             <Phone className="w-4 h-4" aria-hidden="true" />
             <span dir="ltr">{siteConfig.contact.phone}</span>
           </a>
-
-          <ThemeToggle />
 
           <button
             type="button"
