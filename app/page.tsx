@@ -7,6 +7,7 @@ import { WorkProcessSection } from "@/components/sections/work-process-section";
 import { StatsSection } from "@/components/sections/stats-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { ContactSection } from "@/components/sections/contact-section";
+import { SeoLinks } from "@/components/seo-links";
 import { siteConfig } from "@/lib/site-config";
 
 const services = [
@@ -33,52 +34,14 @@ const jsonLd = {
       telephone: siteConfig.contact.phoneE164,
       email: siteConfig.contact.email,
       image: `${siteConfig.url}/opengraph-image`,
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: siteConfig.contact.city,
-        addressCountry: siteConfig.contact.countryCode,
-      },
+      address: { "@type": "PostalAddress", addressLocality: siteConfig.contact.city, addressCountry: siteConfig.contact.countryCode },
       areaServed: { "@type": "Country", name: "Egypt" },
-      openingHoursSpecification: {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
-        opens: "09:00",
-        closes: "21:00",
-      },
+      openingHoursSpecification: { "@type": "OpeningHoursSpecification", dayOfWeek: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"], opens: "09:00", closes: "21:00" },
       sameAs: [siteConfig.social.facebook, siteConfig.social.instagram].filter(Boolean),
-      hasOfferCatalog: {
-        "@type": "OfferCatalog",
-        name: "خدمات الكيان للمقاولات والتشطيبات",
-        itemListElement: services.map((name) => ({
-          "@type": "Offer",
-          itemOffered: {
-            "@type": "Service",
-            name,
-            provider: { "@id": organizationId },
-            areaServed: { "@type": "Country", name: "Egypt" },
-          },
-        })),
-      },
+      hasOfferCatalog: { "@type": "OfferCatalog", name: "خدمات الكيان للمقاولات والتشطيبات", itemListElement: services.map((name) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name, provider: { "@id": organizationId }, areaServed: { "@type": "Country", name: "Egypt" } } })) },
     },
-    {
-      "@type": "WebSite",
-      "@id": websiteId,
-      url: siteConfig.url,
-      name: siteConfig.name,
-      description: siteConfig.description,
-      inLanguage: "ar-EG",
-      publisher: { "@id": organizationId },
-    },
-    {
-      "@type": "WebPage",
-      "@id": `${siteConfig.url}#webpage`,
-      url: siteConfig.url,
-      name: siteConfig.title,
-      description: siteConfig.description,
-      inLanguage: "ar-EG",
-      isPartOf: { "@id": websiteId },
-      about: { "@id": organizationId },
-    },
+    { "@type": "WebSite", "@id": websiteId, url: siteConfig.url, name: siteConfig.name, description: siteConfig.description, inLanguage: "ar-EG", publisher: { "@id": organizationId } },
+    { "@type": "WebPage", "@id": `${siteConfig.url}#webpage`, url: siteConfig.url, name: siteConfig.title, description: siteConfig.description, inLanguage: "ar-EG", isPartOf: { "@id": websiteId }, about: { "@id": organizationId } },
   ],
 };
 
@@ -95,6 +58,7 @@ export default function Home() {
       <StatsSection />
       <TestimonialsSection />
       <ContactSection />
+      <SeoLinks />
     </>
   );
 }
