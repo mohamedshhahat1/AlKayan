@@ -4,71 +4,144 @@
 
 @layer base {
   /*
-   * Single dark theme.
+   * ===========================================================
+   * BRAND CONSTANTS — identical in both themes
+   * ===========================================================
    *
-   * The site is dark-only. There is no light palette and no theme class to
-   * flip, so the tokens live on :root rather than under .dark — the palette
-   * then applies even if <html> carries no class at all, which removes the
-   * flash-of-wrong-theme problem along with the provider.
-   *
-   * Official brand values, and the only surfaces and inks used anywhere:
-   *   #111111 page       #C9A15A gold        #F3F0E8 primary text
-   *   #171717 raised     #E5C98A light gold  #C9C5BC secondary text
-   *   #202020 elevated   #A77A32 deep gold   #8F8A82 muted text
-   *   #242424 muted
+   * Stored as HSL triplets, not hex, so Tailwind can inject an alpha channel:
+   * `border-line/50` compiles to hsl(var(--border) / 0.5). With hex values
+   * those modifiers silently produce invalid colours, and the section layer
+   * already relies on them.
    */
   :root {
-    /* Raw brand hexes, for the gradients and raw CSS further down. The
-       --navy-* names are kept deliberately: components across the site
-       reference the matching Tailwind keys, and renaming them would mean
-       rewriting markup rather than tokens. They now hold neutral darks. */
-    --navy: #111111;
-    --navy-light: #202020;
-    --navy-lighter: #242424;
-    --navy-deepest: #171717;
-    --gold: #c9a15a;
-    --gold-light: #e5c98a;
-    --gold-dark: #a77a32;
+    --brand-gold: 38 51% 57%;        /* #C9A15A */
+    --brand-gold-light: 42 64% 72%;  /* #E5C98A */
+    --brand-gold-deep: 37 54% 43%;   /* #A77A32 */
+    --brand-gold-darker: 37 54% 36%; /* #8D672A — light-mode hover */
 
-    --background: 0 0% 7%;
-    --foreground: 44 31% 93%;
-    --card: 0 0% 9%;
-    --card-foreground: 44 31% 93%;
-    --popover: 0 0% 13%;
-    --popover-foreground: 44 31% 93%;
-    --primary: 38 51% 57%;
-    --primary-foreground: 0 0% 7%;
-    --secondary: 0 0% 13%;
-    --secondary-foreground: 44 31% 93%;
-    --muted: 0 0% 14%;
-    --muted-foreground: 37 5% 54%;
-    --accent: 38 51% 57%;
-    --accent-foreground: 0 0% 7%;
-    --destructive: 0 62% 45%;
-    --destructive-foreground: 44 31% 93%;
-    --border: 0 0% 100% / 0.08;
-    --input: 0 0% 14%;
-    --ring: 38 51% 57%;
-    --radius: 0.75rem;
+    --stone: 40 5% 44%;              /* #77736B */
 
-    /* Surface variables. Previously these had to differ per theme; with one
-       palette they are simply the brand darks. */
-    --glass-bg: rgba(23, 23, 23, 0.72);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-light-bg: rgba(255, 255, 255, 0.04);
-    --glass-light-border: rgba(255, 255, 255, 0.09);
-    --navy-grad-from: #111111;
-    --navy-grad-to: #202020;
-    --swiper-bullet-bg: rgba(255, 255, 255, 0.22);
+    /* Kept deliberately muted. These report state; they are not brand. */
+    --success: 141 33% 37%;          /* #3F7D55 */
+    --warning: 36 71% 42%;           /* #B7791F */
+    --error: 4 46% 48%;              /* #B44A42 */
+    --info: 205 28% 42%;             /* #4E718A */
+
+    /*
+     * 4px, down from 12px. Architectural corners are close to square; the old
+     * value read as a consumer app. Only rounded-sm/md/lg resolve through this
+     * token, which is what the shadcn primitives use.
+     */
+    --radius: 0.25rem;
+  }
+
+  /*
+   * ===========================================================
+   * DARK — the default theme
+   * ===========================================================
+   *
+   * A hierarchy of charcoals, never pure black: #111111 page, #171717
+   * surface, #202020 elevated, #242424 card, #2B2B2B card hover.
+   */
+  :root {
+    --bg: 0 0% 7%;              /* #111111 */
+    --surface: 0 0% 9%;         /* #171717 */
+    --elevated: 0 0% 13%;       /* #202020 */
+    --card-bg: 0 0% 14%;        /* #242424 */
+    --card-hover: 0 0% 17%;     /* #2B2B2B */
+
+    --text-primary: 44 31% 93%; /* #F3F0E8 */
+    --text-secondary: 42 11% 76%; /* #C9C5BC */
+    --text-muted: 37 5% 54%;    /* #8F8A82 */
+    --text-disabled: 38 4% 37%; /* #625F5A */
+
+    --border: 0 0% 20%;         /* #343434 */
+    --border-subtle: 0 0% 16%;  /* #292929 */
+    --border-gold: 38 43% 39%;  /* #8F6F39 */
+
+    --gold: var(--brand-gold);
+    --gold-hover: var(--brand-gold-light);
+    --gold-active: var(--brand-gold-deep);
+    /* Ink for text and icons sitting on a gold fill. */
+    --on-gold: 0 0% 9%;         /* #171717 */
+
+    /* Surface treatments. */
+    --header-bg: 0 0% 7%;
     --scrim-h-from: rgba(17, 17, 17, 0.95);
     --scrim-h-mid: rgba(17, 17, 17, 0.4);
+    --swiper-bullet-bg: rgba(255, 255, 255, 0.22);
     --line-bg: rgba(255, 255, 255, 0.06);
+    --photo-scrim: 17, 17, 17;
+  }
 
-    /* Hero overlay — no longer referenced. The hero keeps its own scrim so it
-       can carry light text over photography; see hero-section.tsx. */
-    --hero-overlay-from: rgba(17, 17, 17, 0.5);
-    --hero-overlay-mid: rgba(17, 17, 17, 0.35);
-    --hero-overlay-to: rgba(17, 17, 17, 0.88);
+  /*
+   * ===========================================================
+   * LIGHT — warm architectural, not white
+   * ===========================================================
+   *
+   * Applied by putting `light` on <html> in place of `dark`. Every component
+   * rule below reads tokens only, so nothing here needs a second definition.
+   *
+   * Gold steps down to #A77A32: #C9A15A on #F3F0E8 is roughly 2.6:1 and fails
+   * text contrast. The light golds are reserved for fills and borders.
+   */
+  .light {
+    --bg: 44 31% 93%;           /* #F3F0E8 */
+    --surface: 43 27% 90%;      /* #ECE8DE */
+    --elevated: 43 41% 97%;     /* #FAF8F3 */
+    --card-bg: 0 0% 100%;       /* #FFFFFF */
+    --card-hover: 43 41% 97%;   /* #FAF8F3 */
+    --alt-section: 40 24% 88%;  /* #E7E2D8 */
+
+    --text-primary: 0 0% 9%;    /* #171717 */
+    --text-secondary: 38 6% 25%; /* #44413C */
+    --text-muted: 40 5% 44%;    /* #77736B */
+    --text-disabled: 42 7% 63%; /* #A7A39A */
+
+    --border: 40 24% 88%;
+    --border-subtle: 43 27% 90%;
+    --border-gold: 37 54% 43%;
+
+    --gold: var(--brand-gold-deep);
+    --gold-hover: var(--brand-gold-darker);
+    --gold-active: var(--brand-gold-darker);
+    --on-gold: 44 31% 93%;
+
+    --header-bg: 44 31% 93%;
+    --scrim-h-from: rgba(243, 240, 232, 0.95);
+    --scrim-h-mid: rgba(243, 240, 232, 0.4);
+    --swiper-bullet-bg: rgba(23, 23, 23, 0.25);
+    --line-bg: rgba(23, 23, 23, 0.06);
+    --photo-scrim: 23, 23, 23;
+  }
+
+  /*
+   * shadcn compatibility bridge.
+   *
+   * The section layer is full of bg-background, text-foreground and
+   * text-muted-foreground. Rather than rewrite all of it, these names map onto
+   * the semantic tokens above, so both vocabularies describe one palette.
+   */
+  :root,
+  .light {
+    --background: var(--bg);
+    --foreground: var(--text-primary);
+    --card: var(--card-bg);
+    --card-foreground: var(--text-primary);
+    --popover: var(--elevated);
+    --popover-foreground: var(--text-primary);
+    --primary: var(--gold);
+    --primary-foreground: var(--on-gold);
+    --secondary: var(--elevated);
+    --secondary-foreground: var(--text-primary);
+    --muted: var(--surface);
+    --muted-foreground: var(--text-muted);
+    --accent: var(--gold);
+    --accent-foreground: var(--on-gold);
+    --destructive: var(--error);
+    --destructive-foreground: var(--text-primary);
+    --input: var(--elevated);
+    --ring: var(--gold);
   }
 
   * {
@@ -77,7 +150,14 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+  }
+
+  html.dark {
     color-scheme: dark;
+  }
+
+  html.light {
+    color-scheme: light;
   }
 
   body {
@@ -90,8 +170,8 @@
   }
 
   ::selection {
-    background-color: var(--gold);
-    color: var(--navy);
+    background-color: hsl(var(--gold));
+    color: hsl(var(--on-gold));
   }
 }
 
@@ -111,7 +191,6 @@
    * unit keep the 100vh line, everything modern takes 100dvh. dvh tracks the
    * mobile browser chrome as it collapses, which is what stops the hero from
    * being pushed a toolbar's worth taller than the visible screen on iOS.
-   * Tailwind cannot express a fallback pair like this from a class name.
    *
    * The min-height floor keeps the copy from crushing on a short landscape
    * phone, where 100dvh can be under 400px.
@@ -125,72 +204,85 @@
   /*
    * Entrance animation for the hero copy.
    *
-   * This is CSS rather than framer-motion for a reason. framer serialises
-   * initial={{ opacity: 0 }} into the server HTML as an inline opacity: 0,
-   * and only raises it once React has hydrated and started the animation. On
-   * a cold load that left the headline, paragraph and buttons invisible until
-   * the user refreshed. A CSS animation starts at first paint and is
-   * completely independent of the JavaScript bundle.
+   * CSS rather than framer-motion: framer serialises initial={{ opacity: 0 }}
+   * into the server HTML as an inline opacity: 0 and only raises it after
+   * hydration, which left the headline invisible on a cold load. A CSS
+   * animation starts at first paint, independent of the JS bundle.
    *
-   * fill-mode `both` does the important work: it holds opacity at 0 during
-   * animation-delay and pins it at 1 once finished, so the staggered delays
-   * below cannot leave an element stuck invisible.
+   * fill-mode `both` holds opacity at 0 during the delay and pins it at 1 when
+   * finished, so staggered delays cannot leave an element stuck invisible.
    */
   .hero-in {
     opacity: 0;
     animation: hero-in 0.85s cubic-bezier(0.4, 0, 0.2, 1) both;
   }
 
+  /*
+   * Header surface. Near-solid charcoal with a restrained blur — the brief
+   * rules out heavy glassmorphism, and a hairline bottom border does the
+   * separating work that a frosted panel used to.
+   */
   .glass {
-    background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
+    background: hsl(var(--header-bg) / 0.94);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid hsl(var(--border-subtle));
   }
 
   .glass-light {
-    background: var(--glass-light-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-light-border);
+    background: hsl(var(--elevated));
+    border: 1px solid hsl(var(--border-subtle));
   }
 
-  /* Kept as a named surface for elements sitting directly on photography,
-     where the page background is not what is behind them. */
+  /* For controls sitting directly on photography, where the page surface is
+     not what is behind them. */
   .glass-on-dark {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
   }
 
   .glass-gold {
-    background: rgba(201, 161, 90, 0.1);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(201, 161, 90, 0.25);
+    background: hsl(var(--gold) / 0.1);
+    border: 1px solid hsl(var(--border-gold));
+  }
+
+  /*
+   * Flat gold, despite the historical class names.
+   *
+   * The gradient versions were the single most template-looking thing in the
+   * palette, and the CTA specification is explicitly a flat fill with charcoal
+   * ink. The names stay only so the section layer does not have to change in
+   * the same commit; they are migrated as each section is redesigned.
+   */
+  .gold-gradient-bg {
+    background: hsl(var(--gold));
+    transition: background-color 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .gold-gradient-bg:hover {
+    background: hsl(var(--gold-hover));
   }
 
   .gold-gradient-text {
-    background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .gold-gradient-bg {
-    background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark));
+    color: hsl(var(--gold));
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
   }
 
   .navy-gradient {
-    background: linear-gradient(160deg, var(--navy-grad-from) 0%, var(--navy-grad-to) 100%);
+    background: hsl(var(--surface));
   }
 
+  /* Scrim for text sitting over photography. Uses the theme's photo ink so it
+     stays legible in both modes. */
   .bg-image-scrim {
     background: linear-gradient(to top,
-      rgba(17, 17, 17, 0.72) 0%,
-      rgba(17, 17, 17, 0.46) 25%,
-      rgba(17, 17, 17, 0.16) 55%,
+      rgba(var(--photo-scrim), 0.72) 0%,
+      rgba(var(--photo-scrim), 0.46) 25%,
+      rgba(var(--photo-scrim), 0.16) 55%,
       transparent 85%);
   }
 
@@ -198,18 +290,13 @@
    * Dissolves the bottom of a full-bleed image section into whatever the next
    * section is painted on, so the two never meet at a visible line.
    *
-   * Notes:
-   * - The colour is hsl(var(--background)), the same token the following
-   *   section renders, so this follows the palette with no second rule.
-   * - Many closely spaced stops rather than two: a plain two-stop gradient
-   *   ramps linearly and both banding and the start of the fade become
-   *   noticeable on a large flat area. These approximate an ease-in curve.
-   * - z-index 15 puts it over the photo and the hero overlay (z-10) but under
-   *   the copy and the scroll cue (z-20), so nothing readable is dimmed.
-   * - Height is a percentage, so it scales with the hero on every breakpoint
-   *   without a media query.
-   * - bottom: -1px absorbs the rounding seam that fractional viewport heights
-   *   can leave behind; the overflow-hidden on the hero clips it back.
+   * - The colour is hsl(var(--background)), the same token the next section
+   *   renders, so this follows the theme with no second rule.
+   * - Many closely spaced stops rather than two: a linear ramp bands visibly
+   *   across a large flat area. These approximate an ease-in curve.
+   * - z-index 15 sits over the photo and hero overlay (z-10) but under the
+   *   copy and scroll cue (z-20), so nothing readable is dimmed.
+   * - bottom: -1px absorbs the seam fractional viewport heights leave behind.
    */
   .fade-to-background {
     position: relative;
@@ -238,43 +325,85 @@
     );
   }
 
+  /* Kept for existing markup, but reduced to a faint warm wash rather than a
+     visible gold glow. */
   .bg-gold-radial {
-    background: radial-gradient(circle, var(--gold) 0%, transparent 70%);
+    background: radial-gradient(circle, hsl(var(--gold) / 0.14) 0%, transparent 70%);
   }
 
+  /* A gold hairline, not a gradient edge. */
   .gradient-border {
     position: relative;
     background-clip: padding-box;
-    border: 1px solid transparent;
-  }
-
-  .gradient-border::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    margin: -1px;
-    border-radius: inherit;
-    background: linear-gradient(135deg, rgba(201, 161, 90, 0.55), transparent 60%);
+    border: 1px solid hsl(var(--border-gold));
   }
 
   .section-divider {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(201, 161, 90, 0.4), transparent);
+    background: linear-gradient(90deg, transparent, hsl(var(--gold) / 0.4), transparent);
   }
 
+  /*
+   * ARCHITECTURAL LINE WORK
+   *
+   * Drawn from the logo: the triangle, the skyline rows inside it, the fine
+   * gold rule. All three are deliberately quiet enough to sit behind content.
+   */
+
+  /* Faint vertical facade lines. Every 88px, one hairline. */
+  .facade-lines {
+    background-image: repeating-linear-gradient(
+      to right,
+      hsl(var(--gold) / 0.07) 0 1px,
+      transparent 1px 88px
+    );
+  }
+
+  /* Section label rule: a short gold hairline, for eyebrows and captions. */
+  .arch-rule {
+    display: block;
+    width: 3rem;
+    height: 1px;
+    background: hsl(var(--gold));
+  }
+
+  /* Corner brackets — structural angles rather than a full border. */
+  .arch-frame {
+    position: relative;
+  }
+
+  .arch-frame::before,
+  .arch-frame::after {
+    content: "";
+    position: absolute;
+    width: 1.25rem;
+    height: 1.25rem;
+    pointer-events: none;
+    border-color: hsl(var(--gold) / 0.55);
+  }
+
+  .arch-frame::before {
+    top: 0;
+    inset-inline-start: 0;
+    border-top: 1px solid;
+    border-inline-start: 1px solid;
+  }
+
+  .arch-frame::after {
+    bottom: 0;
+    inset-inline-end: 0;
+    border-bottom: 1px solid;
+    border-inline-end: 1px solid;
+  }
+
+  /*
+   * Retained so existing markup keeps its class, but the sweep is gone: a
+   * light bar travelling across a button on a loop is exactly the
+   * attention-grabbing motion the brief excludes.
+   */
   .shimmer-btn {
     position: relative;
     overflow: hidden;
-  }
-
-  .shimmer-btn::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-    animation: shimmer 3s infinite;
   }
 
   .pulse-ring {
@@ -289,10 +418,12 @@
     /* No transition by default — prevents zoom animation during window resize */
   }
 
+  /* 1.04, down from 1.07: the brief's range is 1.02–1.05, and the slower curve
+     reads as a camera push rather than a UI hover. */
   @media (hover: hover) {
     .group:hover .zoom-image {
-      transform: scale(1.07);
-      transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: scale(1.04);
+      transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
     }
   }
 
@@ -317,7 +448,6 @@
     width: 8px;
     height: 8px;
     margin: 0 4px;
-    border-radius: 9999px;
     background: var(--swiper-bullet-bg);
     cursor: pointer;
     transition: all 0.3s ease;
@@ -325,7 +455,7 @@
 
   .swiper-bullet-active {
     width: 24px;
-    background: var(--gold);
+    background: hsl(var(--gold));
   }
 
   /* Ken Burns — slow cinematic zoom + pan for hero background */
@@ -349,11 +479,9 @@
   }
 
   /*
-   * Small-amplitude drift for icon-sized elements.
-   *
-   * .animate-float travels 14px, which is fine for a decorative blob but is
-   * close to half the height of a 32px glyph — at that scale it reads as
-   * bouncing rather than floating. 5px over a shorter cycle keeps it subtle.
+   * Small-amplitude drift for icon-sized elements. .animate-float travels
+   * 14px, close to half the height of a 32px glyph, which reads as bouncing.
+   * 5px over a shorter cycle stays subtle.
    */
   .animate-float-subtle {
     animation: float-subtle 3.5s ease-in-out infinite;
@@ -425,12 +553,6 @@
   }
 }
 
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
 /* Ken Burns — slow cinematic zoom and pan */
 @keyframes ken-burns {
   0% {
@@ -472,16 +594,14 @@ html.lenis {
   .animate-float-slow,
   .animate-float-subtle,
   .pulse-ring,
-  .shimmer-btn::after,
   .ken-burns {
     animation: none !important;
   }
 
   /*
    * .hero-in must not simply lose its animation: the class sets opacity: 0 and
-   * the keyframes are what restore it. Cancelling the animation on its own
-   * would leave the hero copy permanently invisible, so the final state is
-   * forced here instead.
+   * the keyframes are what restore it. Cancelling the animation alone would
+   * leave the hero copy permanently invisible, so the end state is forced.
    */
   .hero-in {
     animation: none !important;
