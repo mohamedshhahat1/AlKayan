@@ -18,7 +18,8 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center gap-6 px-6 text-center">
-      <BrandLockup label="" aria-hidden="true" />
+      {/* Decorative: the heading below carries the message. */}
+      <BrandLockup label="" />
 
       <p className="text-6xl font-extrabold gold-gradient-text" aria-hidden="true">
         404

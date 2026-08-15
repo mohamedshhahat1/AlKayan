@@ -12,10 +12,9 @@ import { BrandLockup } from "@/components/brand";
 export default function Loading() {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center gap-6 px-6">
-      {/* aria-hidden on the mark, and the status text below carries the
-          announcement, so a screen reader hears one sentence rather than the
-          company name followed by "loading". */}
-      <BrandLockup className="animate-pulse" label="" aria-hidden="true" />
+      {/* label="" — decorative. The status message below is what a screen
+          reader needs to hear here, not the company name again. */}
+      <BrandLockup label="" className="animate-pulse" />
       <p role="status" className="text-sm text-muted-foreground">
         جارٍ التحميل…
       </p>

@@ -149,15 +149,26 @@ export function BrandWordmark({
 export function BrandLockup({
   className,
   tone = "auto",
-  /** Announce the company once for the pair, not once per asset. */
   label = siteConfig.name,
 }: {
   className?: string;
   tone?: Tone;
+  /**
+   * Announced once for the pair, not once per asset.
+   *
+   * Pass "" to make the whole lockup decorative, for screens where an adjacent
+   * heading or status message already names the company. Mirrors `alt=""` on
+   * the two components above.
+   */
   label?: string;
 }) {
   return (
-    <span role="img" aria-label={label} className={cn("inline-flex items-center gap-3", className)}>
+    <span
+      role={label ? "img" : undefined}
+      aria-label={label || undefined}
+      aria-hidden={label ? undefined : "true"}
+      className={cn("inline-flex items-center gap-3", className)}
+    >
       <BrandLogo alt="" className="h-11 shrink-0" />
       <BrandWordmark alt="" imgClassName="h-6" tone={tone} />
     </span>

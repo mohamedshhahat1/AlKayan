@@ -33,7 +33,8 @@ export default function Error({
 
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center gap-6 px-6 text-center">
-      <BrandLockup label="" aria-hidden="true" />
+      {/* Decorative: the heading below carries the message. */}
+      <BrandLockup label="" />
 
       <div>
         <h1 className="text-2xl font-extrabold text-foreground sm:text-3xl">حدث خطأ غير متوقع</h1>
