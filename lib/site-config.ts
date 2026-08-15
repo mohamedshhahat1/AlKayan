@@ -1,7 +1,7 @@
 /**
- * Single source of truth for company contact details, social profiles and the
- * business facts quoted across the site (JSON-LD, header, footer, chat widget,
- * contact section, floating WhatsApp button).
+ * Single source of truth for company contact details, social profiles, brand
+ * assets and the business facts quoted across the site (JSON-LD, header,
+ * footer, chat widget, contact section, floating WhatsApp button).
  *
  * Previously these values were hardcoded and duplicated across five files,
  * which meant shipping placeholder data to production. Every value can now be
@@ -37,10 +37,45 @@ const email = process.env.NEXT_PUBLIC_COMPANY_EMAIL ?? "info@al-kayan.com";
 const facebook = process.env.NEXT_PUBLIC_FACEBOOK_URL || null;
 const instagram = process.env.NEXT_PUBLIC_INSTAGRAM_URL || null;
 
+/**
+ * Hero background footage.
+ *
+ * Defaults to the Pexels asset supplied for this build. It is read from an env
+ * var so the same code can point at a self-hosted file — set
+ * NEXT_PUBLIC_HERO_VIDEO_URL to `/brand/hero.mp4`, drop the file in `public/`
+ * and nothing else has to change. See docs/BRAND-ASSETS.md for why the
+ * external URL is the current default.
+ *
+ * Set it to an empty string to disable the video entirely; the hero falls back
+ * to the still below.
+ */
+const heroVideo =
+  process.env.NEXT_PUBLIC_HERO_VIDEO_URL ?? "https://www.pexels.com/download/video/31617692/";
+
+/**
+ * Still shown before the video is ready, and permanently whenever the video
+ * cannot or should not play. This is the image the hero used before the video
+ * existed, so the fallback is the previously shipped design rather than a
+ * blank navy box.
+ *
+ * w=2560 rather than 1920: the layer is scaled up to 1.18 by the Ken Burns
+ * keyframes and to 1.15 by the parallax, so at 1920 the browser was upscaling
+ * on any large or retina screen.
+ */
+const heroPoster =
+  process.env.NEXT_PUBLIC_HERO_POSTER_URL ??
+  "https://images.pexels.com/photos/33529500/pexels-photo-33529500.jpeg?auto=compress&cs=tinysrgb&w=2560";
+
 export const siteConfig = {
   name: "الكيان",
   nameEn: "AL-KAYAN",
-  /** Two-letter Arabic monogram used in the logo tiles. */
+  /**
+   * Two-letter Arabic monogram.
+   *
+   * No longer the logo. It is the fallback drawn by <BrandLogo /> when
+   * `branding.logo` cannot be loaded, so the header degrades to the previous
+   * design instead of a broken image icon.
+   */
   monogram: "الك",
   legalName: "الكيان للمقاولات والتشطيبات",
   title: "الكيان | شركة مقاولات وتشطيبات داخلية فاخرة",
@@ -50,6 +85,37 @@ export const siteConfig = {
     "نصمم، ننفذ، ونشرف على جميع أعمال التشطيبات والمقاولات بأعلى معايير الجودة والاحترافية.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://al-kayan.com",
   locale: "ar_EG",
+
+  /**
+   * Official brand assets.
+   *
+   * Paths are public URLs served from `public/`, not filesystem paths. Import
+   * them from here — a component that hardcodes "/brand/logo.svg" is a second
+   * source of truth waiting to drift.
+   *
+   * The SVGs are used exactly as supplied: never recoloured, redrawn or
+   * inlined. Sizing is done with a height class and `width: auto`, so whatever
+   * aspect ratio the files have is preserved.
+   */
+  branding: {
+    /** Logo mark. */
+    logo: "/brand/logo.svg",
+    /** Company name / wordmark. */
+    companyName: "/brand/company_name.svg",
+    /**
+     * Alt text for each asset when it is the only thing naming the company.
+     * Pass alt="" at the call site when an ancestor link or heading already
+     * announces the name.
+     */
+    logoAlt: "شعار الكيان",
+    companyNameAlt: "الكيان",
+  },
+
+  hero: {
+    video: heroVideo,
+    poster: heroPoster,
+  },
+
   keywords: [
     "تشطيبات",
     "مقاولات",
