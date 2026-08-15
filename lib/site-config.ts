@@ -55,40 +55,48 @@ const facebook = process.env.NEXT_PUBLIC_FACEBOOK_URL?.trim() || null;
 const instagram = process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() || null;
 
 /**
- * Hero background footage.
+ * Hero background media.
  *
- * Defaults to the Pexels asset supplied for this build. It is read from an env
- * var so the same code can point at a self-hosted file — set
- * NEXT_PUBLIC_HERO_VIDEO_URL to `/brand/hero.mp4`, drop the file in `public/`
- * and nothing else has to change. See docs/BRAND-ASSETS.md for why the
- * external URL is the current default.
+ * Both files are committed to this repository and served from `public/`, so
+ * the hero works with no environment configuration at all. Self-hosting rather
+ * than hotlinking is deliberate: no third-party redirect on the critical path,
+ * no host that can start refusing the request, and the encode is under our
+ * control.
  *
- * To turn the video off, set the variable to `off`. Leaving it blank does NOT
+ * The paths stay overridable so the media can be moved to object storage or a
+ * CDN later without touching a component.
+ *
+ * To turn either off, set the variable to `off`. Leaving it blank does NOT
  * disable it — blank means "not configured", which falls through to the
  * default. Switching the opt-out from "" to an explicit word is deliberate:
  * the empty string was indistinguishable from a half-finished .env file, and
  * silently shipped a hero with no video.
  */
-const DEFAULT_HERO_VIDEO = "https://www.pexels.com/download/video/31617692/";
+const DEFAULT_HERO_VIDEO = "/brand/hero.mp4";
+const DEFAULT_HERO_POSTER = "/brand/hero-poster.jpg";
 
-const heroVideoRaw = envOr(process.env.NEXT_PUBLIC_HERO_VIDEO_URL, DEFAULT_HERO_VIDEO);
-const heroVideo = heroVideoRaw.toLowerCase() === "off" ? "" : heroVideoRaw;
+function heroMedia(value: string | undefined, fallback: string): string {
+  const resolved = envOr(value, fallback);
+  return resolved.toLowerCase() === "off" ? "" : resolved;
+}
+
+const heroVideo = heroMedia(process.env.NEXT_PUBLIC_HERO_VIDEO_URL, DEFAULT_HERO_VIDEO);
 
 /**
- * Optional still behind the hero. Empty by default, and deliberately so.
+ * The still behind the hero. First thing painted, and the last thing standing:
+ * it stays on screen until the video is genuinely playing, and it remains
+ * permanently for anyone on reduced motion or data-saver, and whenever the
+ * video fails.
  *
- * There used to be a stock photograph here, shown before playback and kept as
- * the permanent fallback. It has been removed: the hero is footage over a navy
- * gradient built from the palette, which costs nothing to transfer and cannot
- * fail to load. HeroSection draws that gradient whenever this is empty.
+ * Preloaded from <head> in app/layout.tsx and rendered as a real <img>, not a
+ * CSS background — a background-image cannot be found by the preload scanner.
  *
- * Set NEXT_PUBLIC_HERO_POSTER_URL to put an image back. Export a frame from
- * the video itself rather than choosing another photograph — the still and the
- * first frame of playback then match, so the cross-fade is invisible:
+ * If you replace the video, export the poster from the new footage so the
+ * still and the first frame match and the cross-fade is invisible:
  *
- *     ffmpeg -ss 2 -i hero.mp4 -frames:v 1 -q:v 3 public/brand/hero-poster.jpg
+ *     ffmpeg -ss 2 -i public/brand/hero.mp4 -frames:v 1 -q:v 3 public/brand/hero-poster.jpg
  */
-const heroPoster = process.env.NEXT_PUBLIC_HERO_POSTER_URL?.trim() ?? "";
+const heroPoster = heroMedia(process.env.NEXT_PUBLIC_HERO_POSTER_URL, DEFAULT_HERO_POSTER);
 
 export const siteConfig = {
   name: "الكيان",
@@ -137,7 +145,6 @@ export const siteConfig = {
 
   hero: {
     video: heroVideo,
-    /** Empty means "no photograph" — HeroSection falls back to a gradient. */
     poster: heroPoster,
   },
 

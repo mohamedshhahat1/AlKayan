@@ -16,19 +16,17 @@ const HEADING_SHADOW = "0 2px 4px rgba(8,24,48,0.35), 0 8px 28px rgba(8,24,48,0.
 const BODY_SHADOW = "0 1px 3px rgba(8,24,48,0.4), 0 4px 16px rgba(8,24,48,0.35)";
 
 /**
- * What sits behind the hero until the footage can paint.
+ * Layer 1 — emergency fallback, and nothing more.
  *
- * A <video> displays nothing at all until enough of the file has arrived to
- * decode a frame, so there is always a gap, however short. This layer fills it,
- * and it is also what a visitor sees permanently on reduced motion, in
- * data-saver mode, when autoplay is refused and when the video fails to load.
+ * Under normal conditions this is never seen: the poster sits directly on top
+ * of it, is preloaded from <head>, and is opaque. It exists for the case where
+ * the poster itself fails to load, so that a failed image and a failed video
+ * together still leave something deliberate on screen rather than a bare box.
  *
- * Hand-built from the palette in tailwind.config.ts — navy.light at the top
- * where the light in the footage falls, down through navy.deep to
- * navy.deepest at the edges. A gradient rather than an image on purpose: it
- * costs nothing to transfer, paints on the very first frame, and cannot itself
- * fail to load. Anything with a URL would just move the same gap somewhere
- * else.
+ * Built from the palette in tailwind.config.ts — navy.light at the top through
+ * navy.deep to navy.deepest at the edges. A gradient rather than an image on
+ * purpose: it costs nothing to transfer and cannot itself fail to load, which
+ * is the only useful property for a last resort.
  */
 const HERO_FALLBACK_GRADIENT =
   "radial-gradient(125% 95% at 50% 0%, #132A4D 0%, #0B1F3A 45%, #081830 100%)";
@@ -36,14 +34,15 @@ const HERO_FALLBACK_GRADIENT =
 /**
  * Background states.
  *
- * "loading" — the <video> is in the document and fetching. This is the initial
- *             state, so the element ships in the server-rendered HTML and the
- *             browser can start the download while it is still parsing the
- *             page, rather than waiting for React to hydrate.
- * "playing" — playback confirmed by the browser; cross-fade the footage in.
- * "static"  — no video, permanently. Reduced motion, Save-Data, a network
- *             error, an autoplay refusal and `NEXT_PUBLIC_HERO_VIDEO_URL=off`
- *             all land here. The <video> is removed and the gradient stays.
+ * "loading" — the <video> is in the document and fetching, and the poster is
+ *             fully opaque on top of the gradient. This is the initial state,
+ *             so the element ships in the server-rendered HTML and the browser
+ *             can start the download while it is still parsing the page.
+ * "playing" — playback confirmed by the browser. Only now does the poster fade
+ *             out and the footage fade in.
+ * "static"  — no video, permanently. Reduced motion, Save-Data, a load error,
+ *             an autoplay refusal and `NEXT_PUBLIC_HERO_VIDEO_URL=off` all land
+ *             here. The <video> is removed and the poster simply stays.
  */
 type BackgroundState = "loading" | "playing" | "static";
 
@@ -53,7 +52,7 @@ type SaveDataNavigator = Navigator & {
 };
 
 /**
- * Says why the hero is showing the gradient instead of footage.
+ * Says why the hero is showing the poster instead of footage.
  *
  * Every fallback path here is intentional and every one of them is silent,
  * which makes "the video isn't playing" almost impossible to diagnose from the
@@ -92,12 +91,11 @@ export function HeroSection() {
   );
 
   /**
-   * Optional still. Empty by default — the hero is footage over a gradient.
-   *
-   * Set NEXT_PUBLIC_HERO_POSTER_URL to put an image back. Use a frame exported
-   * from the video rather than a different photograph: the still and the first
-   * frame of playback then match, and the handover is invisible.
+   * Only ever true if the poster 404s or is corrupt. It uncovers the gradient
+   * underneath, which is the one situation that layer exists for.
    */
+  const [posterFailed, setPosterFailed] = useState(false);
+
   const posterImage = siteConfig.hero.poster;
 
   /**
@@ -107,29 +105,35 @@ export function HeroSection() {
    * Both signals — matchMedia and navigator.connection — are client-only, so
    * gating on them up front meant nothing could be fetched until hydration had
    * finished. Mounting first and tearing down here costs these visitors an
-   * aborted request; gating first cost every visitor seconds of gradient.
+   * aborted request; gating first cost every visitor seconds of waiting.
+   *
+   * Either way the poster is already on screen and does not move, so there is
+   * nothing for them to see happen.
    */
   useEffect(() => {
     if (!siteConfig.hero.video) {
       heroLog(
-        "no video URL. NEXT_PUBLIC_HERO_VIDEO_URL is set to `off`, so the gradient is showing by request."
+        "no video URL. NEXT_PUBLIC_HERO_VIDEO_URL is set to `off`, so the poster is showing by request."
       );
       return;
     }
 
     // A looping background is exactly the kind of motion the media query is
     // asking us to drop, and exactly the kind of payload Save-Data is asking
-    // us not to send.
+    // us not to send. The poster stays, and it is static, so both preferences
+    // are honoured rather than approximated.
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       heroLog(
-        "dropping the video: this device has `prefers-reduced-motion: reduce` enabled. Turn off Reduce Motion in your OS accessibility settings to see it."
+        "dropping the video: this device has `prefers-reduced-motion: reduce` enabled. Keeping the poster. Turn off Reduce Motion in your OS accessibility settings to see the footage."
       );
       setBackground("static");
       return;
     }
 
     if ((navigator as SaveDataNavigator).connection?.saveData === true) {
-      heroLog("dropping the video: the browser is in data-saver mode (navigator.connection.saveData).");
+      heroLog(
+        "dropping the video: the browser is in data-saver mode (navigator.connection.saveData). Keeping the poster."
+      );
       setBackground("static");
     }
   }, []);
@@ -150,27 +154,27 @@ export function HeroSection() {
 
     void video.play().catch((error: unknown) => {
       // Low power mode, a data saver, or a policy we cannot detect up front.
-      // The gradient is already painted, so there is nothing to undo.
+      // The poster is already painted and opaque, so there is nothing to undo.
       heroLog(
         `the browser refused to autoplay the video (${
           error instanceof Error ? error.message : String(error)
-        }). Keeping the gradient.`
+        }). Keeping the poster.`
       );
       setBackground("static");
     });
 
     /**
-     * Nothing below changes what the user sees — the gradient is already in
+     * Nothing below changes what the user sees — the poster is already in
      * place and stays put either way. It exists because a video that is
-     * merely slow and a video that is never coming look the same on screen,
-     * and the difference decides whether you re-encode the file or replace
-     * the URL.
+     * merely slow and a video that is never coming look identical on screen,
+     * and the difference decides whether you re-encode the file or go looking
+     * for a 404.
      */
     if (process.env.NODE_ENV !== "production") {
       const watchdog = window.setTimeout(() => {
         if (video.readyState < 3) {
           heroLog(
-            "still waiting after 10s. The URL is reachable but slow, or it is not returning playable video. Check the Network tab for this request: a 403 or an HTML response means the host is refusing to serve the file to this origin, and the fix is to self-host it in public/brand/. A very large file with its metadata at the end cannot start playing until almost all of it has arrived — re-encode with `-movflags +faststart`."
+            "still waiting after 10s. Check this request in the Network tab. If the file plays fine in a desktop media player but stalls here, its index is probably at the end of the container — re-encode with `-movflags +faststart` so playback can begin on the first chunk instead of the last."
           );
         }
       }, 10000);
@@ -180,6 +184,7 @@ export function HeroSection() {
 
   const videoMounted = background === "loading" || background === "playing";
   const videoVisible = background === "playing";
+  const posterVisible = Boolean(posterImage) && !posterFailed;
 
   return (
     // hero-viewport fills the screen with a 100vh -> 100dvh fallback pair.
@@ -190,32 +195,70 @@ export function HeroSection() {
       id="hero"
       className="hero-viewport fade-to-background relative w-full overflow-hidden"
     >
-      {/* Background layers, parallaxed and zoomed as one. */}
-      <motion.div style={{ y, scale }} className="absolute inset-0 z-0">
-        {/* The gradient.
+      {/* LAYER 1 — emergency fallback.
 
-            Always rendered and never unmounted. It is what paints first, and
-            it is the fallback for every way the video can fail — which is why
-            a dead video URL cannot break this hero.
+          Covered by the poster under all normal conditions. Deliberately not
+          inside the parallax wrapper: if it is ever visible then something has
+          already gone wrong, and a sliding gradient does not improve that. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 z-0"
+        style={{ backgroundImage: HERO_FALLBACK_GRADIENT }}
+      />
 
-            Ken Burns and the photographic filter apply only when an actual
-            photograph has been configured. Panning a gradient does nothing but
-            occupy the compositor, and the drift is dropped once footage is
-            playing regardless: two things moving at once is one too many. */}
-        <div
-          className={`absolute inset-0 bg-cover bg-center bg-no-repeat ${
-            posterImage && !videoVisible ? "ken-burns" : ""
-          }`}
-          style={{
-            backgroundImage: posterImage ? `url(${posterImage})` : HERO_FALLBACK_GRADIENT,
-            // Small, deliberately conservative lift, and only for photographs.
-            // Saturation does most of the work on marble and wood; brightness
-            // past ~1.1 blows out window highlights.
-            filter: posterImage ? "brightness(1.07) contrast(1.06) saturate(1.12)" : undefined,
+      {/* LAYER 2 — poster. Static, and outside the parallax wrapper.
+
+          A real <img> rather than a CSS background, because a background-image
+          is invisible to the browser's preload scanner: it cannot be fetched
+          until the stylesheet has been parsed and the element it belongs to has
+          been laid out. An <img> in the markup is discovered immediately, and
+          the matching <link rel="preload"> in app/layout.tsx starts it earlier
+          still — which is also what wins it the race against the video, ten
+          times its size and requested from the same initial HTML.
+
+          Nothing here transforms, animates or filters this element. It has no
+          ken-burns class, and lifting it out of the motion.div below is what
+          stops the scroll parallax from dragging it around while the video
+          loads. Its ONLY state change is opacity, and only once the video is
+          genuinely playing.
+
+          next/image is deliberately not used: it wraps the element, defers the
+          real src behind its own loader, and routes a static file that is
+          already the correct size through the optimiser. */}
+      {posterVisible && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={posterImage}
+          // Decorative. The copy on top of it already names the company, and
+          // the footage that replaces it says nothing this does not.
+          alt=""
+          aria-hidden="true"
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
+          draggable={false}
+          onError={() => {
+            heroLog(
+              `failed to load the poster ${posterImage}. Check that the file exists in public/brand/. Falling back to the gradient.`
+            );
+            setPosterFailed(true);
           }}
+          className={`absolute inset-0 z-[1] h-full w-full object-cover transition-opacity duration-500 ${
+            videoVisible ? "opacity-0" : "opacity-100"
+          }`}
         />
+      )}
 
-        {videoMounted && (
+      {/* LAYER 3 — video, on top of the poster and transparent until it plays.
+
+          This is the only background layer that keeps the scroll parallax, so
+          the hero still has the depth it was designed with while the poster
+          stays nailed down. The two are therefore not in lockstep during the
+          cross-fade; that is invisible in practice because the fade happens in
+          the first moments, at the top of the page, where y and scale are still
+          at their initial values. */}
+      {videoMounted && (
+        <motion.div style={{ y, scale }} className="absolute inset-0 z-[2]">
           <video
             ref={videoRef}
             // Purely decorative: the footage carries nothing the copy above it
@@ -231,30 +274,30 @@ export function HeroSection() {
             // to get the bytes moving early, so ask for the media itself and
             // not just its metadata.
             preload="auto"
-            // Omitted entirely when unset. An empty poster attribute makes
-            // some browsers paint a transparent frame over the gradient.
-            poster={posterImage || undefined}
             disablePictureInPicture
+            // No `poster` attribute: layer 2 is the poster now, and duplicating
+            // it here would only make the browser decode the same JPEG twice.
+            //
             // src rather than a <source> child: error events from a child do
             // not bubble to onError, and this fallback has to be reliable.
             src={siteConfig.hero.video}
+            // The single signal that flips the cross-fade. Not onLoadedData and
+            // not onCanPlay — those fire while the frame is still frozen, and
+            // revealing then would show a still image that never starts moving
+            // if autoplay is subsequently refused.
             onPlaying={() => setBackground("playing")}
             onError={() => {
               heroLog(
-                `failed to load ${siteConfig.hero.video}. Keeping the gradient. If this is the Pexels /download/ URL, the host may be refusing the request — self-host the file and set NEXT_PUBLIC_HERO_VIDEO_URL=/brand/hero.mp4.`
+                `failed to load ${siteConfig.hero.video}. Keeping the poster. Check that the file exists in public/brand/ and that the server is serving it.`
               );
               setBackground("static");
             }}
-            // 500ms, not the second it used to be. A long dissolve leaves the
-            // gradient showing through the footage well after playback has
-            // started, which reads as the video arriving slowly rather than as
-            // an elegant transition.
             className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
               videoVisible ? "opacity-100" : "opacity-0"
             }`}
           />
-        )}
-      </motion.div>
+        </motion.div>
+      )}
 
       {/* Readability scrim.
 
@@ -276,9 +319,10 @@ export function HeroSection() {
       {/* One extra flat layer, and only while footage is playing.
 
           Video walks through frames nobody has approved, some of them much
-          brighter than the background the gradient above was tuned against.
-          Gating it on playback means the gradient keeps exactly the treatment
-          it was designed with. */}
+          brighter than the poster the scrim above was tuned against. Gating it
+          on playback means the poster is never darkened by it — it is at
+          opacity 0 for the entire time the poster is on screen — and it fades
+          in on the same 500ms curve as the footage, so there is no step. */}
       <div
         aria-hidden="true"
         className={`absolute inset-0 z-10 bg-navy-deepest transition-opacity duration-500 ${

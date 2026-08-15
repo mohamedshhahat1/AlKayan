@@ -57,6 +57,26 @@ export const viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ar" dir="rtl" className={tajawal.variable} suppressHydrationWarning>
+      <head>
+        {/*
+          The hero poster is the first pixel of this site anyone sees and it
+          fills the viewport, so it is almost certainly the LCP element.
+
+          Declaring it here means the browser begins fetching while the parser
+          is still inside <head> — before it has reached the hero markup, and
+          long before React has done anything. It also settles a race: the hero
+          video is in the same initial HTML with preload="auto" and is roughly
+          twelve times the size, so without this the poster would be queued
+          behind it.
+
+          Read from siteConfig rather than hardcoded, so the path cannot drift
+          out of step with the component that renders it, and skipped entirely
+          when the poster has been turned off.
+        */}
+        {siteConfig.hero.poster && (
+          <link rel="preload" as="image" href={siteConfig.hero.poster} />
+        )}
+      </head>
       <body className={tajawal.className}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           {/* Side effect only — it does not render its children. */}
