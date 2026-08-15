@@ -16,19 +16,19 @@ const HEADING_SHADOW = "0 2px 4px rgba(8,24,48,0.35), 0 8px 28px rgba(8,24,48,0.
 const BODY_SHADOW = "0 1px 3px rgba(8,24,48,0.4), 0 4px 16px rgba(8,24,48,0.35)";
 
 /**
- * What sits behind the hero when there is no footage on screen.
+ * What sits behind the hero until the footage can paint.
  *
- * The stock photograph that used to live here has been removed, but something
- * still has to be behind the copy: this layer is what a visitor sees on
- * reduced motion, in data-saver mode, when autoplay is refused, when the video
- * fails to load, and for the moment before playback begins. A bare box would
- * make all of those look broken.
+ * A <video> displays nothing at all until enough of the file has arrived to
+ * decode a frame, so there is always a gap, however short. This layer fills it,
+ * and it is also what a visitor sees permanently on reduced motion, in
+ * data-saver mode, when autoplay is refused and when the video fails to load.
  *
  * Hand-built from the palette in tailwind.config.ts — navy.light at the top
  * where the light in the footage falls, down through navy.deep to
- * navy.deepest at the edges. It is a gradient rather than an image on purpose:
- * it costs nothing to transfer, paints on the first frame, and cannot itself
- * fail to load.
+ * navy.deepest at the edges. A gradient rather than an image on purpose: it
+ * costs nothing to transfer, paints on the very first frame, and cannot itself
+ * fail to load. Anything with a URL would just move the same gap somewhere
+ * else.
  */
 const HERO_FALLBACK_GRADIENT =
   "radial-gradient(125% 95% at 50% 0%, #132A4D 0%, #0B1F3A 45%, #081830 100%)";
@@ -36,29 +36,24 @@ const HERO_FALLBACK_GRADIENT =
 /**
  * Background states.
  *
- * "poster"  — the fallback layer is on screen and no video has been requested
- *             yet. Also the server-rendered state, so the hero paints without
- *             ever waiting on a video.
- * "loading" — the <video> is mounted and fetching.
- * "playing" — playback confirmed by the browser; cross-fade it in.
+ * "loading" — the <video> is in the document and fetching. This is the initial
+ *             state, so the element ships in the server-rendered HTML and the
+ *             browser can start the download while it is still parsing the
+ *             page, rather than waiting for React to hydrate.
+ * "playing" — playback confirmed by the browser; cross-fade the footage in.
  * "static"  — no video, permanently. Reduced motion, Save-Data, a network
- *             error and an autoplay refusal all land here, and the fallback
- *             layer simply stays where it is.
+ *             error, an autoplay refusal and `NEXT_PUBLIC_HERO_VIDEO_URL=off`
+ *             all land here. The <video> is removed and the gradient stays.
  */
-type BackgroundState = "poster" | "loading" | "playing" | "static";
+type BackgroundState = "loading" | "playing" | "static";
 
-/** Declared locally so the code does not depend on how a given TS lib version types these. */
-type IdleWindow = Window & {
-  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
-  cancelIdleCallback?: (handle: number) => void;
-};
-
+/** Declared locally so the code does not depend on how a given TS lib version types this. */
 type SaveDataNavigator = Navigator & {
   connection?: { saveData?: boolean };
 };
 
 /**
- * Says why the hero is showing the fallback instead of footage.
+ * Says why the hero is showing the gradient instead of footage.
  *
  * Every fallback path here is intentional and every one of them is silent,
  * which makes "the video isn't playing" almost impossible to diagnose from the
@@ -84,7 +79,17 @@ export function HeroSection() {
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
 
-  const [background, setBackground] = useState<BackgroundState>("poster");
+  /**
+   * Starts as "loading" so the <video> is present in the server-rendered
+   * markup and the fetch begins during HTML parse.
+   *
+   * Safe to derive from siteConfig here: it is resolved at build time from env
+   * vars, so the server and the client compute the same initial value and
+   * there is no hydration mismatch.
+   */
+  const [background, setBackground] = useState<BackgroundState>(
+    siteConfig.hero.video ? "loading" : "static"
+  );
 
   /**
    * Optional still. Empty by default — the hero is footage over a gradient.
@@ -96,54 +101,37 @@ export function HeroSection() {
   const posterImage = siteConfig.hero.poster;
 
   /**
-   * Decide whether to fetch the video at all, and never during first paint.
+   * Withdraw the video for visitors who should not receive it.
    *
-   * The delay is shorter than it was. It originally protected a photographic
-   * poster that was the LCP element and worth loading first; the gradient that
-   * replaced it paints on the first frame and costs nothing, so the video is
-   * the only thing left worth waiting for. Still deferred rather than eager:
-   * a multi-megabyte request in front of the font and the JS bundle helps
-   * nobody, and a visitor who bounces in under a second never pays for it.
+   * This runs after the element already exists, which is a deliberate reversal.
+   * Both signals — matchMedia and navigator.connection — are client-only, so
+   * gating on them up front meant nothing could be fetched until hydration had
+   * finished. Mounting first and tearing down here costs these visitors an
+   * aborted request; gating first cost every visitor seconds of gradient.
    */
   useEffect(() => {
     if (!siteConfig.hero.video) {
       heroLog(
         "no video URL. NEXT_PUBLIC_HERO_VIDEO_URL is set to `off`, so the gradient is showing by request."
       );
-      setBackground("static");
       return;
     }
-
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const saveData = (navigator as SaveDataNavigator).connection?.saveData === true;
 
     // A looping background is exactly the kind of motion the media query is
     // asking us to drop, and exactly the kind of payload Save-Data is asking
     // us not to send.
-    if (prefersReducedMotion) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       heroLog(
-        "skipping the video: this device has `prefers-reduced-motion: reduce` enabled. Turn off Reduce Motion in your OS accessibility settings to see it."
+        "dropping the video: this device has `prefers-reduced-motion: reduce` enabled. Turn off Reduce Motion in your OS accessibility settings to see it."
       );
       setBackground("static");
       return;
     }
 
-    if (saveData) {
-      heroLog("skipping the video: the browser is in data-saver mode (navigator.connection.saveData).");
+    if ((navigator as SaveDataNavigator).connection?.saveData === true) {
+      heroLog("dropping the video: the browser is in data-saver mode (navigator.connection.saveData).");
       setBackground("static");
-      return;
     }
-
-    const idleWindow = window as IdleWindow;
-    const start = () => setBackground((current) => (current === "poster" ? "loading" : current));
-
-    if (idleWindow.requestIdleCallback) {
-      const handle = idleWindow.requestIdleCallback(start, { timeout: 1500 });
-      return () => idleWindow.cancelIdleCallback?.(handle);
-    }
-
-    const timer = window.setTimeout(start, 800);
-    return () => window.clearTimeout(timer);
   }, []);
 
   /**
@@ -162,7 +150,7 @@ export function HeroSection() {
 
     void video.play().catch((error: unknown) => {
       // Low power mode, a data saver, or a policy we cannot detect up front.
-      // The fallback is already painted, so there is nothing to undo.
+      // The gradient is already painted, so there is nothing to undo.
       heroLog(
         `the browser refused to autoplay the video (${
           error instanceof Error ? error.message : String(error)
@@ -172,7 +160,7 @@ export function HeroSection() {
     });
 
     /**
-     * Nothing below changes what the user sees — the fallback is already in
+     * Nothing below changes what the user sees — the gradient is already in
      * place and stays put either way. It exists because a video that is
      * merely slow and a video that is never coming look the same on screen,
      * and the difference decides whether you re-encode the file or replace
@@ -182,7 +170,7 @@ export function HeroSection() {
       const watchdog = window.setTimeout(() => {
         if (video.readyState < 3) {
           heroLog(
-            "still waiting after 10s. The URL is reachable but slow, or it is not returning playable video. Check the Network tab for this request: a 403 or an HTML response means the host is refusing to serve the file to this origin, and the fix is to self-host it in public/brand/."
+            "still waiting after 10s. The URL is reachable but slow, or it is not returning playable video. Check the Network tab for this request: a 403 or an HTML response means the host is refusing to serve the file to this origin, and the fix is to self-host it in public/brand/. A very large file with its metadata at the end cannot start playing until almost all of it has arrived — re-encode with `-movflags +faststart`."
           );
         }
       }, 10000);
@@ -204,7 +192,7 @@ export function HeroSection() {
     >
       {/* Background layers, parallaxed and zoomed as one. */}
       <motion.div style={{ y, scale }} className="absolute inset-0 z-0">
-        {/* The fallback layer.
+        {/* The gradient.
 
             Always rendered and never unmounted. It is what paints first, and
             it is the fallback for every way the video can fail — which is why
@@ -239,8 +227,9 @@ export function HeroSection() {
             muted
             loop
             playsInline
-            // The element only exists once we have decided to play it, so
-            // there is no point fetching anything less than we need.
+            // The whole point of shipping this element in the initial HTML is
+            // to get the bytes moving early, so ask for the media itself and
+            // not just its metadata.
             preload="auto"
             // Omitted entirely when unset. An empty poster attribute makes
             // some browsers paint a transparent frame over the gradient.
@@ -256,7 +245,11 @@ export function HeroSection() {
               );
               setBackground("static");
             }}
-            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${
+            // 500ms, not the second it used to be. A long dissolve leaves the
+            // gradient showing through the footage well after playback has
+            // started, which reads as the video arriving slowly rather than as
+            // an elegant transition.
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
               videoVisible ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -284,11 +277,11 @@ export function HeroSection() {
 
           Video walks through frames nobody has approved, some of them much
           brighter than the background the gradient above was tuned against.
-          Gating it on playback means the fallback keeps exactly the treatment
+          Gating it on playback means the gradient keeps exactly the treatment
           it was designed with. */}
       <div
         aria-hidden="true"
-        className={`absolute inset-0 z-10 bg-navy-deepest transition-opacity duration-1000 ${
+        className={`absolute inset-0 z-10 bg-navy-deepest transition-opacity duration-500 ${
           videoVisible ? "opacity-25" : "opacity-0"
         }`}
       />
