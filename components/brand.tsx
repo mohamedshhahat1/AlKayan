@@ -22,6 +22,23 @@ import { cn } from "@/lib/utils";
  *  - Paths come from `siteConfig.branding`, never from a literal at the call
  *    site.
  *
+ * Asset weight — OUTSTANDING
+ * --------------------------
+ * The supplied files are large: logo.svg is 839 KB and company_name.svg is
+ * 889 KB. A vector mark is normally 2-20 KB, so ~1.7 MB across the pair points
+ * to embedded raster data rather than paths, and both load in the header above
+ * the fold.
+ *
+ * Nothing here modifies them — that is not this file's call to make. What it
+ * does do is refuse to make the situation worse:
+ *
+ *  - `decoding="async"` keeps a large decode off the critical path.
+ *  - `max-w-full` plus `object-contain` means an unexpected intrinsic ratio
+ *    letterboxes rather than pushing the header wider than the viewport. The
+ *    real dimensions could not be measured, so they are not assumed.
+ *
+ * See docs/BRAND-ASSETS.md for what should happen before launch.
+ *
  * Fallback
  * --------
  * Each component falls back to the design that shipped before the assets
@@ -81,7 +98,8 @@ export function BrandLogo({ className, alt = siteConfig.branding.logoAlt }: Bran
       alt={alt}
       onError={() => setFailed(true)}
       draggable={false}
-      className={cn("w-auto select-none object-contain", className)}
+      decoding="async"
+      className={cn("w-auto max-w-full select-none object-contain", className)}
     />
   );
 }
@@ -133,7 +151,8 @@ export function BrandWordmark({
       alt={alt}
       onError={() => setFailed(true)}
       draggable={false}
-      className={cn("w-auto select-none object-contain", imgClassName, className)}
+      decoding="async"
+      className={cn("w-auto max-w-full select-none object-contain", imgClassName, className)}
     />
   );
 }

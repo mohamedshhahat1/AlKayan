@@ -1,39 +1,104 @@
 # Brand assets
 
 How the logo, the wordmark and the hero video are wired up, and what still has
-to be added by hand.
+to be resolved.
 
 ---
 
 ## Status
 
-| Asset | Expected path | Present in this repo |
-| --- | --- | --- |
-| Logo mark | `public/brand/logo.svg` | **No — must be added** |
-| Wordmark | `public/brand/company_name.svg` | **No — must be added** |
-| Hero video | external Pexels URL | Yes, by reference |
-| Hero poster | external Pexels URL | Yes, by reference |
+| Asset | Path | Committed | Size | OK for production |
+| --- | --- | --- | --- | --- |
+| Logo mark | `public/brand/logo.svg` | Yes | **839 KB** | **No — see below** |
+| Wordmark | `public/brand/company_name.svg` | Yes | **889 KB** | **No — see below** |
+| Hero video | external Pexels URL | By reference | — | Works; self-host first |
+| Hero poster | external Pexels URL | By reference | — | Works |
 
-The code for the two SVGs is complete and in place. The files themselves are
-not in the repository — there is no `public/` directory in the history of
-`new-main`, `main` or `agent/seo-foundation`, and no `.svg` file anywhere in
-the tree. Adding the two files is the only remaining step; no code has to
-change when you do.
+The wiring is complete: both files are in place, both render, and no code change
+is needed to use them.
 
-### Adding them
+### The size problem
 
-```bash
-git checkout new-main
-mkdir -p public/brand
-cp /path/to/logo.svg          public/brand/logo.svg
-cp /path/to/company_name.svg  public/brand/company_name.svg
-git rm public/brand/.gitkeep
-git add public/brand
-git commit -m "chore(brand): add official logo and wordmark"
-git push
-```
+**1.7 MB of brand assets load in the header of every page, above the fold.**
 
-The filenames matter. They are declared once, in `lib/site-config.ts`:
+For scale: a vector logo mark is normally 2-20 KB. Even an intricate emblem
+rarely passes 60 KB. At 839 KB and 889 KB these are two to three orders of
+magnitude larger than they should be, which almost always means one of:
+
+1. **A raster image embedded as base64 inside an `<svg>` wrapper.** This is by
+   far the most common cause. It happens when a PNG or JPEG is run through an
+   online "convert to SVG" tool, or when a design export includes a placed
+   bitmap rather than outlines. The file is an SVG by extension only — it will
+   not scale crisply, and it gains none of the benefits of vector.
+2. **Auto-traced vector art** with tens of thousands of path nodes, from an
+   Image Trace or similar. It scales crisply but is very expensive to parse and
+   rasterise, and it is usually visibly lumpy against the original.
+
+I could not verify which from the environment these changes were made in, and
+the files were deliberately not opened or altered. Someone should check — open
+`logo.svg` in a text editor and look at the first few lines:
+
+- `<image ... xlink:href="data:image/png;base64,...` → case 1, an embedded raster.
+- Thousands of `<path d="..."` entries → case 2, a trace.
+- A handful of tidy `<path>` elements → something else is going on; report it.
+
+### Why it matters here specifically
+
+These are not decorative images further down the page. They are in the header,
+so they are requested on first paint, on every route, for every visitor. On a
+mid-range phone on Egyptian mobile data, 1.7 MB is measured in seconds, and it
+competes directly with the font and the JavaScript bundle for bandwidth.
+
+It also undercuts the rest of the work: the hero video is deliberately deferred
+to idle precisely so nothing large blocks first paint, and this is larger than
+the first few seconds of the video.
+
+### What the code does about it
+
+The assets are used exactly as supplied — not modified, not recoloured, not
+redrawn. `components/brand.tsx` does two things to avoid compounding the issue:
+
+- **`decoding="async"`** so decoding a large image cannot block the main thread
+  while the page is painting.
+- **`max-w-full` with `object-contain`** so an unexpected intrinsic aspect ratio
+  letterboxes inside its box instead of pushing the header wider than a 320px
+  viewport. The real dimensions could not be measured, so they are not assumed.
+
+Neither is a fix. They stop a bad asset from becoming a broken layout.
+
+### What should happen before launch
+
+In order of preference:
+
+1. **Re-export from the original vector source** — Illustrator, Figma, CorelDRAW
+   — with real outlines, no embedded bitmaps, and text converted to paths.
+   Expect 5-30 KB per file. This is the correct fix and the only one that gives
+   you genuine vector branding.
+2. **If the original is only ever a raster**, then stop calling it an SVG. Export
+   a PNG at roughly 3× the largest rendered size (the header mark renders at
+   44px, so ~132px tall), or better a WebP, and change the two paths in
+   `lib/site-config.ts`. A 132px-tall PNG of a logo is typically 3-8 KB. The
+   `branding` config takes any URL, so nothing else changes.
+3. **As a stopgap only**, run the existing files through SVGO:
+   ```bash
+   npx svgo --multipass public/brand/logo.svg public/brand/company_name.svg
+   ```
+   This is lossless and will strip editor metadata, but it cannot shrink
+   embedded base64 raster data meaningfully. If the files barely change size,
+   that itself confirms case 1 above.
+
+Until one of these is done, treat the branding as functionally integrated but
+**not production-ready**.
+
+---
+
+## How they are rendered
+
+One file owns this: `components/brand.tsx`, exporting `BrandLogo`,
+`BrandWordmark` and `BrandLockup`. Nothing else in the codebase references an
+asset path.
+
+Paths are declared once, in `lib/site-config.ts`:
 
 ```ts
 branding: {
@@ -44,34 +109,26 @@ branding: {
 }
 ```
 
-If you would rather use different names, change them there and nowhere else.
+Change them there and nowhere else — including if you switch to PNG or WebP.
 
----
-
-## How they are rendered
-
-One file owns this: `components/brand.tsx`, exporting `BrandLogo`,
-`BrandWordmark` and `BrandLockup`. Nothing else in the codebase references an
-asset path.
-
-Three rules are deliberately enforced by that component:
+Three rules are deliberately enforced by the component:
 
 **The SVGs are never modified.** They are referenced by URL, not inlined, so no
 CSS rule, `currentColor` inheritance or SVGO pass in this repo can alter the
-artwork. What you commit is what renders.
+artwork. What is committed is what renders.
 
-**Sizing is height-only.** Every call site sets a height class and the
-component adds `width: auto` and `object-contain`. The intrinsic aspect ratio
-of whatever you supply is preserved at every breakpoint. This matters because
-the code cannot know the dimensions of files it has never seen.
+**Sizing is height-only.** Every call site sets a height class and the component
+adds `width: auto`, `max-width: 100%` and `object-contain`. The intrinsic aspect
+ratio is preserved at every breakpoint. This matters because the code cannot
+know the dimensions of files it has never opened.
 
 **Alt text is decided by context, not by default.** Where the surrounding
 element already names the company — the header link has
 `aria-label="الكيان — العودة إلى أعلى الصفحة"` — both assets are passed `alt=""`
 and marked decorative. Announcing "الكيان" three times in a row is worse for a
 screen-reader user than announcing it once. In the footer, where nothing else
-names the company, the wordmark carries the accessible name and the mark next
-to it is decorative.
+names the company, the wordmark carries the accessible name and the mark beside
+it is decorative.
 
 ### Where they appear
 
@@ -85,18 +142,20 @@ to it is decorative.
 | 404 | `app/not-found.tsx` | `BrandLockup` |
 
 The mobile menu, the contact section, the chat widget, the WhatsApp button and
-the back-to-top control intentionally carry no logo. They sit inside a page
-that already shows it twice; repeating it there is noise, not branding.
+the back-to-top control intentionally carry no logo. They sit inside a page that
+already shows it twice; repeating it there is noise, not branding.
 
 ### The fallback
 
 Each component falls back to the monogram tile and text lockup the site used
-before, if its SVG fails to load. This is a degradation path, not a second
-logo: it is unreachable the moment the asset resolves.
+before, if its asset fails to load. This is a degradation path, not a second
+logo: it is unreachable whenever the asset resolves.
 
-It exists because the alternative, while the files are missing, is a broken
-image icon in the header of a production site. `siteConfig.monogram` is
-retained solely to feed it.
+It exists so that a missing or broken asset costs the brand mark rather than the
+whole header, and so the site never shows a browser's broken-image glyph.
+`siteConfig.monogram` is retained solely to feed it.
+
+If you see the gold monogram tile in the header, the asset did not load.
 
 ---
 
@@ -105,18 +164,19 @@ retained solely to feed it.
 Two surfaces still draw approximated branding, and both need a decision rather
 than a patch:
 
-**`app/icon.tsx`** renders the letters `AK` on a gold tile as the favicon,
-via `ImageResponse` at the edge. Once `logo.svg` exists, the clean fix is to
-delete this file and drop the SVG in as `app/icon.svg` — Next.js picks that up
-automatically as the favicon. It is left alone for now because deleting it
-today would leave the site with no favicon at all.
+**`app/icon.tsx`** renders the letters `AK` on a gold tile as the favicon, via
+`ImageResponse`. The clean fix is to delete this file and drop a small square
+SVG in as `app/icon.svg`, which Next.js picks up automatically. **Do not use the
+current 839 KB `logo.svg` for this** — a favicon renders at 32px and the file
+would be downloaded on every page. Resolve the size problem first.
 
 **`app/opengraph-image.tsx`** renders the string `AL-KAYAN` as the social
-preview card. Satori, which powers `ImageResponse`, cannot render an external
-SVG by URL; embedding the logo means reading the file at build time and
-passing it as a data URI. Worth doing, but it is a change that only shows up
-when someone shares a link, so it should be verified against a real preview
-debugger rather than assumed.
+preview card. Satori, which powers `ImageResponse`, cannot fetch an external SVG
+by URL; embedding the logo means reading the file at build time and passing it as
+a data URI. At the current file size that would bloat every social card, so this
+also waits on the re-export.
+
+Both are worth doing. Neither is worth doing with these files as they stand.
 
 ---
 
@@ -131,7 +191,7 @@ attribution, so serving this file from your own domain is legally fine. The
 reason it is still an external reference is practical, and it should be
 revisited:
 
-- The file could not be fetched and committed in the environment this change
+- The file could not be fetched and committed from the environment this change
   was made in, which had no network access. Committing a video is also a
   question for the repository owner rather than an automatic yes — a
   multi-megabyte binary in git history is permanent.
@@ -144,8 +204,8 @@ revisited:
 - `pexels.com/download/...` is a download endpoint, not a CDN origin. It
   redirects, it is not tuned for streaming, and it carries no availability
   guarantee for your traffic.
-- Range requests and caching behaviour are outside your control, so seeking
-  and re-buffering behaviour on mobile is unpredictable.
+- Range requests and caching behaviour are outside your control, so seeking and
+  re-buffering behaviour on mobile is unpredictable.
 - A third party can change or remove it at any time.
 
 The hero is built to survive that — the poster stays and the video simply never
@@ -163,8 +223,8 @@ ffmpeg -i public/brand/hero.mp4 -an -vf "scale=1920:-2" -c:v libx264 \
 mv public/brand/hero-opt.mp4 public/brand/hero.mp4
 ```
 
-`-movflags +faststart` matters: it moves the metadata to the front of the file
-so playback can begin before the whole thing has downloaded.
+`-movflags +faststart` matters: it moves the metadata to the front of the file so
+playback can begin before the whole thing has downloaded.
 
 Then set, in every environment:
 
@@ -178,17 +238,17 @@ And consider a matching self-hosted poster via `NEXT_PUBLIC_HERO_POSTER_URL`.
 
 In `components/sections/hero-section.tsx`:
 
-- The still is the poster layer, is always mounted, and is what paints first.
-  It is the LCP element. The video never blocks it.
+- The still is the poster layer, is always mounted, and is what paints first. It
+  is the LCP element. The video never blocks it.
 - The `<video>` is not rendered at all until the browser reports idle
-  (`requestIdleCallback`, 2.5s timeout, `setTimeout` fallback). One element,
-  one `src`, mounted once — the file is never requested twice.
+  (`requestIdleCallback`, 2.5s timeout, `setTimeout` fallback). One element, one
+  `src`, mounted once — the file is never requested twice.
 - `autoPlay muted loop playsInline preload="auto"`, `object-fit: cover`.
   `muted` is also set imperatively as a DOM property, because iOS honours the
   property and not the attribute React writes, and an unmuted video is never
   permitted to autoplay.
-- It cross-fades in only on the `playing` event, so a video that stalls
-  mid-load never blanks the hero.
+- It cross-fades in only on the `playing` event, so a video that stalls mid-load
+  never blanks the hero.
 - It is skipped entirely under `prefers-reduced-motion: reduce` or when the
   browser reports `navigator.connection.saveData`.
 - `onError` and a rejected `play()` promise both fall back permanently to the
