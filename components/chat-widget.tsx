@@ -13,60 +13,7 @@ type Message = { id: number; from: "bot" | "user"; text: string };
  * Everything is optional because none of it exists until that script has run,
  * and it may never run — the CDN can be blocked, offline or slow.
  */
-useEffect(() => {
-  if (!mojeebOwnsButton) return;
 
-  const styleId = "alkayan-mojeeb-position-fix";
-
-  if (document.getElementById(styleId)) return;
-
-  const style = document.createElement("style");
-  style.id = styleId;
-
-  style.textContent = `
-    #mojeeb-chat-iframe {
-      right: auto !important;
-      left: 24px !important;
-      bottom: 96px !important;
-
-      width: 380px !important;
-      height: 600px !important;
-
-      max-width: calc(100vw - 48px) !important;
-      max-height: calc(100vh - 120px) !important;
-
-      border-radius: 18px !important;
-      overflow: hidden !important;
-    }
-
-    #mojeeb-chat-container {
-      right: auto !important;
-      left: 24px !important;
-    }
-
-    @media (max-width: 640px) {
-      #mojeeb-chat-iframe {
-        left: 12px !important;
-        right: 12px !important;
-        bottom: 84px !important;
-
-        width: calc(100vw - 24px) !important;
-        height: calc(100vh - 100px) !important;
-
-        max-width: none !important;
-        max-height: none !important;
-
-        border-radius: 16px !important;
-      }
-    }
-  `;
-
-  document.head.appendChild(style);
-
-  return () => {
-    document.getElementById(styleId)?.remove();
-  };
-}, [mojeebOwnsButton]);
 declare global {
   interface Window {
     MojeebWidget?: {
@@ -182,7 +129,56 @@ export function ChatWidget() {
 
   const endRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(1);
+useEffect(() => {
+  if (!mojeebOwnsButton) return;
 
+  const styleId = "alkayan-mojeeb-position-fix";
+
+  const addStyles = () => {
+    if (document.getElementById(styleId)) return;
+
+    const style = document.createElement("style");
+    style.id = styleId;
+
+    style.textContent = `
+      #mojeeb-chat-iframe {
+        right: auto !important;
+        left: 24px !important;
+        bottom: 96px !important;
+        width: 380px !important;
+        height: 600px !important;
+        max-width: calc(100vw - 48px) !important;
+        max-height: calc(100vh - 120px) !important;
+        border-radius: 18px !important;
+      }
+
+      #mojeeb-chat-container {
+        right: auto !important;
+        left: 24px !important;
+      }
+
+      @media (max-width: 640px) {
+        #mojeeb-chat-iframe {
+          left: 12px !important;
+          right: 12px !important;
+          bottom: 84px !important;
+          width: calc(100vw - 24px) !important;
+          height: calc(100vh - 100px) !important;
+          max-width: none !important;
+          max-height: none !important;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+  };
+
+  addStyles();
+
+  return () => {
+    document.getElementById(styleId)?.remove();
+  };
+}, [mojeebOwnsButton]);
   /**
    * Hand the button over to Mojeeb.
    *
