@@ -1,0 +1,8 @@
+# Brand assets live here. See docs/BRAND-ASSETS.md.
+#
+# Expected files:
+#   logo.svg          the AL-KAYAN logo mark
+#   company_name.svg  the AL-KAYAN wordmark
+#
+# This placeholder keeps the directory in git while those files are pending.
+# Delete it once both SVGs are committed.
