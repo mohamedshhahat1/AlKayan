@@ -75,22 +75,20 @@ const heroVideoRaw = envOr(process.env.NEXT_PUBLIC_HERO_VIDEO_URL, DEFAULT_HERO_
 const heroVideo = heroVideoRaw.toLowerCase() === "off" ? "" : heroVideoRaw;
 
 /**
- * Still shown before the video is ready, and permanently whenever the video
- * cannot or should not play. This is the image the hero used before the video
- * existed, so the fallback is the previously shipped design rather than a
- * blank navy box.
+ * Optional still behind the hero. Empty by default, and deliberately so.
  *
- * w=2560 rather than 1920: the layer is scaled up to 1.18 by the Ken Burns
- * keyframes and to 1.15 by the parallax, so at 1920 the browser was upscaling
- * on any large or retina screen.
+ * There used to be a stock photograph here, shown before playback and kept as
+ * the permanent fallback. It has been removed: the hero is footage over a navy
+ * gradient built from the palette, which costs nothing to transfer and cannot
+ * fail to load. HeroSection draws that gradient whenever this is empty.
  *
- * There is no opt-out for this one. The hero is a full-viewport section with
- * white text on a scrim; without an image behind it there is nothing to scrim.
+ * Set NEXT_PUBLIC_HERO_POSTER_URL to put an image back. Export a frame from
+ * the video itself rather than choosing another photograph — the still and the
+ * first frame of playback then match, so the cross-fade is invisible:
+ *
+ *     ffmpeg -ss 2 -i hero.mp4 -frames:v 1 -q:v 3 public/brand/hero-poster.jpg
  */
-const heroPoster = envOr(
-  process.env.NEXT_PUBLIC_HERO_POSTER_URL,
-  "https://images.pexels.com/photos/33529500/pexels-photo-33529500.jpeg?auto=compress&cs=tinysrgb&w=2560"
-);
+const heroPoster = process.env.NEXT_PUBLIC_HERO_POSTER_URL?.trim() ?? "";
 
 export const siteConfig = {
   name: "الكيان",
@@ -139,6 +137,7 @@ export const siteConfig = {
 
   hero: {
     video: heroVideo,
+    /** Empty means "no photograph" — HeroSection falls back to a gradient. */
     poster: heroPoster,
   },
 
