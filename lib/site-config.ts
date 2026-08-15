@@ -11,7 +11,24 @@
  * See .env.example for the full list.
  */
 
-const phoneRaw = process.env.NEXT_PUBLIC_COMPANY_PHONE ?? "+201001234567";
+/**
+ * Reads an env var, treating blank as absent.
+ *
+ * `??` is wrong for this job and it caused a real bug: it falls back only on
+ * undefined, so a key that is present but empty — exactly what
+ * `cp .env.example .env.local` produces — was handed through as "". The hero
+ * then saw an empty video URL, took that as "no video configured" and never
+ * played anything.
+ *
+ * A variable someone has not filled in yet and a variable that is not there at
+ * all mean the same thing, so treat them the same.
+ */
+function envOr(value: string | undefined, fallback: string): string {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : fallback;
+}
+
+const phoneRaw = envOr(process.env.NEXT_PUBLIC_COMPANY_PHONE, "+201001234567");
 
 /** Digits only — required by `tel:` and `wa.me` links. */
 const phoneDigits = phoneRaw.replace(/\D/g, "");
@@ -28,14 +45,14 @@ function formatPhone(digits: string): string {
   return match ? `+${match[1]} ${match[2]} ${match[3]} ${match[4]}` : `+${digits}`;
 }
 
-const email = process.env.NEXT_PUBLIC_COMPANY_EMAIL ?? "info@al-kayan.com";
+const email = envOr(process.env.NEXT_PUBLIC_COMPANY_EMAIL, "info@al-kayan.com");
 
 /**
  * Optional links. Leave the env var unset and the corresponding icon is hidden
  * entirely rather than rendering a dead `href="#"`.
  */
-const facebook = process.env.NEXT_PUBLIC_FACEBOOK_URL || null;
-const instagram = process.env.NEXT_PUBLIC_INSTAGRAM_URL || null;
+const facebook = process.env.NEXT_PUBLIC_FACEBOOK_URL?.trim() || null;
+const instagram = process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() || null;
 
 /**
  * Hero background footage.
@@ -46,11 +63,16 @@ const instagram = process.env.NEXT_PUBLIC_INSTAGRAM_URL || null;
  * and nothing else has to change. See docs/BRAND-ASSETS.md for why the
  * external URL is the current default.
  *
- * Set it to an empty string to disable the video entirely; the hero falls back
- * to the still below.
+ * To turn the video off, set the variable to `off`. Leaving it blank does NOT
+ * disable it — blank means "not configured", which falls through to the
+ * default. Switching the opt-out from "" to an explicit word is deliberate:
+ * the empty string was indistinguishable from a half-finished .env file, and
+ * silently shipped a hero with no video.
  */
-const heroVideo =
-  process.env.NEXT_PUBLIC_HERO_VIDEO_URL ?? "https://www.pexels.com/download/video/31617692/";
+const DEFAULT_HERO_VIDEO = "https://www.pexels.com/download/video/31617692/";
+
+const heroVideoRaw = envOr(process.env.NEXT_PUBLIC_HERO_VIDEO_URL, DEFAULT_HERO_VIDEO);
+const heroVideo = heroVideoRaw.toLowerCase() === "off" ? "" : heroVideoRaw;
 
 /**
  * Still shown before the video is ready, and permanently whenever the video
@@ -61,10 +83,14 @@ const heroVideo =
  * w=2560 rather than 1920: the layer is scaled up to 1.18 by the Ken Burns
  * keyframes and to 1.15 by the parallax, so at 1920 the browser was upscaling
  * on any large or retina screen.
+ *
+ * There is no opt-out for this one. The hero is a full-viewport section with
+ * white text on a scrim; without an image behind it there is nothing to scrim.
  */
-const heroPoster =
-  process.env.NEXT_PUBLIC_HERO_POSTER_URL ??
-  "https://images.pexels.com/photos/33529500/pexels-photo-33529500.jpeg?auto=compress&cs=tinysrgb&w=2560";
+const heroPoster = envOr(
+  process.env.NEXT_PUBLIC_HERO_POSTER_URL,
+  "https://images.pexels.com/photos/33529500/pexels-photo-33529500.jpeg?auto=compress&cs=tinysrgb&w=2560"
+);
 
 export const siteConfig = {
   name: "الكيان",
@@ -83,7 +109,7 @@ export const siteConfig = {
     "الكيان - شركة رائدة في مجال المقاولات والتشطيبات الداخلية والتصميم الداخلي والخارجي. من الفكرة إلى تسليم المفتاح بأعلى معايير الجودة والاحترافية.",
   shortDescription:
     "نصمم، ننفذ، ونشرف على جميع أعمال التشطيبات والمقاولات بأعلى معايير الجودة والاحترافية.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://al-kayan.com",
+  url: envOr(process.env.NEXT_PUBLIC_SITE_URL, "https://al-kayan.com"),
   locale: "ar_EG",
 
   /**

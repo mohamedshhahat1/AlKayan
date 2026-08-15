@@ -39,6 +39,20 @@ type SaveDataNavigator = Navigator & {
   connection?: { saveData?: boolean };
 };
 
+/**
+ * Says why the hero is showing a photograph instead of footage.
+ *
+ * Every fallback path here is intentional and every one of them is silent,
+ * which makes "the video isn't playing" almost impossible to diagnose from the
+ * outside — the correct behaviour and the broken behaviour look identical. In
+ * development, announce it. Stripped from production builds.
+ */
+function heroLog(message: string): void {
+  if (process.env.NODE_ENV !== "production") {
+    console.info(`[hero] ${message}`);
+  }
+}
+
 export function HeroSection() {
   const ref = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -64,6 +78,9 @@ export function HeroSection() {
    */
   useEffect(() => {
     if (!siteConfig.hero.video) {
+      heroLog(
+        "no video URL. NEXT_PUBLIC_HERO_VIDEO_URL is set to `off`, so the still is showing by request."
+      );
       setBackground("static");
       return;
     }
@@ -74,7 +91,16 @@ export function HeroSection() {
     // A looping background is exactly the kind of motion the media query is
     // asking us to drop, and exactly the kind of payload Save-Data is asking
     // us not to send.
-    if (prefersReducedMotion || saveData) {
+    if (prefersReducedMotion) {
+      heroLog(
+        "skipping the video: this device has `prefers-reduced-motion: reduce` enabled. Turn off Reduce Motion in your OS accessibility settings to see it."
+      );
+      setBackground("static");
+      return;
+    }
+
+    if (saveData) {
+      heroLog("skipping the video: the browser is in data-saver mode (navigator.connection.saveData).");
       setBackground("static");
       return;
     }
@@ -101,13 +127,38 @@ export function HeroSection() {
     const video = videoRef.current;
     if (!video) return;
 
+    heroLog(`requesting ${siteConfig.hero.video}`);
+
     video.muted = true;
 
-    void video.play().catch(() => {
+    void video.play().catch((error: unknown) => {
       // Low power mode, a data saver, or a policy we cannot detect up front.
       // The poster is already painted, so there is nothing to undo.
+      heroLog(
+        `the browser refused to autoplay the video (${
+          error instanceof Error ? error.message : String(error)
+        }). Keeping the still.`
+      );
       setBackground("static");
     });
+
+    /**
+     * Nothing below changes what the user sees — the poster is already the
+     * fallback and stays put either way. It exists because a video that is
+     * merely slow and a video that is never coming look the same on screen,
+     * and the difference decides whether you re-encode the file or replace
+     * the URL.
+     */
+    if (process.env.NODE_ENV !== "production") {
+      const watchdog = window.setTimeout(() => {
+        if (video.readyState < 3) {
+          heroLog(
+            "still waiting after 10s. The URL is reachable but slow, or it is not returning playable video. Check the Network tab for this request: a 403 or an HTML response means the host is refusing to serve the file to this origin, and the fix is to self-host it in public/brand/."
+          );
+        }
+      }, 10000);
+      return () => window.clearTimeout(watchdog);
+    }
   }, [background]);
 
   const videoMounted = background === "loading" || background === "playing";
@@ -163,7 +214,12 @@ export function HeroSection() {
             // not bubble to onError, and this fallback has to be reliable.
             src={siteConfig.hero.video}
             onPlaying={() => setBackground("playing")}
-            onError={() => setBackground("static")}
+            onError={() => {
+              heroLog(
+                `failed to load ${siteConfig.hero.video}. Keeping the still. If this is the Pexels /download/ URL, the host may be refusing the request — self-host the file and set NEXT_PUBLIC_HERO_VIDEO_URL=/brand/hero.mp4.`
+              );
+              setBackground("static");
+            }}
             className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${
               videoVisible ? "opacity-100" : "opacity-0"
             }`}
