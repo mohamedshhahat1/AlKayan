@@ -1,11 +1,60 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Script from "next/script";
 import { MessageCircle, X, Send } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { siteConfig } from "@/lib/site-config";
 
 type Message = { id: number; from: "bot" | "user"; text: string };
+
+/**
+ * Mojeeb is loaded from a third-party CDN and attaches itself to `window`.
+ * Everything is optional because none of it exists until that script has run,
+ * and it may never run — the CDN can be blocked, offline or slow.
+ */
+declare global {
+  interface Window {
+    MojeebWidget?: {
+      attach?: (selector: string) => void;
+    };
+  }
+}
+
+/**
+ * The id Mojeeb selects on. Kept in one place so the attribute on the button
+ * and the selector handed to attach() cannot drift apart.
+ */
+const MOJEEB_BUTTON_ID = "my-chat-button";
+const MOJEEB_SELECTOR = `#${MOJEEB_BUTTON_ID}`;
+
+/**
+ * `onReady` fires when the script element loads, but a widget is free to
+ * publish its global a tick later. Rather than assume, re-check briefly before
+ * giving up. ~6s total, which is generous for a script that has already loaded.
+ */
+const MOJEEB_POLL_INTERVAL_MS = 150;
+const MOJEEB_POLL_ATTEMPTS = 40;
+
+/**
+ * The element Mojeeb is currently bound to, held at module scope rather than in
+ * a ref.
+ *
+ * This is the StrictMode guard. In development React mounts, unmounts and
+ * remounts every component, running effects twice; attaching twice would leave
+ * two click listeners on one button. Comparing against the actual DOM node is
+ * better than a boolean flag: it is idempotent when the effect re-runs against
+ * the same button, and still re-attaches correctly if the widget genuinely
+ * remounts and React creates a new element.
+ */
+let mojeebAttachedTo: HTMLElement | null = null;
+
+/** Dev-only. A silently missing third-party widget is near-impossible to diagnose. */
+function chatLog(message: string): void {
+  if (process.env.NODE_ENV !== "production") {
+    console.info(`[chat] ${message}`);
+  }
+}
 
 const { warranty, timelines, hours, contact } = siteConfig;
 
@@ -66,21 +115,109 @@ export function ChatWidget() {
     },
   ]);
 
+  /** Set by next/script once the CDN file has run. */
+  const [scriptReady, setScriptReady] = useState(false);
+
+  /**
+   * True once Mojeeb has successfully bound to the button, at which point it
+   * owns the click and the local panel steps aside. While false — script still
+   * loading, blocked, or failed — the original behaviour is untouched, so the
+   * button is never dead.
+   */
+  const [mojeebOwnsButton, setMojeebOwnsButton] = useState(false);
+
   const endRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(1);
 
+  /**
+   * Hand the button over to Mojeeb.
+   *
+   * Runs only after the script reports ready, and only touches `window` inside
+   * the effect, so nothing here executes during server rendering. Every step is
+   * defensive: the global may be absent, `attach` may not be a function, and
+   * third-party code can throw. Any of those simply leaves the local panel in
+   * charge rather than taking the page down.
+   */
   useEffect(() => {
-    if (open) endRef.current?.scrollIntoView({ block: "end" });
-  }, [messages, open]);
+    if (!scriptReady) return;
+
+    const button = document.getElementById(MOJEEB_BUTTON_ID);
+    if (!button) return;
+
+    // Already bound to this exact element — StrictMode's second pass, or a
+    // re-render. Re-attaching would add a duplicate listener.
+    if (mojeebAttachedTo === button) {
+      setMojeebOwnsButton(true);
+      return;
+    }
+
+    let attempts = 0;
+    let timer: number | undefined;
+    let cancelled = false;
+
+    const tryAttach = () => {
+      if (cancelled) return;
+
+      const widget = window.MojeebWidget;
+
+      if (typeof widget?.attach === "function") {
+        try {
+          widget.attach(MOJEEB_SELECTOR);
+          mojeebAttachedTo = button;
+          setMojeebOwnsButton(true);
+          // Mojeeb is the chat interface from here on. If the local panel
+          // happened to be open when it arrived, close it so the two are never
+          // on screen together.
+          setOpen(false);
+          chatLog(`Mojeeb attached to ${MOJEEB_SELECTOR}`);
+        } catch (error) {
+          chatLog(
+            `MojeebWidget.attach() threw (${
+              error instanceof Error ? error.message : String(error)
+            }). Keeping the built-in assistant.`
+          );
+        }
+        return;
+      }
+
+      attempts += 1;
+      if (attempts >= MOJEEB_POLL_ATTEMPTS) {
+        chatLog(
+          "the Mojeeb script loaded but never exposed window.MojeebWidget.attach. Keeping the built-in assistant."
+        );
+        return;
+      }
+
+      timer = window.setTimeout(tryAttach, MOJEEB_POLL_INTERVAL_MS);
+    };
+
+    tryAttach();
+
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [scriptReady]);
+
+  /**
+   * The built-in panel only renders while Mojeeb has not taken over. Derived
+   * rather than relying on `open` alone, so there is no window in which both
+   * interfaces could be mounted.
+   */
+  const showLocalPanel = open && !mojeebOwnsButton;
 
   useEffect(() => {
-    if (!open) return;
+    if (showLocalPanel) endRef.current?.scrollIntoView({ block: "end" });
+  }, [messages, showLocalPanel]);
+
+  useEffect(() => {
+    if (!showLocalPanel) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open]);
+  }, [showLocalPanel]);
 
   function send(text: string) {
     const trimmed = text.trim();
@@ -95,18 +232,68 @@ export function ChatWidget() {
 
   return (
     <>
+      {/*
+        next/script rather than a raw tag: React does not execute a <script>
+        written into JSX, and next/script also de-duplicates by id, so the file
+        is fetched once no matter how often this component renders.
+
+        afterInteractive injects it once the page is interactive — not blocking
+        first paint, but early enough that it is almost always attached before
+        anyone reaches a button in the bottom corner. lazyOnload would defer it
+        further and spare the hero video some bandwidth, at the cost of a longer
+        window in which clicking opens the built-in assistant instead.
+
+        onReady, not onLoad: onLoad fires only on the first fetch, whereas
+        onReady also fires when the component mounts against an already-cached
+        script. With onLoad, a remount would silently never attach.
+      */}
+      <Script
+        id="mojeeb-chat-widget"
+        src="https://mojeebcdn.z7.web.core.windows.net/mojeeb-widget.js"
+        data-widget-id="82b49e65-8f1c-4367-ac71-854eccf61c42"
+        data-mode="headless"
+        data-config="{}"
+        strategy="afterInteractive"
+        onReady={() => setScriptReady(true)}
+        onError={() => {
+          chatLog(
+            "the Mojeeb script failed to load. Keeping the built-in assistant — the button still works."
+          );
+        }}
+      />
+
+      {/*
+        The same button as before: identical classes, position, icon, hover
+        scale and focus ring. The only additions are the id Mojeeb selects on
+        and a guard in the click handler.
+
+        In headless mode Mojeeb binds its own listener to this element, so once
+        it has taken over, toggling the local panel here as well would put two
+        chat windows on screen at once. The original handler is kept, not
+        replaced — it is simply skipped while Mojeeb is in charge, which is also
+        what makes it a working fallback if Mojeeb never loads.
+      */}
       <button
         type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-expanded={open}
-        aria-controls="chat-panel"
-        aria-label={open ? "إغلاق المحادثة" : "فتح المحادثة"}
+        id={MOJEEB_BUTTON_ID}
+        onClick={() => {
+          if (mojeebOwnsButton) return;
+          setOpen((value) => !value);
+        }}
+        // Only describe the local panel while it is the thing being controlled.
+        // Under Mojeeb this button opens a dialog we neither render nor track,
+        // so claiming aria-expanded={false} against a non-existent #chat-panel
+        // would be actively wrong for a screen reader.
+        aria-expanded={mojeebOwnsButton ? undefined : open}
+        aria-controls={mojeebOwnsButton ? undefined : "chat-panel"}
+        aria-haspopup={mojeebOwnsButton ? "dialog" : undefined}
+        aria-label={showLocalPanel ? "إغلاق المحادثة" : "فتح المحادثة"}
         className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full glass-gold flex items-center justify-center text-gold hover:scale-110 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       >
-        {open ? <X className="w-6 h-6" aria-hidden="true" /> : <MessageCircle className="w-6 h-6" aria-hidden="true" />}
+        {showLocalPanel ? <X className="w-6 h-6" aria-hidden="true" /> : <MessageCircle className="w-6 h-6" aria-hidden="true" />}
       </button>
 
-      {open && (
+      {showLocalPanel && (
         <div
           id="chat-panel"
           role="dialog"
