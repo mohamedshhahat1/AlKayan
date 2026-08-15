@@ -1,21 +1,48 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Calendar, ArrowLeft } from "lucide-react";
+import { siteConfig } from "@/lib/site-config";
 
 /**
  * Shadow used on the hero copy.
  *
  * Two layers on purpose: a wide soft blur lifts the text off the busiest parts
- * of the photo, and a tight dark one keeps the glyph edges crisp. A single
+ * of the background, and a tight dark one keeps the glyph edges crisp. A single
  * large shadow at the same total strength reads as a grey halo.
  */
 const HEADING_SHADOW = "0 2px 4px rgba(8,24,48,0.35), 0 8px 28px rgba(8,24,48,0.45)";
 const BODY_SHADOW = "0 1px 3px rgba(8,24,48,0.4), 0 4px 16px rgba(8,24,48,0.35)";
 
+/**
+ * Background states.
+ *
+ * "poster"  — the still is on screen and no video has been requested yet. Also
+ *             the server-rendered state, so the hero paints without ever
+ *             waiting on a video.
+ * "loading" — the <video> is mounted and fetching.
+ * "playing" — playback confirmed by the browser; cross-fade it in.
+ * "static"  — no video, permanently. Reduced motion, Save-Data, a network
+ *             error and an autoplay refusal all land here, and the still
+ *             simply stays where it is.
+ */
+type BackgroundState = "poster" | "loading" | "playing" | "static";
+
+/** Declared locally so the code does not depend on how a given TS lib version types these. */
+type IdleWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
+type SaveDataNavigator = Navigator & {
+  connection?: { saveData?: boolean };
+};
+
 export function HeroSection() {
   const ref = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
@@ -24,6 +51,67 @@ export function HeroSection() {
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
+
+  const [background, setBackground] = useState<BackgroundState>("poster");
+
+  /**
+   * Decide whether to fetch the video at all, and never during first paint.
+   *
+   * Mounting it eagerly would put a multi-megabyte request in front of the
+   * font and the JS bundle for no visual gain: the poster is the LCP element
+   * and it is already on screen. Waiting for idle also means a visitor who
+   * bounces in under a second never pays for the download.
+   */
+  useEffect(() => {
+    if (!siteConfig.hero.video) {
+      setBackground("static");
+      return;
+    }
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const saveData = (navigator as SaveDataNavigator).connection?.saveData === true;
+
+    // A looping background is exactly the kind of motion the media query is
+    // asking us to drop, and exactly the kind of payload Save-Data is asking
+    // us not to send.
+    if (prefersReducedMotion || saveData) {
+      setBackground("static");
+      return;
+    }
+
+    const idleWindow = window as IdleWindow;
+    const start = () => setBackground((current) => (current === "poster" ? "loading" : current));
+
+    if (idleWindow.requestIdleCallback) {
+      const handle = idleWindow.requestIdleCallback(start, { timeout: 2500 });
+      return () => idleWindow.cancelIdleCallback?.(handle);
+    }
+
+    const timer = window.setTimeout(start, 1200);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  /**
+   * iOS honours `muted` as a property, not as the attribute React writes, and
+   * an unmuted video is never allowed to autoplay. Set it directly, then ask.
+   */
+  useEffect(() => {
+    if (background !== "loading") return;
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = true;
+
+    void video.play().catch(() => {
+      // Low power mode, a data saver, or a policy we cannot detect up front.
+      // The poster is already painted, so there is nothing to undo.
+      setBackground("static");
+    });
+  }, [background]);
+
+  const videoMounted = background === "loading" || background === "playing";
+  const videoVisible = background === "playing";
 
   return (
     // hero-viewport fills the screen with a 100vh -> 100dvh fallback pair.
@@ -34,28 +122,53 @@ export function HeroSection() {
       id="hero"
       className="hero-viewport fade-to-background relative w-full overflow-hidden"
     >
-      {/* Background image with parallax + Ken Burns cinematic zoom.
-          bg-cover crops to fill at any ratio and bg-center keeps the subject
-          put, so widening the window never letterboxes or stretches it. */}
-      <motion.div
-        style={{ y, scale }}
-        className="absolute inset-0 z-0"
-      >
+      {/* Background layers, parallaxed and zoomed as one. */}
+      <motion.div style={{ y, scale }} className="absolute inset-0 z-0">
+        {/* The still.
+
+            Always rendered and never unmounted. It is what paints first, and
+            it is the fallback for every way the video can fail — which is why
+            a dead video URL cannot break this hero. The Ken Burns drift is
+            dropped once footage is playing; two things moving at once is one
+            too many, and it saves the compositor the work. */}
         <div
-          className="w-full h-full bg-cover bg-center bg-no-repeat ken-burns"
+          className={`absolute inset-0 bg-cover bg-center bg-no-repeat ${videoVisible ? "" : "ken-burns"}`}
           style={{
-            // w=2560 rather than 1920: the layer is also scaled up to 1.18 by
-            // the Ken Burns keyframes and to 1.15 by the parallax, so at 1920
-            // the browser was upscaling on any large or retina screen. That
-            // was the softness, not the compression.
-            backgroundImage:
-              "url(https://images.pexels.com/photos/33529500/pexels-photo-33529500.jpeg?auto=compress&cs=tinysrgb&w=2560)",
+            backgroundImage: `url(${siteConfig.hero.poster})`,
             // Small, deliberately conservative lift. Saturation does most of
             // the work on marble and wood; brightness past ~1.1 blows out the
-            // window highlights in this particular photo.
+            // window highlights in this particular shot.
             filter: "brightness(1.07) contrast(1.06) saturate(1.12)",
           }}
         />
+
+        {videoMounted && (
+          <video
+            ref={videoRef}
+            // Purely decorative: the footage carries nothing the copy above it
+            // does not already say, and it is silent, so there is no audio
+            // track to caption.
+            aria-hidden="true"
+            tabIndex={-1}
+            autoPlay
+            muted
+            loop
+            playsInline
+            // The element only exists once we have decided to play it, so
+            // there is no point fetching anything less than we need.
+            preload="auto"
+            poster={siteConfig.hero.poster}
+            disablePictureInPicture
+            // src rather than a <source> child: error events from a child do
+            // not bubble to onError, and this fallback has to be reliable.
+            src={siteConfig.hero.video}
+            onPlaying={() => setBackground("playing")}
+            onError={() => setBackground("static")}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${
+              videoVisible ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        )}
       </motion.div>
 
       {/* Readability scrim.
@@ -64,15 +177,28 @@ export function HeroSection() {
           sits, light across the middle band so the interior detail shows, and
           rising again at the bottom to hand off to .fade-to-background.
 
-          This no longer uses the --hero-overlay-* tokens. Those resolve to a
+          This does not use the --hero-overlay-* tokens. Those resolve to a
           white wash in light mode, which cannot carry white text. A navy scrim
-          in both themes is the standard treatment for an image-led hero. */}
+          in both themes is the standard treatment for a media-led hero. */}
       <div
         className="absolute inset-0 z-10"
         style={{
           background:
             "linear-gradient(180deg, rgba(8,24,48,0.62) 0%, rgba(8,24,48,0.34) 22%, rgba(8,24,48,0.18) 45%, rgba(8,24,48,0.26) 68%, rgba(8,24,48,0.45) 100%)",
         }}
+      />
+
+      {/* One extra flat layer, and only while footage is playing.
+
+          A still can be judged once and left alone; video walks through frames
+          nobody has approved, some of them much brighter than the photograph
+          the gradient above was tuned against. Gating it on playback means the
+          photographic fallback keeps exactly the treatment it shipped with. */}
+      <div
+        aria-hidden="true"
+        className={`absolute inset-0 z-10 bg-navy-deepest transition-opacity duration-1000 ${
+          videoVisible ? "opacity-25" : "opacity-0"
+        }`}
       />
 
       {/* Animated architectural lines */}

@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 import { lockScroll, unlockScroll } from "@/lib/lenis";
 import { getScrollOffset } from "@/lib/header-offset";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { BrandLogo, BrandWordmark } from "@/components/brand";
+import { CallCta } from "@/components/call-cta";
 
 const navLinks = [
   { href: "#hero", label: "الرئيسية" },
@@ -19,7 +21,7 @@ const navLinks = [
 ];
 
 /**
- * Applied only while the header is transparent over the hero photograph.
+ * Applied only while the header is transparent over the hero footage.
  * Deliberately a single tight layer — anything wider reads as a grey smear
  * behind small text rather than as separation.
  */
@@ -123,19 +125,19 @@ export function SiteHeader() {
         scrolled ? "glass py-3 border-b border-border" : "bg-transparent py-5"
       }`}
     >
-      <div className="container-luxury flex items-center justify-between gap-4">
+      <div className="container-luxury flex items-center justify-between gap-3 sm:gap-4">
+        {/* The link is already labelled, so both assets are decorative: alt=""
+            stops a screen reader reading the company name three times over. */}
         <a
           href="#hero"
-          className="flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-lg"
+          className="flex min-w-0 items-center gap-3 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           aria-label={`${siteConfig.name} — العودة إلى أعلى الصفحة`}
         >
-          <span className="flex items-center justify-center w-11 h-11 rounded-xl gold-gradient-bg text-navy-deep font-extrabold text-lg">
-            {siteConfig.monogram}
-          </span>
-          <span className="flex flex-col leading-tight">
-            <span className="text-lg font-extrabold gold-gradient-text">{siteConfig.name}</span>
-            <span className="text-[10px] tracking-[0.25em] text-muted-foreground">{siteConfig.nameEn}</span>
-          </span>
+          <BrandLogo alt="" className="h-10 shrink-0 sm:h-11" />
+          {/* Below 380px the row still has to hold the call button, the theme
+              toggle and the hamburger. The wordmark is the one element that
+              can drop without losing an action. */}
+          <BrandWordmark alt="" imgClassName="h-5 sm:h-6" className="hidden min-[380px]:block" />
         </a>
 
         <nav aria-label="التنقل الرئيسي" className="hidden lg:flex items-center gap-1">
@@ -173,14 +175,14 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <a
-            href={siteConfig.contact.telHref}
-            className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full gold-gradient-bg text-navy-deep text-sm font-bold hover:scale-105 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-          >
-            <Phone className="w-4 h-4" aria-hidden="true" />
-            <span dir="ltr">{siteConfig.contact.phone}</span>
-          </a>
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Desktop CTA, unchanged. */}
+          <CallCta className="hidden sm:flex" />
+
+          {/* Same action, same config, sized for a thumb. It appears only
+              where the pill above is hidden, so the number is never offered
+              twice in one row. */}
+          <CallCta variant="icon" className="flex sm:hidden" />
 
           <ThemeToggle />
 
@@ -197,6 +199,9 @@ export function SiteHeader() {
         </div>
       </div>
 
+      {/* No call CTA at the foot of this list any more. Calling is now a
+          permanent, one-tap action in the bar above, so repeating it here was
+          the same number offered twice. */}
       <nav
         id="mobile-nav"
         aria-label="التنقل للجوال"
@@ -218,7 +223,7 @@ export function SiteHeader() {
                   }}
                   aria-current={isActive ? "page" : undefined}
                   // No white here and no shadow: the mobile panel is a glass
-                  // surface, not the photograph.
+                  // surface, not the footage.
                   className={`block px-2 py-3 text-[1.05rem] font-medium antialiased border-b border-border/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
                     isActive ? "text-gold" : "text-foreground hover:text-gold"
                   }`}
@@ -229,16 +234,6 @@ export function SiteHeader() {
               </li>
             );
           })}
-          <li className="pt-4">
-            <a
-              href={siteConfig.contact.telHref}
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-full gold-gradient-bg text-navy-deep font-bold"
-            >
-              <Phone className="w-4 h-4" aria-hidden="true" />
-              <span dir="ltr">{siteConfig.contact.phone}</span>
-            </a>
-          </li>
         </ul>
       </nav>
     </header>
