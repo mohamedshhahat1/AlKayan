@@ -122,7 +122,7 @@ export function SiteHeader() {
   return (
     <header
       className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${
-        scrolled ? "glass py-3 border-b border-border" : "bg-transparent py-5"
+        scrolled ? "glass py-2 sm:py-2.5 lg:py-3 border-b border-border" : "bg-transparent py-3 sm:py-3.5 lg:py-3"
       }`}
     >
       <div className="container-luxury flex items-center justify-between gap-3 sm:gap-4">
@@ -130,14 +130,14 @@ export function SiteHeader() {
             stops a screen reader reading the company name three times over. */}
         <a
           href="#hero"
-          className="flex min-w-0 items-center gap-3 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          className="flex min-w-0 items-center gap-3 sm:gap-4 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           aria-label={`${siteConfig.name} — العودة إلى أعلى الصفحة`}
         >
-          <BrandLogo alt="" className="h-10 shrink-0 sm:h-11" />
+          <BrandLogo alt="" className="h-11 shrink-0 sm:h-14 lg:h-16" />
           {/* Below 380px the row still has to hold the call button, the theme
               toggle and the hamburger. The wordmark is the one element that
               can drop without losing an action. */}
-          <BrandWordmark alt="" imgClassName="h-5 sm:h-6" className="hidden min-[380px]:block" />
+          <BrandWordmark alt="" imgClassName="h-6 sm:h-7 lg:h-8" className="hidden min-[380px]:block" />
         </a>
 
         <nav aria-label="التنقل الرئيسي" className="hidden lg:flex items-center gap-1">
