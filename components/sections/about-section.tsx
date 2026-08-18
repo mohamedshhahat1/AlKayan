@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Reveal, SectionHeading } from "@/components/reveal";
 import {
+  ArrowDownLeft,
   ArrowUpLeft,
   Award,
   Clock3,
@@ -14,22 +16,22 @@ const features = [
   {
     icon: Award,
     title: "جودة استثنائية",
-    desc: "نختار الخامات وننفذ كل تفصيلة بمعايير دقيقة.",
+    desc: "نختار أفضل الخامات ونطبق معايير دقيقة في كل مرحلة من مراحل التنفيذ، بداية من التجهيز وحتى آخر لمسة.",
   },
   {
     icon: Users,
     title: "فريق متخصص",
-    desc: "مهندسون وفنيون بخبرة حقيقية في التنفيذ.",
+    desc: "يعمل معك فريق من المهندسين والفنيين المتخصصين لضمان تنفيذ التصميم بالشكل المطلوب وبأعلى دقة.",
   },
   {
     icon: Clock3,
-    title: "التزام واضح",
-    desc: "خطة تنفيذ دقيقة ومواعيد تسليم واضحة من البداية.",
+    title: "التزام بالمواعيد",
+    desc: "نضع جدولاً واضحاً للتنفيذ ونتابعه خطوة بخطوة حتى نحافظ على موعد التسليم ونقلل أي تأخير غير ضروري.",
   },
   {
     icon: ShieldCheck,
     title: "ضمان وثقة",
-    desc: "نظل معك حتى بعد التسليم لضمان أفضل تجربة.",
+    desc: "علاقتنا مع العميل لا تنتهي عند التسليم. نقدم المتابعة والدعم لضمان استمرار جودة العمل وراحة العميل.",
   },
 ];
 
@@ -40,16 +42,18 @@ const stats = [
 ];
 
 export function AboutSection() {
+  const [openIndex, setOpenIndex] = useState(0);
+
   return (
     <section
       id="about"
       dir="rtl"
       className="relative overflow-hidden bg-background py-20 sm:py-24 lg:py-32"
     >
-      {/* Soft luxury background */}
+      {/* Background atmosphere */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute right-[-12%] top-[12%] h-[360px] w-[360px] rounded-full bg-gold/10 blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[-8%] h-[300px] w-[300px] rounded-full bg-gold/5 blur-[100px]" />
+        <div className="absolute right-[-10%] top-[10%] h-[380px] w-[380px] rounded-full bg-gold/10 blur-[120px]" />
+        <div className="absolute bottom-[-15%] left-[-8%] h-[320px] w-[320px] rounded-full bg-gold/5 blur-[100px]" />
       </div>
 
       <div className="container-luxury relative z-10">
@@ -59,42 +63,40 @@ export function AboutSection() {
           subtitle="في الكيان، لا نتعامل مع التشطيبات كمرحلة تنفيذ فقط، بل نصنع تجربة متكاملة تبدأ من الفكرة وتنتهي بمساحة تحمل طابعك."
         />
 
-        <div className="mt-14 grid items-center gap-12 lg:grid-cols-[1fr_0.9fr] lg:gap-20">
-          {/* Image */}
-          <Reveal>
+        {/* LTR controls desktop visual order:
+            image = left
+            content = right
+        */}
+        <div
+          dir="ltr"
+          className="mt-14 grid items-center gap-12 lg:grid-cols-[0.95fr_1fr] lg:gap-20"
+        >
+          {/* Image — LEFT */}
+          <Reveal className="lg:order-1">
             <div className="group relative overflow-hidden rounded-[2rem]">
               <div className="aspect-[4/5] overflow-hidden rounded-[2rem] sm:aspect-[5/4] lg:aspect-[4/5]">
                 <img
                   src="https://images.pexels.com/photos/7722168/pexels-photo-7722168.jpeg?auto=compress&cs=tinysrgb&w=1600"
                   alt="تصميم داخلي فاخر من تنفيذ الكيان"
-                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
                 />
               </div>
 
-              {/* Minimal overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
-              {/* Floating years card */}
-              <div className="absolute bottom-5 right-5 rounded-2xl border border-white/15 bg-black/35 px-5 py-4 backdrop-blur-xl">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold text-black">
-                    <Sparkles className="h-4 w-4" />
-                  </div>
-
-                  <div>
-                    <div className="text-lg font-black text-white">+15</div>
-                    <div className="text-[11px] text-white/65">
-                      سنة من الخبرة
-                    </div>
-                  </div>
-                </div>
+              {/* Small brand detail */}
+              <div className="absolute bottom-5 left-5 flex items-center gap-2 rounded-full border border-white/15 bg-black/25 px-4 py-2.5 backdrop-blur-xl">
+                <Sparkles className="h-3.5 w-3.5 text-gold" />
+                <span className="text-[11px] font-medium text-white/85">
+                  تفاصيل تصنع الفرق
+                </span>
               </div>
             </div>
           </Reveal>
 
-          {/* Content */}
-          <Reveal delay={0.12}>
-            <div className="max-w-xl">
+          {/* Content — RIGHT */}
+          <Reveal delay={0.12} className="lg:order-2">
+            <div dir="rtl" className="max-w-xl">
               <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.18em] text-gold">
                 <span className="h-px w-8 bg-gold" />
                 EL KAYAN
@@ -112,32 +114,74 @@ export function AboutSection() {
                 آخر تفصيلة في المشروع.
               </p>
 
-              {/* Features */}
-              <div className="mt-9 divide-y divide-border/70 border-y border-border/70">
-                {features.map((feature) => {
+              {/* Accordion */}
+              <div className="mt-9 border-y border-border/70">
+                {features.map((feature, index) => {
                   const Icon = feature.icon;
+                  const isOpen = openIndex === index;
 
                   return (
                     <div
                       key={feature.title}
-                      className="group flex items-start gap-4 py-5"
+                      className="border-b border-border/70 last:border-b-0"
                     >
-                      <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gold/20 bg-gold/[0.07] text-gold transition-all duration-300 group-hover:border-gold/40 group-hover:bg-gold group-hover:text-black">
-                        <Icon className="h-[18px] w-[18px]" />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-4">
-                          <h4 className="text-sm font-extrabold text-foreground sm:text-base">
-                            {feature.title}
-                          </h4>
-
-                          <ArrowUpLeft className="h-4 w-4 text-muted-foreground/40 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:text-gold" />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenIndex(isOpen ? -1 : index)
+                        }
+                        aria-expanded={isOpen}
+                        className="group flex w-full items-center gap-4 py-5 text-right"
+                      >
+                        <div
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 ${
+                            isOpen
+                              ? "border-gold bg-gold text-black"
+                              : "border-gold/20 bg-gold/[0.07] text-gold group-hover:border-gold/40"
+                          }`}
+                        >
+                          <Icon className="h-[18px] w-[18px]" />
                         </div>
 
-                        <p className="mt-1.5 max-w-lg text-xs leading-6 text-muted-foreground sm:text-sm">
-                          {feature.desc}
-                        </p>
+                        <div className="min-w-0 flex-1">
+                          <h4
+                            className={`text-sm font-extrabold transition-colors duration-300 sm:text-base ${
+                              isOpen
+                                ? "text-gold"
+                                : "text-foreground group-hover:text-gold"
+                            }`}
+                          >
+                            {feature.title}
+                          </h4>
+                        </div>
+
+                        <div
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
+                            isOpen
+                              ? "rotate-[-90deg] border-gold/30 bg-gold/10 text-gold"
+                              : "border-border text-muted-foreground"
+                          }`}
+                        >
+                          {isOpen ? (
+                            <ArrowUpLeft className="h-4 w-4" />
+                          ) : (
+                            <ArrowDownLeft className="h-4 w-4" />
+                          )}
+                        </div>
+                      </button>
+
+                      <div
+                        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                          isOpen
+                            ? "grid-rows-[1fr] opacity-100"
+                            : "grid-rows-[0fr] opacity-0"
+                        }`}
+                      >
+                        <div className="overflow-hidden">
+                          <p className="pb-5 pr-14 text-xs leading-7 text-muted-foreground sm:text-sm">
+                            {feature.desc}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   );
@@ -145,7 +189,7 @@ export function AboutSection() {
               </div>
 
               {/* Stats */}
-              <div className="mt-8 grid grid-cols-3 gap-3 sm:gap-5">
+              <div className="mt-8 grid grid-cols-3 gap-4 sm:gap-6">
                 {stats.map((stat) => (
                   <div key={stat.label}>
                     <div className="text-2xl font-black tracking-tight text-gold sm:text-3xl">
