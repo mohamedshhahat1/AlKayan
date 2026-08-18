@@ -188,7 +188,7 @@ export function BrandLockup({
       aria-hidden={label ? undefined : "true"}
       className={cn("inline-flex items-center gap-3", className)}
     >
-      <BrandLogo alt="" className="h-11 shrink-0" />
+      <BrandLogo alt="" className="h-16 shrink-0" />
       <BrandWordmark alt="" imgClassName="h-6" tone={tone} />
     </span>
   );
