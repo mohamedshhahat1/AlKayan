@@ -410,11 +410,11 @@ export function HeroSection() {
             className="hero-in text-4xl sm:text-5xl lg:text-7xl font-extrabold text-white leading-[1.1] mb-5 text-balance"
             style={{ textShadow: HEADING_SHADOW, animationDelay: "0.5s" }}
           >
-            <span className="text-gold">من الفكرة …</span>
+            <span className="text-gold">شطب وانت مرتاح</span>
             <br />
-            الي
+            و
             <br />
-            <span className="text-gold">تسليم المفتاح …</span>
+            <span className="text-gold">استلم على المفتاح</span>
           </h1>
 
           <p
