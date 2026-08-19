@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Reveal, SectionHeading } from "@/components/reveal";
 import {
   ArrowDownLeft,
+  ArrowLeft,
   ArrowUpLeft,
   Award,
   Clock3,
@@ -26,7 +28,7 @@ const features = [
   {
     icon: Clock3,
     title: "التزام بالمواعيد",
-    desc: "نضع جدولاً واضحاً للتنفيذ ونتابعه خطوة بخطوة حتى نحافظ على موعد التسليم ونقلل أي تأخير غير ضروري.",
+    desc: "نضع جدولاً واضحاً للتنفيذ ونتابعه خطوة بخطوة حتى نحافط على موعد التسليم ونقلل أي تأخير غير ضروري.",
   },
   {
     icon: ShieldCheck,
@@ -41,7 +43,17 @@ const stats = [
   { value: "100%", label: "رضا والتزام" },
 ];
 
-export function AboutSection() {
+export type AboutSectionProps = {
+  /**
+   * Homepage cut: the image, the intro and the numbers, with a link to the
+   * about page instead of the four-strength accordion. The strengths are the
+   * substance of /about — printing them on the homepage too would leave that
+   * page with nothing of its own to say.
+   */
+  compact?: boolean;
+};
+
+export function AboutSection({ compact = false }: AboutSectionProps = {}) {
   const [openIndex, setOpenIndex] = useState(0);
 
   return (
@@ -75,6 +87,7 @@ export function AboutSection() {
           <Reveal className="lg:order-1">
             <div className="group relative overflow-hidden rounded-[2rem]">
               <div className="aspect-[4/5] overflow-hidden rounded-[2rem] sm:aspect-[5/4] lg:aspect-[4/5]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="https://images.pexels.com/photos/7722168/pexels-photo-7722168.jpeg?auto=compress&cs=tinysrgb&w=1600"
                   alt="تصميم داخلي فاخر من تنفيذ الكيان"
@@ -110,83 +123,85 @@ export function AboutSection() {
 
               <p className="mt-6 text-sm leading-8 text-muted-foreground sm:text-base">
                 نؤمن أن المساحة الناجحة ليست مجرد شكل جميل، بل مزيج متوازن من
-                التصميم، الجودة، الدقة، والوظيفة. لذلك نعمل معك من أول تصور وحتى
+                التصميم، الجودة، الدقة، والوطيفة. لذلك نعمل معك من أول تصور وحتى
                 آخر تفصيلة في المشروع.
               </p>
 
               {/* Accordion */}
-              <div className="mt-9 border-y border-border/70">
-                {features.map((feature, index) => {
-                  const Icon = feature.icon;
-                  const isOpen = openIndex === index;
+              {!compact && (
+                <div className="mt-9 border-y border-border/70">
+                  {features.map((feature, index) => {
+                    const Icon = feature.icon;
+                    const isOpen = openIndex === index;
 
-                  return (
-                    <div
-                      key={feature.title}
-                      className="border-b border-border/70 last:border-b-0"
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setOpenIndex(isOpen ? -1 : index)
-                        }
-                        aria-expanded={isOpen}
-                        className="group flex w-full items-center gap-4 py-5 text-right"
+                    return (
+                      <div
+                        key={feature.title}
+                        className="border-b border-border/70 last:border-b-0"
                       >
-                        <div
-                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 ${
-                            isOpen
-                              ? "border-gold bg-gold text-black"
-                              : "border-gold/20 bg-gold/[0.07] text-gold group-hover:border-gold/40"
-                          }`}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setOpenIndex(isOpen ? -1 : index)
+                          }
+                          aria-expanded={isOpen}
+                          className="group flex w-full items-center gap-4 py-5 text-right"
                         >
-                          <Icon className="h-[18px] w-[18px]" />
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <h4
-                            className={`text-sm font-extrabold transition-colors duration-300 sm:text-base ${
+                          <div
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 ${
                               isOpen
-                                ? "text-gold"
-                                : "text-foreground group-hover:text-gold"
+                                ? "border-gold bg-gold text-black"
+                                : "border-gold/20 bg-gold/[0.07] text-gold group-hover:border-gold/40"
                             }`}
                           >
-                            {feature.title}
-                          </h4>
-                        </div>
+                            <Icon className="h-[18px] w-[18px]" />
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <h4
+                              className={`text-sm font-extrabold transition-colors duration-300 sm:text-base ${
+                                isOpen
+                                  ? "text-gold"
+                                  : "text-foreground group-hover:text-gold"
+                              }`}
+                            >
+                              {feature.title}
+                            </h4>
+                          </div>
+
+                          <div
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
+                              isOpen
+                                ? "rotate-[-90deg] border-gold/30 bg-gold/10 text-gold"
+                                : "border-border text-muted-foreground"
+                            }`}
+                          >
+                            {isOpen ? (
+                              <ArrowUpLeft className="h-4 w-4" />
+                            ) : (
+                              <ArrowDownLeft className="h-4 w-4" />
+                            )}
+                          </div>
+                        </button>
 
                         <div
-                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
+                          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
                             isOpen
-                              ? "rotate-[-90deg] border-gold/30 bg-gold/10 text-gold"
-                              : "border-border text-muted-foreground"
+                              ? "grid-rows-[1fr] opacity-100"
+                              : "grid-rows-[0fr] opacity-0"
                           }`}
                         >
-                          {isOpen ? (
-                            <ArrowUpLeft className="h-4 w-4" />
-                          ) : (
-                            <ArrowDownLeft className="h-4 w-4" />
-                          )}
-                        </div>
-                      </button>
-
-                      <div
-                        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
-                          isOpen
-                            ? "grid-rows-[1fr] opacity-100"
-                            : "grid-rows-[0fr] opacity-0"
-                        }`}
-                      >
-                        <div className="overflow-hidden">
-                          <p className="pb-5 pr-14 text-xs leading-7 text-muted-foreground sm:text-sm">
-                            {feature.desc}
-                          </p>
+                          <div className="overflow-hidden">
+                            <p className="pb-5 pr-14 text-xs leading-7 text-muted-foreground sm:text-sm">
+                              {feature.desc}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Stats */}
               <div className="mt-8 grid grid-cols-3 gap-4 sm:gap-6">
@@ -202,6 +217,18 @@ export function AboutSection() {
                   </div>
                 ))}
               </div>
+
+              {compact && (
+                <div className="mt-8">
+                  <Link
+                    href="/about"
+                    className="inline-flex items-center gap-2 glass-light border border-border text-foreground font-bold text-sm px-7 py-3 rounded-full hover:text-gold hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                  >
+                    المزيد عننا
+                    <ArrowLeft className="w-4 h-4 text-gold" aria-hidden="true" />
+                  </Link>
+                </div>
+              )}
             </div>
           </Reveal>
         </div>
