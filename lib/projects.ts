@@ -69,27 +69,29 @@ export type ProjectsResult = {
 /** Arabic labels for the seven values allowed by the projects_category_check constraint. */
 export const categoryLabels: Record<string, string> = {
   apartments: "شقق",
-  villas: "فيلات",
+  villas: "فلل",
   offices: "مكاتب",
   clinics: "عيادات",
   restaurants: "مطاعم",
   commercial: "تجاري",
-  landscape: "لاند سكيب",
+  landscape: "حدائق",
 };
 
 /**
- * Label for a category, falling back to the raw value.
- *
- * The CHECK constraint on this column was added NOT VALID, so a row can legally
- * hold a category this map has never heard of. Showing the raw value is better
- * than showing nothing.
+ * `category` is free text as far as the application is concerned — the CHECK
+ * constraint on the column was added NOT VALID — so fall back to a neutral word
+ * instead of rendering "undefined" on a card.
  */
 export function categoryLabel(category: string | null | undefined): string {
-  if (!category) return "";
+  if (!category) return "مشروع";
 
-  return categoryLabels[category] ?? category;
+  return categoryLabels[category] ?? "مشروع";
 }
 
+/**
+ * Gregorian formatting. `toLocaleDateString("ar-EG")` resolves to the Islamic
+ * calendar in most browsers, which is not what a completion date should show.
+ */
 const executionDateFormatter = new Intl.DateTimeFormat("ar-EG-u-ca-gregory", {
   year: "numeric",
   month: "long",
