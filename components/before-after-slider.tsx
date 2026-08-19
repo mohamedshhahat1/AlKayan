@@ -131,7 +131,7 @@ export function BeforeAfterSlider({
           setDragging(true);
         }}
         className="absolute top-1/2 z-20 w-12 h-12 rounded-full gold-gradient-bg flex items-center justify-center shadow-2xl shadow-gold/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-transparent cursor-ew-resize"
-        style={{ left: `${position}%`, transform: "translate(-50%, -50%)", color: "#0B1F3A" }}
+        style={{ left: `${position}%`, transform: "translate(-50%, -50%)", color: "#111111" }}
       >
         <span aria-hidden="true" className="text-lg font-bold">
           ⟷

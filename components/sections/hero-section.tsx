@@ -14,8 +14,8 @@ import { siteConfig } from "@/lib/site-config";
  * of the background, and a tight dark one keeps the glyph edges crisp. A single
  * large shadow at the same total strength reads as a grey halo.
  */
-const HEADING_SHADOW = "0 2px 4px rgba(8,24,48,0.35), 0 8px 28px rgba(8,24,48,0.45)";
-const BODY_SHADOW = "0 1px 3px rgba(8,24,48,0.4), 0 4px 16px rgba(8,24,48,0.35)";
+const HEADING_SHADOW = "0 2px 4px rgba(0,0,0,0.35), 0 8px 28px rgba(0,0,0,0.45)";
+const BODY_SHADOW = "0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.35)";
 
 /**
  * Layer 1 — emergency fallback, and nothing more.
@@ -25,13 +25,13 @@ const BODY_SHADOW = "0 1px 3px rgba(8,24,48,0.4), 0 4px 16px rgba(8,24,48,0.35)"
  * the poster itself fails to load, so that a failed image and a failed video
  * together still leave something deliberate on screen rather than a bare box.
  *
- * Built from the palette in tailwind.config.ts — navy.light at the top through
- * navy.deep to navy.deepest at the edges. A gradient rather than an image on
- * purpose: it costs nothing to transfer and cannot itself fail to load, which
- * is the only useful property for a last resort.
+ * Built from the dark scale in tailwind.config.ts — the light step at the top,
+ * through the base, to the deepest at the edges. A gradient rather than an
+ * image on purpose: it costs nothing to transfer and cannot itself fail to
+ * load, which is the only useful property for a last resort.
  */
 const HERO_FALLBACK_GRADIENT =
-  "radial-gradient(125% 95% at 50% 0%, #132A4D 0%, #0B1F3A 45%, #081830 100%)";
+  "radial-gradient(125% 95% at 50% 0%, #242424 0%, #111111 45%, #0A0A0A 100%)";
 
 /**
  * Background states.
@@ -308,13 +308,15 @@ export function HeroSection() {
           rising again at the bottom to hand off to .fade-to-background.
 
           This does not use the --hero-overlay-* tokens. Those resolve to a
-          white wash in light mode, which cannot carry white text. A navy scrim
-          in both themes is the standard treatment for a media-led hero. */}
+          white wash in light mode, which cannot carry white text. A black scrim
+          in both themes is the standard treatment for a media-led hero, and
+          neutral black is also the one tint that cannot cast a colour over
+          footage. */}
       <div
         className="absolute inset-0 z-10"
         style={{
           background:
-            "linear-gradient(180deg, rgba(8,24,48,0.62) 0%, rgba(8,24,48,0.34) 22%, rgba(8,24,48,0.18) 45%, rgba(8,24,48,0.26) 68%, rgba(8,24,48,0.45) 100%)",
+            "linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.34) 22%, rgba(0,0,0,0.18) 45%, rgba(0,0,0,0.26) 68%, rgba(0,0,0,0.45) 100%)",
         }}
       />
 
@@ -439,14 +441,14 @@ export function HeroSection() {
             <a
               href="#contact"
               className="shimmer-btn gold-gradient-bg font-bold text-base px-8 py-3.5 rounded-full hover:shadow-2xl hover:shadow-gold/30 transition-all duration-300 hover:scale-105 flex items-center gap-2"
-              style={{ color: "#0B1F3A" }}
+              style={{ color: "#111111" }}
             >
               <Calendar className="w-5 h-5" />
               احجز معاينة
             </a>
             {/* glass-on-dark + white, not glass-light + text-foreground: the
-                scrim is navy in both themes now, so a theme-following label
-                would turn navy-on-navy in light mode. */}
+                scrim is black in both themes now, so a theme-following label
+                would turn black-on-black in light mode. */}
             <a
               href="#projects"
               className="glass-on-dark text-white font-bold text-base px-8 py-3.5 rounded-full hover:bg-white/10 transition-all duration-300 hover:scale-105 flex items-center gap-2"

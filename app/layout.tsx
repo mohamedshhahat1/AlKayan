@@ -51,7 +51,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#0B1F3A",
+  // Tints the mobile browser chrome. Matches --background in dark mode, which
+  // is the default theme.
+  themeColor: "#111111",
   width: "device-width",
   initialScale: 1,
 };

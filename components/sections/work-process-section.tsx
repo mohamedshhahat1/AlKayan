@@ -24,7 +24,7 @@ export function WorkProcessSection() {
         <SectionHeading
           eyebrow="آلية العمل"
           title="رحلتك معنا خطوة بخطوة"
-          subtitle="منهجية واضحة ومنظمة تضمن وصولك لنتيجة تفوق توقعاتك"
+          subtitle="منهجية واضحة ومنطمة تضمن وصولك لنتيجة تفوق توقعاتك"
         />
 
         <div className="relative mt-10">
@@ -50,7 +50,7 @@ export function WorkProcessSection() {
                       <div className="w-14 h-14 rounded-2xl glass-gold flex items-center justify-center ring-4 ring-background group-hover:scale-110 transition-transform duration-300">
                         <step.icon className="w-5 h-5 text-gold" aria-hidden="true" />
                       </div>
-                      <span className="absolute -top-2 -left-2 w-6 h-6 rounded-full gold-gradient-bg text-[11px] font-extrabold flex items-center justify-center" style={{ color: "#0B1F3A" }}>
+                      <span className="absolute -top-2 -left-2 w-6 h-6 rounded-full gold-gradient-bg text-[11px] font-extrabold flex items-center justify-center" style={{ color: "#111111" }}>
                         {i + 1}
                       </span>
                     </div>
