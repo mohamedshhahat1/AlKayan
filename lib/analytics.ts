@@ -22,6 +22,11 @@
  *  3. One definition per event. Call sites use the named helpers below rather
  *     than trackEvent("whatsapp_click", ...) so the event name and its
  *     parameters are declared once, here.
+ *
+ * A note on style, since it looks dated in two places below: this project
+ * compiles with target es5 and downlevelIteration off, so `for...of` over a Set
+ * or a Map does not compile. Iteration here goes through forEach instead. The
+ * same constraint is why lib/projects.ts avoids \p{...} regex classes.
  */
 
 /**
@@ -97,6 +102,23 @@ type ConsentListener = (state: ConsentState) => void;
 const consentListeners = new Set<ConsentListener>();
 
 /**
+ * Tells every subscriber about a decision.
+ *
+ * forEach rather than for...of: see the note at the top of the file. Callbacks
+ * are also isolated, so a listener that throws — an unmounted component, a
+ * browser extension — cannot stop the rest from hearing about it.
+ */
+function notifyConsentListeners(state: ConsentState): void {
+  consentListeners.forEach((listener) => {
+    try {
+      listener(state);
+    } catch (error) {
+      console.error("[analytics] consent listener failed:", error);
+    }
+  });
+}
+
+/**
  * Current choice, or "unset" if the visitor has not answered yet.
  *
  * Wrapped in try/catch because localStorage throws rather than returning null
@@ -142,7 +164,7 @@ export function setConsent(state: "granted" | "denied"): void {
 
   if (state === "denied") window.clarity?.("consent", false);
 
-  for (const listener of consentListeners) listener(state);
+  notifyConsentListeners(state);
 }
 
 /** Reopens the question, so the footer can offer "change my mind". */
@@ -158,7 +180,7 @@ export function resetConsent(): void {
   window.gtag?.("consent", "update", { analytics_storage: "denied" });
   window.clarity?.("consent", false);
 
-  for (const listener of consentListeners) listener("unset");
+  notifyConsentListeners("unset");
 }
 
 /**
@@ -195,10 +217,12 @@ export function subscribeConsent(listener: ConsentListener): () => void {
  */
 function cleanParams(params: AnalyticsParams): Record<string, string> {
   const result: Record<string, string> = {};
+  const keys = Object.keys(params) as Array<keyof AnalyticsParams>;
 
-  for (const [key, value] of Object.entries(params)) {
+  keys.forEach((key) => {
+    const value = params[key];
     if (typeof value === "string" && value.trim() !== "") result[key] = value.trim();
-  }
+  });
 
   return result;
 }
