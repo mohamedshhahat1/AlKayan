@@ -15,16 +15,20 @@
  * marks rather than as body copy, which is why they are not translated.
  */
 export const heroClients = [
-  "NileStone Developments",
-  "Cairo Heights",
-  "Capital Living",
-  "Royal Habitat",
-  "UrbanCraft",
-  "Prime Residence",
-  "El Mansoura Properties",
-  "Grand Avenue",
-  "ModernNest",
-  "Vertex Construction",
-  "Elite Homes Egypt",
-  "Horizon Properties",
+
+
+
+
+  "شركة الدهانات الفاخرة",
+  "مجموعة البورسلان الدولية",
+  "شركة أنظمة السمارت هوم",
+  "مؤسسة الحجر الطبيعي",
+  "شركة الرخام الملكي",
+  "مجموعة الإضاءة الحديثة",
+  "شركة الخشب الطبيعي",
+  "مؤسسة الألمنيوم الذهبي",
+  "شركة الدهانات الفاخرة",
+  "مجموعة البورسلان الدولية",
+  "شركة أنظمة السمارت هوم",
+  "مؤسسة الحجر الطبيعي",
 ] as const;
