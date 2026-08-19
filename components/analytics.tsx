@@ -13,6 +13,9 @@ import {
   trackPageView,
 } from "@/lib/analytics";
 
+/** Where gtag.js lives. Interpolated with the measurement id, never hardcoded. */
+const GA_LIBRARY_URL = "https://www.googletagmanager.com/gtag/js";
+
 /**
  * gtag bootstrap.
  *
@@ -86,7 +89,7 @@ export function Analytics() {
           <Script
             id="ga4-library"
             strategy="afterInteractive"
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+            src={`${GA_LIBRARY_URL}?id=${GA_MEASUREMENT_ID}`}
           />
           <Script
             id="ga4-bootstrap"
