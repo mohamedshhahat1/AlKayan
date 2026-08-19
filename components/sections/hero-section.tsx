@@ -3,6 +3,8 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Calendar, ArrowLeft } from "lucide-react";
+import { ClientMarquee } from "@/components/ui/client-marquee";
+import { heroClients } from "@/lib/clients";
 import { siteConfig } from "@/lib/site-config";
 
 /**
@@ -389,10 +391,16 @@ export function HeroSection() {
           The children below deliberately do NOT use framer initial/animate.
           That pattern writes opacity: 0 into the server HTML and only lifts it
           after hydration, which left the copy invisible until a refresh. They
-          use the .hero-in CSS animation instead, which runs at first paint. */}
+          use the .hero-in CSS animation instead, which runs at first paint.
+
+          The bottom padding reserves the client marquee's band. This copy is
+          centred in a 100dvh section with a 560px floor, so on a short
+          landscape phone the CTAs would otherwise sit inside the strip; the
+          padding shrinks the box they are centred in rather than moving them,
+          so nothing is off-centre on a tall screen. */}
       <motion.div
         style={{ opacity }}
-        className="relative z-20 h-full flex items-center justify-center"
+        className="relative z-20 h-full flex items-center justify-center pb-24 sm:pb-28 lg:pb-32"
       >
         <div className="container-luxury text-center">
           <span
@@ -449,6 +457,23 @@ export function HeroSection() {
           </div>
         </div>
       </motion.div>
+
+      {/* Client marquee — the hero's bottom edge.
+
+          z-30 rather than z-20: .fade-to-background::after sits at z-15 and
+          dissolves the bottom of this section into the page background, which
+          would otherwise wash the strip out. That wash stays behind it, and it
+          is useful there — it is part of what keeps the footage from competing
+          with the names.
+
+          The strip is full-bleed and always dark, in both themes, for the same
+          reason the scrim above is: white text needs a dark backdrop, and the
+          light-mode tokens resolve to a white wash that cannot carry it. */}
+      <ClientMarquee
+        clients={heroClients}
+        label="TRUSTED BY OUR CLIENTS"
+        className="absolute inset-x-0 bottom-0 z-30"
+      />
     </section>
   );
 }

@@ -81,10 +81,33 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+
+        /**
+         * Seamless marquee, for a track that renders its content exactly twice.
+         *
+         * -50% is what makes the loop invisible: at the end of the cycle the
+         * second copy sits precisely where the first one started, so the final
+         * frame is identical to the first and there is no jump to see. Stated
+         * as a percentage of the track's own width, it stays correct at every
+         * viewport size and font size with nothing measured in JavaScript.
+         *
+         * translate3d rather than translateX to put the track on its own
+         * compositor layer, so the browser is not re-rasterising a row of text
+         * nodes on every frame — the usual source of marquee stutter.
+         */
+        "client-marquee": {
+          from: { transform: "translate3d(0, 0, 0)" },
+          to: { transform: "translate3d(-50%, 0, 0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+
+        // linear and infinite, and deliberately without any easing: constant
+        // speed is the effect, and easing would slow the strip right at the
+        // loop point, advertising the seam the duplication exists to hide.
+        "client-marquee": "client-marquee 46s linear infinite",
       },
     },
   },
