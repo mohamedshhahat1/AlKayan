@@ -124,6 +124,41 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /*
+   * Hide the main scrollbar site-wide, without taking scrolling away.
+   *
+   * Three declarations because no single one is understood everywhere:
+   *   scrollbar-width: none     — Firefox 64+
+   *   ::-webkit-scrollbar       — Chrome, Edge, Safari, iOS Safari
+   *   -ms-overflow-style: none  — legacy Edge and IE 11
+   *
+   * Deliberately scoped to the document scroller rather than written as
+   * `*` or `::-webkit-scrollbar` on its own. A blanket rule would also strip
+   * the scrollbar from the mobile nav panel and the lightbox, where it is the
+   * only signal that there is more content below the fold.
+   *
+   * Nothing here touches `overflow`, which is the part that matters: the page
+   * is still a scroll container, so wheel, trackpad, keyboard (arrows, space,
+   * Page Up/Down, Home/End), touch, find-in-page and programmatic scrollTo all
+   * behave exactly as before. Lenis is unaffected too — it drives native window
+   * scroll rather than transforming a wrapper.
+   *
+   * On layout: this gives the viewport back the ~15px the scrollbar occupied on
+   * desktop, so content gets slightly wider, never narrower. That direction
+   * cannot introduce horizontal overflow, and it incidentally makes 100vw match
+   * the visible width instead of overshooting it by the scrollbar's width.
+   */
+  html,
+  body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     overflow-x: hidden;
@@ -415,6 +450,23 @@
    */
   .animate-float-subtle {
     animation: float-subtle 3.5s ease-in-out infinite;
+  }
+
+  /*
+   * Opt-in scrollbar hiding for an inner scroll container.
+   *
+   * The base layer only hides the document scrollbar. Add this class to a
+   * scrollable box if you want the same treatment there — and think twice,
+   * because inside a panel the scrollbar is often the only thing telling
+   * someone the content continues.
+   */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }
 
