@@ -1,7 +1,6 @@
 import { HeroSection } from "@/components/sections/hero-section";
 import { AboutSection } from "@/components/sections/about-section";
 import { ServicesSection } from "@/components/sections/services-section";
-import { ProjectsSection } from "@/components/sections/projects-section";
 import { ProjectsGallerySection } from "@/components/sections/projects-gallery-section";
 import { StatsSection } from "@/components/sections/stats-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
@@ -42,17 +41,17 @@ const jsonLd = {
 /**
  * The homepage.
  *
- * Still the same sections in the same order, but each one now shows a cut of
- * itself and hands off to the page that owns the subject: about is compact and
- * links to /about, services shows eight of twenty-six, projects shows the
- * featured ones. The designs gallery and the work-process walkthrough moved to
- * /projects and /about respectively rather than being printed in both places.
+ * Each section shows a cut of itself and hands off to the page that owns the
+ * subject: about is compact and links to /about, services shows eight of
+ * twenty-six, projects shows the featured ones. The designs gallery and the
+ * work-process walkthrough live on /projects and /about rather than being
+ * printed in both places.
  *
- * ProjectsSection and ProjectsGallerySection are one moment, not two: the grid
- * carries the heading and the link onward, and the ring below it is the same
- * featured rows as a scroll-driven 3D gallery, rendered without a heading of
- * its own. They were briefly two titled sections in a row, which read as the
- * homepage repeating itself.
+ * Projects are the circular gallery here, not the grid. ProjectsGallerySection
+ * took over the grid's heading, its id="projects" anchor and its link to
+ * /projects; the grid still runs /projects itself, with the filters, the
+ * before/after block and the per-project cards that belong on a page someone
+ * arrived at deliberately.
  *
  * No metadata export: the root layout's title, description and canonical "/"
  * are already exactly right for this route.
@@ -70,14 +69,6 @@ export default function Home() {
       <HeroSection />
       <AboutSection compact />
       <ServicesSection showGroups={false} limit={8} showAllHref="/services" />
-      <ProjectsSection
-        featuredOnly
-        limit={6}
-        showFilters={false}
-        showBeforeAfter={false}
-        showAllHref="/projects"
-        placement="home_featured"
-      />
       <ProjectsGallerySection />
       <StatsSection />
       <TestimonialsSection />

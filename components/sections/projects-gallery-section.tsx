@@ -1,40 +1,43 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 
+import { SectionHeading } from "@/components/reveal";
 import { CircularGallery, type GalleryItem } from "@/components/ui/circular-gallery";
 import { categoryLabel, getProjects, selectFeatured, type Project } from "@/lib/projects";
 import { siteConfig } from "@/lib/site-config";
 
 /**
- * The homepage's circular project gallery.
+ * The homepage's projects section: a scroll-driven circular gallery.
  *
- * Wraps <CircularGallery /> the way the upstream demo does — a tall element
- * that provides the scroll range, with a sticky full-height child pinned inside
- * it — and feeds it the same `projects` rows the grid above uses, so there is
- * no second, hand-maintained list of work.
+ * This replaced the six-card grid on the homepage, so it carries what the grid
+ * carried here — the heading, the id the header's /#projects anchor points at,
+ * and the link on to /projects. The grid itself is unchanged and still owns
+ * /projects, where the filters, the before/after block and the per-project
+ * cards live.
  *
- * Deliberately headless. It renders immediately below ProjectsSection, which
- * already carries the eyebrow, the h2 and the link to /projects for this
- * subject; repeating them here made the homepage look like it had two projects
- * sections. What is left is the ring and a one-line hint. The h2 survives as
- * sr-only so the region still has an accessible name.
+ * Structure follows the upstream demo: a tall element supplies the scroll range
+ * and a full-height child is pinned inside it. The rows come from the same
+ * `projects` query and the same selectFeatured() the grid uses, so the homepage
+ * and /projects can never show two different ideas of "featured".
  *
- * Fetches in the browser like ProjectsSection does, for the same reason: the
- * rows are public and making every page that mounts this dynamic buys nothing.
+ * Fetches in the browser for the same reason the grid does: the rows are public,
+ * and making every page that mounts this dynamic buys nothing.
  */
 
-/** How many cards the ring holds before the cards start overlapping. */
+/** How many cards the ring holds before they start to overlap. */
 const MAX_ITEMS = 10;
 
 /**
  * Shown until the query resolves, and kept if it comes back empty.
  *
- * This section is a full viewport in the middle of the homepage, so an empty
- * ring would read as a broken layout rather than as an empty database — and an
+ * This is now the only projects section on the homepage, so an empty ring would
+ * leave a viewport-tall hole rather than read as an empty database — and an
  * unconfigured Supabase returns no rows at all. These are labelled by type of
- * work rather than given project names, and the hint line below says they are
- * samples, so nothing here claims to be a delivered project it is not.
+ * work rather than given project names, and the hint line says they are samples,
+ * so nothing here claims to be delivered work that isn't.
  */
 const fallbackItems: GalleryItem[] = [
   {
@@ -68,32 +71,12 @@ const fallbackItems: GalleryItem[] = [
     },
   },
   {
-    common: "تصميم ثلاثي الأبعاد",
-    binomial: "تصاميم 3D",
-    photo: {
-      url: "https://images.pexels.com/photos/33529500/pexels-photo-33529500.jpeg?auto=compress&cs=tinysrgb&w=900",
-      text: "عرض ثلاثي الأبعاد لوحدة سكنية",
-      pos: "50% 50%",
-      by: siteConfig.name,
-    },
-  },
-  {
     common: "مطبخ حديث",
     binomial: "تشطيب داخلي",
     photo: {
       url: "https://images.pexels.com/photos/8134808/pexels-photo-8134808.jpeg?auto=compress&cs=tinysrgb&w=900",
       text: "مطبخ حديث بعد التشطيب",
       pos: "50% 50%",
-      by: siteConfig.name,
-    },
-  },
-  {
-    common: "حديقة خارجية",
-    binomial: "تنسيق حدائق",
-    photo: {
-      url: "https://images.pexels.com/photos/8134745/pexels-photo-8134745.jpeg?auto=compress&cs=tinysrgb&w=900",
-      text: "تنسيق حديقة خارجية",
-      pos: "50% 55%",
       by: siteConfig.name,
     },
   },
@@ -108,11 +91,31 @@ const fallbackItems: GalleryItem[] = [
     },
   },
   {
+    common: "حديقة خارجية",
+    binomial: "تنسيق حدائق",
+    photo: {
+      url: "https://images.pexels.com/photos/8134745/pexels-photo-8134745.jpeg?auto=compress&cs=tinysrgb&w=900",
+      text: "تنسيق حديقة خارجية",
+      pos: "50% 55%",
+      by: siteConfig.name,
+    },
+  },
+  {
     common: "واجهة تجارية",
     binomial: "تشطيب تجاري",
     photo: {
       url: "https://images.pexels.com/photos/17174768/pexels-photo-17174768.jpeg?auto=compress&cs=tinysrgb&w=900",
       text: "واجهة وحدة تجارية بعد التنفيذ",
+      pos: "50% 50%",
+      by: siteConfig.name,
+    },
+  },
+  {
+    common: "وحدة سكنية",
+    binomial: "تشطيب متكامل",
+    photo: {
+      url: "https://images.pexels.com/photos/8142047/pexels-photo-8142047.jpeg?auto=compress&cs=tinysrgb&w=900",
+      text: "وحدة سكنية بعد التشطيب المتكامل",
       pos: "50% 50%",
       by: siteConfig.name,
     },
@@ -140,13 +143,11 @@ function toGalleryItems(projects: Project[]): GalleryItem[] {
     items.push({
       common: project.title,
       // Second line: category, plus the location when there is one.
-      binomial: [categoryLabel(project.category), project.location]
-        .filter(Boolean)
-        .join(" · "),
+      binomial: [categoryLabel(project.category), project.location].filter(Boolean).join(" · "),
       photo: {
         url,
-        // Alt text. The English title when it exists, since the Arabic title is
-        // already announced as the card's group label.
+        // Alt text. The English title when there is one, since the Arabic title
+        // is already announced as the card's group label.
         text: project.title_en?.trim() || project.title,
         by: siteConfig.name,
       },
@@ -199,10 +200,10 @@ function usePrefersReducedMotion(): boolean {
 
 export function ProjectsGallerySection() {
   // Handed to the gallery so one full turn maps onto the scroll through this
-  // section, instead of onto the scroll through the whole homepage.
+  // section, rather than onto the scroll through the whole homepage.
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [items, setItems] = useState<GalleryItem[]>(fallbackItems);
-  // Which of the two the ring is showing. Drives the hint line only.
+  // Which of the two sets the ring is showing. Drives the hint line only.
   const [showingProjects, setShowingProjects] = useState(false);
   const radius = useResponsiveRadius();
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -228,29 +229,26 @@ export function ProjectsGallerySection() {
   }, []);
 
   return (
-    <section
-      id="projects-gallery"
-      aria-labelledby="projects-gallery-heading"
-      className="bg-background text-foreground"
-    >
-      {/*
-        No visible heading: ProjectsSection sits directly above this and already
-        titles the subject. The h2 is kept for assistive technology, which needs
-        the region to be named and the outline to stay intact.
-      */}
-      <h2 id="projects-gallery-heading" className="sr-only">
-        معرض دائري لأعمالنا
-      </h2>
+    // id="projects": inherited from the grid this replaced, which is what the
+    // header's /#projects link and lib/navigation.ts expect to find here.
+    <section id="projects" className="relative py-14 lg:py-20">
+      <div className="container-luxury">
+        <SectionHeading
+          eyebrow="مشاريعنا"
+          title="معرض أعمالنا الفاخرة"
+          subtitle="نظرة على بعض مشاريعنا التي نفذناها بأعلى معايير الجودة والاحترافية"
+        />
+      </div>
 
-      {/* The tall element: its height is the scroll range the rotation is
-          mapped onto. Shorter on phones, where 300vh of pinned section is a lot
-          of thumb. */}
-      <div ref={scrollAreaRef} className="relative h-[220vh] sm:h-[300vh]">
+      {/* The tall element: its height is the scroll range the rotation maps
+          onto. Shorter on phones, where 300vh of pinned section is a lot of
+          thumb. */}
+      <div ref={scrollAreaRef} className="relative mt-8 h-[220vh] sm:h-[300vh]">
         {/* Pinned for as long as the element above is being scrolled through. */}
-        <div className="sticky top-0 flex h-screen w-full flex-col items-center justify-center overflow-hidden">
+        <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
           {/* top-24 clears the fixed header (see lib/header-offset.ts).
-              pointer-events-none so the copy never eats a scroll or a click
-              meant for the ring behind it. */}
+              pointer-events-none so the hint never swallows a gesture meant for
+              the ring behind it. */}
           <p className="pointer-events-none absolute top-24 z-10 px-4 text-center text-sm text-muted-foreground sm:top-28">
             {showingProjects
               ? "مرر لأسفل لتدوير المعرض"
@@ -269,6 +267,19 @@ export function ProjectsGallerySection() {
             className="h-full w-full"
           />
         </div>
+      </div>
+
+      {/* The homepage's only route to the portfolio now that the grid is gone.
+          In flow, below the pinned area, so it is reachable by tab and by thumb
+          instead of floating over a rotating ring. */}
+      <div className="container-luxury mt-8 text-center">
+        <Link
+          href="/projects"
+          className="inline-flex items-center gap-2 glass-light border border-border text-foreground font-bold text-sm px-7 py-3 rounded-full hover:text-gold hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        >
+          <Plus className="w-4 h-4 text-gold" aria-hidden="true" />
+          عرض كل المشاريع
+        </Link>
       </div>
     </section>
   );
