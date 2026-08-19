@@ -1,24 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 import { lockScroll, unlockScroll } from "@/lib/lenis";
-import { getScrollOffset } from "@/lib/header-offset";
+import { isActiveRoute, navLinks } from "@/lib/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BrandLogo, BrandWordmark } from "@/components/brand";
 import { CallCta } from "@/components/call-cta";
-
-const navLinks = [
-  { href: "#hero", label: "الرئيسية" },
-  { href: "#about", label: "من نحن" },
-  { href: "#services", label: "خدماتنا" },
-  { href: "#projects", label: "مشاريعنا" },
-  { href: "#designs", label: "التصاميم" },
-  { href: "#testimonials", label: "آراء العملاء" },
-  { href: "#faq", label: "الأسئلة الشائعة" },
-  { href: "#contact", label: "تواصل معنا" },
-];
 
 /**
  * Applied only while the header is transparent over the hero footage.
@@ -28,9 +19,23 @@ const navLinks = [
 const NAV_SHADOW = "0 1px 2px rgba(8,24,48,0.45)";
 
 export function SiteHeader() {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeHref, setActiveHref] = useState("#hero");
+
+  const isHome = pathname === "/";
+
+  /**
+   * Whether to wear the glass treatment.
+   *
+   * The transparent header exists for one reason: the homepage hero is a
+   * full-bleed video, and a solid bar across it would waste the shot. Every
+   * other route starts with ordinary page background, where white nav text on
+   * transparent is unreadable — so off the homepage the header is solid from
+   * the first pixel rather than waiting for a scroll that may never come on a
+   * short page.
+   */
+  const solid = scrolled || !isHome;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -40,68 +45,12 @@ export function SiteHeader() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Active link tracking.
+  // The menu is a full-width overlay: leaving it open across a navigation would
+  // hide the page just arrived at. Covers browser back/forward too, which no
+  // onClick handler can.
   useEffect(() => {
-    let frame = 0;
-
-    const update = () => {
-      frame = 0;
-
-      const scrollY = window.scrollY;
-      const viewport = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-
-      // At the very bottom, pin the last section.
-      if (scrollY + viewport >= documentHeight - 2) {
-        setActiveHref(navLinks[navLinks.length - 1].href);
-        return;
-      }
-
-      const line = getScrollOffset();
-
-      let current = navLinks[0].href;
-      let closest = -Infinity;
-
-      for (const link of navLinks) {
-        const element = document.querySelector(link.href);
-        if (!(element instanceof HTMLElement)) continue;
-
-        const top = element.getBoundingClientRect().top;
-
-        if (top <= line && top > closest) {
-          closest = top;
-          current = link.href;
-        }
-      }
-
-      setActiveHref(current);
-    };
-
-    const onScrollOrResize = () => {
-      if (frame === 0) {
-        frame = requestAnimationFrame(update);
-      }
-    };
-
-    update();
-
-    window.addEventListener("scroll", onScrollOrResize, {
-      passive: true,
-    });
-
-    window.addEventListener("resize", onScrollOrResize, {
-      passive: true,
-    });
-
-    return () => {
-      window.removeEventListener("scroll", onScrollOrResize);
-      window.removeEventListener("resize", onScrollOrResize);
-
-      if (frame !== 0) {
-        cancelAnimationFrame(frame);
-      }
-    };
-  }, []);
+    setMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -124,17 +73,17 @@ export function SiteHeader() {
   return (
     <header
       className={`fixed top-0 right-0 left-0 z-50 h-[55px] sm:h-[60px] lg:h-[64px] transition-all duration-500 ${
-        scrolled
+        solid
           ? "glass border-b border-border"
           : "bg-transparent"
       }`}
     >
       <div className="container-luxury h-full flex items-center justify-between gap-3 sm:gap-4">
         {/* Branding */}
-        <a
-          href="#hero"
+        <Link
+          href="/"
           className="flex min-w-0 h-full items-center gap-3 sm:gap-4 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-          aria-label={`${siteConfig.name} — العودة إلى أعلى الصفحة`}
+          aria-label={`${siteConfig.name} — الصفحة الرئيسية`}
         >
           <BrandLogo
             alt=""
@@ -146,7 +95,7 @@ export function SiteHeader() {
             imgClassName="h-6 sm:h-7 lg:h-8"
             className="hidden min-[380px]:block"
           />
-        </a>
+        </Link>
 
         {/* Desktop navigation */}
         <nav
@@ -154,32 +103,31 @@ export function SiteHeader() {
           className="hidden lg:flex items-center gap-1"
         >
           {navLinks.map((link) => {
-            const isActive = activeHref === link.href;
+            const isActive = isActiveRoute(pathname, link.href);
 
             return (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 aria-current={isActive ? "page" : undefined}
-                onClick={() => setActiveHref(link.href)}
                 className={`group relative px-3 xl:px-3.5 py-2 text-[0.95rem] font-medium rounded-lg antialiased transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold after:content-[''] after:absolute after:inset-x-3 xl:after:inset-x-3.5 after:bottom-1 after:h-px after:bg-gold after:origin-right after:transition-transform after:duration-300 after:ease-out ${
                   isActive
                     ? "text-gold after:scale-x-100"
                     : `${
-                        scrolled
+                        solid
                           ? "text-foreground"
                           : "text-white"
                       } hover:text-gold after:scale-x-0 hover:after:scale-x-100`
                 }`}
                 style={{
                   textRendering: "optimizeLegibility",
-                  textShadow: scrolled
+                  textShadow: solid
                     ? undefined
                     : NAV_SHADOW,
                 }}
               >
                 {link.label}
-              </a>
+              </Link>
             );
           })}
         </nav>
@@ -187,12 +135,13 @@ export function SiteHeader() {
         {/* Actions */}
         <div className="flex shrink-0 items-center gap-2">
           {/* Desktop CTA */}
-          <CallCta className="hidden sm:flex" />
+          <CallCta className="hidden sm:flex" placement="header" />
 
           {/* Mobile CTA */}
           <CallCta
             variant="icon"
             className="flex sm:hidden"
+            placement="header_mobile"
           />
 
           <ThemeToggle />
@@ -233,16 +182,16 @@ export function SiteHeader() {
       >
         <ul className="container-luxury py-4 flex flex-col">
           {navLinks.map((link) => {
-            const isActive = activeHref === link.href;
+            const isActive = isActiveRoute(pathname, link.href);
 
             return (
               <li key={link.href}>
-                <a
+                <Link
                   href={link.href}
-                  onClick={() => {
-                    setActiveHref(link.href);
-                    setMenuOpen(false);
-                  }}
+                  // Also closed by the pathname effect above; this covers
+                  // tapping the route you are already on, which does not
+                  // change the pathname.
+                  onClick={() => setMenuOpen(false)}
                   aria-current={
                     isActive ? "page" : undefined
                   }
@@ -256,7 +205,7 @@ export function SiteHeader() {
                   }}
                 >
                   {link.label}
-                </a>
+                </Link>
               </li>
             );
           })}

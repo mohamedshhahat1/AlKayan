@@ -3,6 +3,7 @@
 import { Phone } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
+import { trackPhoneClick } from "@/lib/analytics";
 
 /**
  * The phone call-to-action.
@@ -23,22 +24,38 @@ import { cn } from "@/lib/utils";
  *          three peers rather than a desktop button crushed into a gap. The
  *          number moves to `title`/`aria-label` because a 44px box cannot hold
  *          "+20 10 1234 5678" without shrinking the text below legibility.
+ *
+ * Tracking
+ * --------
+ * Both variants report a `phone_click` on the way to the dialer. It is a
+ * synchronous call on an anchor whose href is untouched, so the call connects
+ * whether or not analytics loaded, was consented to, or is blocked. `placement`
+ * is what makes the number useful — knowing that people call is worth less than
+ * knowing they call from the header rather than the contact page.
  */
 export function CallCta({
   variant = "full",
   className,
   onNavigate,
+  placement = "call_cta",
 }: {
   variant?: "full" | "icon";
   className?: string;
   /** Lets the mobile menu close itself as the dialer opens. */
   onNavigate?: () => void;
+  /** Where this button lives: "header", "header_mobile", "contact_section". */
+  placement?: string;
 }) {
+  const handleClick = () => {
+    trackPhoneClick({ placement });
+    onNavigate?.();
+  };
+
   if (variant === "icon") {
     return (
       <a
         href={siteConfig.contact.telHref}
-        onClick={onNavigate}
+        onClick={handleClick}
         aria-label="اتصل بنا"
         title={siteConfig.contact.phone}
         className={cn(
@@ -54,7 +71,7 @@ export function CallCta({
   return (
     <a
       href={siteConfig.contact.telHref}
-      onClick={onNavigate}
+      onClick={handleClick}
       className={cn(
         "items-center gap-2 px-4 py-2.5 rounded-full gold-gradient-bg text-navy-deep text-sm font-bold hover:scale-105 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white",
         className

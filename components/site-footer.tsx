@@ -1,21 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { Phone, Mail, MapPin, Clock, Facebook, Instagram } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
+import { WhatsAppLink } from "@/components/whatsapp-link";
 import { BrandLogo, BrandWordmark } from "@/components/brand";
 import { siteConfig } from "@/lib/site-config";
+import { navLinks } from "@/lib/navigation";
+import { isAnalyticsConfigured, resetConsent, trackPhoneClick } from "@/lib/analytics";
 
-const quickLinks = [
-  { href: "#hero", label: "الرئيسية" },
-  { href: "#about", label: "من نحن" },
-  { href: "#services", label: "خدماتنا" },
-  { href: "#projects", label: "مشاريعنا" },
-  { href: "#designs", label: "التصاميم" },
-  { href: "#testimonials", label: "آراء العملاء" },
-  { href: "#faq", label: "الأسئلة الشائعة" },
-  { href: "#contact", label: "تواصل معنا" },
-];
-
+/**
+ * The services listed here are labels, not links to eight separate pages: they
+ * describe what the company does and all point at /services. Kept as text
+ * rather than trimmed to the five nav routes, because "تشطيبات داخلية فاخرة"
+ * is what someone scanning a footer is actually looking for.
+ */
 const services = [
   "تشطيبات داخلية فاخرة",
   "تصميم داخلي",
@@ -24,7 +23,7 @@ const services = [
   "إشراف هندسي",
   "ترميم وتجديد",
   "تنسيق حدائق",
-  "أنظمة ذكية",
+  "أنطمة ذكية",
 ];
 
 const socials = [
@@ -50,15 +49,13 @@ export function SiteFooter() {
 
             <ul className="flex items-center gap-3 mt-6">
               <li>
-                <a
-                  href={siteConfig.contact.whatsappHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <WhatsAppLink
+                  placement="footer"
                   aria-label="واتساب"
                   className="w-10 h-10 rounded-full glass-on-dark flex items-center justify-center text-gray-300 hover:text-gold hover:border-gold/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                 >
                   <WhatsAppIcon className="w-4 h-4 fill-current" />
-                </a>
+                </WhatsAppLink>
               </li>
               {socials.map(({ href, label, Icon }) => (
                 <li key={label}>
@@ -81,14 +78,14 @@ export function SiteFooter() {
               روابط سريعة
             </h2>
             <ul className="space-y-3">
-              {quickLinks.map((link) => (
+              {navLinks.map((link) => (
                 <li key={link.href}>
-                  <a
+                  <Link
                     href={link.href}
                     className="text-sm text-gray-400 hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -99,12 +96,12 @@ export function SiteFooter() {
             <ul className="space-y-3">
               {services.map((service) => (
                 <li key={service}>
-                  <a
-                    href="#services"
+                  <Link
+                    href="/services"
                     className="text-sm text-gray-400 hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded"
                   >
                     {service}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -117,6 +114,7 @@ export function SiteFooter() {
                 <Phone className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <a
                   href={siteConfig.contact.telHref}
+                  onClick={() => trackPhoneClick({ placement: "footer" })}
                   dir="ltr"
                   className="text-gray-400 hover:text-gold transition-colors"
                 >
@@ -159,7 +157,23 @@ export function SiteFooter() {
           <p className="text-xs text-gray-500">
             © {year} {siteConfig.legalName}. جميع الحقوق محفوظة.
           </p>
-          <p className="text-xs text-gray-500">{siteConfig.contact.addressShort}</p>
+
+          <div className="flex items-center gap-4">
+            <p className="text-xs text-gray-500">{siteConfig.contact.addressShort}</p>
+
+            {/* Consent has to be revocable to mean anything. Hidden entirely
+                when no analytics are configured — there would be nothing to
+                change. */}
+            {isAnalyticsConfigured && (
+              <button
+                type="button"
+                onClick={resetConsent}
+                className="text-xs text-gray-500 hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded"
+              >
+                إعدادات التحليلات
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </footer>

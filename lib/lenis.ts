@@ -64,3 +64,25 @@ export function scrollToTop() {
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
 }
+
+/**
+ * Jumps to the top with no animation, for a route change.
+ *
+ * Distinct from scrollToTop(), which is the back-to-top button and should be
+ * seen. Arriving on a new page part-way down is a bug, not a transition, so
+ * this is instant.
+ *
+ * It also has to be Lenis-aware for a subtler reason than the CSS rule above:
+ * Lenis keeps its own idea of the current scroll position, and moving the
+ * window behind its back leaves the two disagreeing — the next wheel event then
+ * animates from the stale position and the page appears to jump backwards.
+ * `immediate` moves both at once.
+ */
+export function resetScroll() {
+  if (instance) {
+    instance.scrollTo(0, { immediate: true });
+    return;
+  }
+
+  window.scrollTo(0, 0);
+}

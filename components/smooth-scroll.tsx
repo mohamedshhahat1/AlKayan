@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
-import { registerLenis } from "@/lib/lenis";
+import { registerLenis, resetScroll } from "@/lib/lenis";
 import { getScrollOffset } from "@/lib/header-offset";
 
 /** How far off target we tolerate before correcting, in pixels. */
@@ -27,6 +28,25 @@ const STABLE_FRAMES = 4;
  *  4. anchor scrolls aligned the wrong edge and landed short — see below.
  */
 export function SmoothScroll() {
+  const pathname = usePathname();
+
+  /**
+   * Route changes start at the top.
+   *
+   * Next.js does scroll to the top itself on navigation, but it does so by
+   * moving the window, which Lenis is not watching — so Lenis keeps the old
+   * offset and the first wheel event on the new page animates back down to it.
+   * resetScroll() moves both, and is instant because arriving half-way down a
+   * page is not a transition anyone asked for.
+   *
+   * Deliberately does not fire for in-page anchors: those change the hash, not
+   * the pathname, so this effect does not run and the click handler below keeps
+   * ownership of them.
+   */
+  useEffect(() => {
+    resetScroll();
+  }, [pathname]);
+
   useEffect(() => {
     // Prevent the browser from restoring the previous scroll position on
     // refresh, and always start from the top of the page.

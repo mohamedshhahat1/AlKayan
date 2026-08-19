@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { siteConfig } from "@/lib/site-config";
+import { trackWhatsAppClick } from "@/lib/analytics";
 
 export function WhatsAppButton() {
   const [visible, setVisible] = useState(false);
@@ -19,6 +20,10 @@ export function WhatsAppButton() {
       href={siteConfig.contact.whatsappHref}
       target="_blank"
       rel="noopener noreferrer"
+      // Fires before the browser opens WhatsApp, and cannot prevent it: the href
+      // is untouched, so a blocked or refused analytics tag still leaves a
+      // working link.
+      onClick={() => trackWhatsAppClick({ placement: "floating_button" })}
       aria-label={`تواصل معنا عبر واتساب على ${siteConfig.contact.phone}`}
       className={`fixed bottom-6 right-6 z-50 group flex items-center gap-3 transition-all duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-full ${
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8 pointer-events-none"
