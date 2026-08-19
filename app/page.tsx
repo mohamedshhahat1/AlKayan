@@ -48,10 +48,11 @@ const jsonLd = {
  * featured ones. The designs gallery and the work-process walkthrough moved to
  * /projects and /about respectively rather than being printed in both places.
  *
- * The projects grid is followed by the circular gallery — the same featured
- * rows, turned into a scroll-driven 3D ring. It is the one section that is a
- * full viewport tall and pinned, so it reads as a deliberate pause between the
- * portfolio and the numbers, and it links on to /projects like the grid does.
+ * ProjectsSection and ProjectsGallerySection are one moment, not two: the grid
+ * carries the heading and the link onward, and the ring below it is the same
+ * featured rows as a scroll-driven 3D gallery, rendered without a heading of
+ * its own. They were briefly two titled sections in a row, which read as the
+ * homepage repeating itself.
  *
  * No metadata export: the root layout's title, description and canonical "/"
  * are already exactly right for this route.

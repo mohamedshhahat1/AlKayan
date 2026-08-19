@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 
 import { CircularGallery, type GalleryItem } from "@/components/ui/circular-gallery";
 import { categoryLabel, getProjects, selectFeatured, type Project } from "@/lib/projects";
@@ -16,6 +14,12 @@ import { siteConfig } from "@/lib/site-config";
  * it — and feeds it the same `projects` rows the grid above uses, so there is
  * no second, hand-maintained list of work.
  *
+ * Deliberately headless. It renders immediately below ProjectsSection, which
+ * already carries the eyebrow, the h2 and the link to /projects for this
+ * subject; repeating them here made the homepage look like it had two projects
+ * sections. What is left is the ring and a one-line hint. The h2 survives as
+ * sr-only so the region still has an accessible name.
+ *
  * Fetches in the browser like ProjectsSection does, for the same reason: the
  * rows are public and making every page that mounts this dynamic buys nothing.
  */
@@ -28,7 +32,9 @@ const MAX_ITEMS = 10;
  *
  * This section is a full viewport in the middle of the homepage, so an empty
  * ring would read as a broken layout rather than as an empty database — and an
- * unconfigured Supabase returns no rows at all.
+ * unconfigured Supabase returns no rows at all. These are labelled by type of
+ * work rather than given project names, and the hint line below says they are
+ * samples, so nothing here claims to be a delivered project it is not.
  */
 const fallbackItems: GalleryItem[] = [
   {
@@ -196,6 +202,8 @@ export function ProjectsGallerySection() {
   // section, instead of onto the scroll through the whole homepage.
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [items, setItems] = useState<GalleryItem[]>(fallbackItems);
+  // Which of the two the ring is showing. Drives the hint line only.
+  const [showingProjects, setShowingProjects] = useState(false);
   const radius = useResponsiveRadius();
   const prefersReducedMotion = usePrefersReducedMotion();
 
@@ -208,7 +216,10 @@ export function ProjectsGallerySection() {
       const mapped = toGalleryItems(projects);
       // Keep the fallback rather than emptying the ring on a failed or
       // unconfigured query.
-      if (mapped.length > 0) setItems(mapped);
+      if (mapped.length === 0) return;
+
+      setItems(mapped);
+      setShowingProjects(true);
     });
 
     return () => {
@@ -222,6 +233,15 @@ export function ProjectsGallerySection() {
       aria-labelledby="projects-gallery-heading"
       className="bg-background text-foreground"
     >
+      {/*
+        No visible heading: ProjectsSection sits directly above this and already
+        titles the subject. The h2 is kept for assistive technology, which needs
+        the region to be named and the outline to stay intact.
+      */}
+      <h2 id="projects-gallery-heading" className="sr-only">
+        معرض دائري لأعمالنا
+      </h2>
+
       {/* The tall element: its height is the scroll range the rotation is
           mapped onto. Shorter on phones, where 300vh of pinned section is a lot
           of thumb. */}
@@ -231,18 +251,11 @@ export function ProjectsGallerySection() {
           {/* top-24 clears the fixed header (see lib/header-offset.ts).
               pointer-events-none so the copy never eats a scroll or a click
               meant for the ring behind it. */}
-          <div className="pointer-events-none absolute top-24 z-10 px-4 text-center sm:top-28">
-            <span className="mb-2 inline-block text-xs font-bold uppercase tracking-[0.3em] text-gold sm:text-sm">
-              معرض المشاريع
-            </span>
-            <h2
-              id="projects-gallery-heading"
-              className="text-2xl font-extrabold leading-tight sm:text-3xl lg:text-4xl"
-            >
-              أعمالنا في عرض دائري
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">مرر لأسفل لتدوير المعرض</p>
-          </div>
+          <p className="pointer-events-none absolute top-24 z-10 px-4 text-center text-sm text-muted-foreground sm:top-28">
+            {showingProjects
+              ? "مرر لأسفل لتدوير المعرض"
+              : "نماذج من تصاميمنا — مرر لأسفل لتدوير المعرض"}
+          </p>
 
           <CircularGallery
             items={items}
@@ -255,14 +268,6 @@ export function ProjectsGallerySection() {
             aria-label="معرض مشاريع دائري"
             className="h-full w-full"
           />
-
-          <Link
-            href="/projects"
-            className="absolute bottom-12 z-10 inline-flex items-center gap-2 rounded-full border border-border glass-light px-7 py-3 text-sm font-bold text-foreground transition-all duration-300 hover:border-gold/30 hover:text-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-          >
-            <ArrowLeft className="h-4 w-4 text-gold" aria-hidden="true" />
-            عرض كل المشاريع
-          </Link>
         </div>
       </div>
     </section>
