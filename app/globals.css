@@ -7,13 +7,13 @@
     /* Brand palette. Also registered as Tailwind colours in tailwind.config.ts;
        these variables remain for gradients and raw CSS below.
 
-       Neutral black, no hue. The --navy-* names are historical and kept on
+       Pure neutral black, no hue. The --navy-* names are historical and kept on
        purpose — .navy-gradient and ::selection below read them, as does a good
        deal of the section layer through bg-navy-*. See tailwind.config.ts. */
-    --navy: #111111;
+    --navy: #000000;
     --navy-light: #202020;
     --navy-lighter: #242424;
-    --navy-deepest: #0a0a0a;
+    --navy-deepest: #000000;
     --gold: #d4af37;
     --gold-light: #e4c558;
     --gold-dark: #b8962e;
@@ -42,15 +42,23 @@
 
     /* Theme-aware surface variables */
     --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(17, 17, 17, 0.1);
-    --glass-light-bg: rgba(17, 17, 17, 0.03);
-    --glass-light-border: rgba(17, 17, 17, 0.08);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --glass-light-bg: rgba(0, 0, 0, 0.03);
+    --glass-light-border: rgba(0, 0, 0, 0.08);
     --navy-grad-from: #ffffff;
     --navy-grad-to: #f4f4f4;
-    --swiper-bullet-bg: rgba(17, 17, 17, 0.25);
+    --swiper-bullet-bg: rgba(0, 0, 0, 0.25);
     --scrim-h-from: rgba(255, 255, 255, 0.95);
     --scrim-h-mid: rgba(255, 255, 255, 0.4);
-    --line-bg: rgba(17, 17, 17, 0.06);
+    --line-bg: rgba(0, 0, 0, 0.06);
+
+    /* The fixed header, kept out of --glass-bg deliberately.
+
+       Both used to be the same token, which meant the header could not be
+       darkened without darkening every card, form and accordion on the site
+       with it. They are different jobs: a card needs to lift off the page, and
+       the header needs to disappear into it. */
+    --header-bg: rgba(255, 255, 255, 0.72);
 
     /* Hero overlay — no longer referenced. The hero keeps a black scrim in both
        themes so it can carry white text; see hero-section.tsx. */
@@ -60,21 +68,27 @@
   }
 
   .dark {
-    /* Night mode — black + gold (the default theme) */
-    --background: 0 0% 7%;
+    /* Night mode — pure black + gold (the default theme).
+
+       --background is true #000. Note what is NOT #000: --card, --secondary,
+       --muted and --input stay on the charcoal steps. On a pure black page
+       those few percent of lightness are the only thing that separates a card
+       from the background, and dropping them to zero would flatten the whole
+       section layer into one sheet. */
+    --background: 0 0% 0%;
     --foreground: 0 0% 98%;
     --card: 0 0% 11%;
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 11%;
     --popover-foreground: 0 0% 98%;
     --primary: 43 65% 52%;
-    --primary-foreground: 0 0% 7%;
+    --primary-foreground: 0 0% 0%;
     --secondary: 0 0% 14%;
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 14%;
     --muted-foreground: 0 0% 65%;
     --accent: 43 65% 52%;
-    --accent-foreground: 0 0% 7%;
+    --accent-foreground: 0 0% 0%;
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 100% / 0.1;
@@ -85,16 +99,21 @@
     --glass-border: rgba(255, 255, 255, 0.08);
     --glass-light-bg: rgba(255, 255, 255, 0.05);
     --glass-light-border: rgba(255, 255, 255, 0.1);
-    --navy-grad-from: #0a0a0a;
-    --navy-grad-to: #1c1c1c;
+    --navy-grad-from: #000000;
+    --navy-grad-to: #141414;
     --swiper-bullet-bg: rgba(255, 255, 255, 0.25);
-    --scrim-h-from: rgba(17, 17, 17, 0.95);
-    --scrim-h-mid: rgba(17, 17, 17, 0.4);
+    --scrim-h-from: rgba(0, 0, 0, 0.95);
+    --scrim-h-mid: rgba(0, 0, 0, 0.4);
     --line-bg: rgba(255, 255, 255, 0.06);
 
-    --hero-overlay-from: rgba(10, 10, 10, 0.5);
-    --hero-overlay-mid: rgba(10, 10, 10, 0.35);
-    --hero-overlay-to: rgba(10, 10, 10, 0.88);
+    /* High enough to read as solid black over the hero footage, low enough to
+       keep the backdrop blur doing visible work. Set it to rgb(0, 0, 0) for a
+       fully opaque bar. */
+    --header-bg: rgba(0, 0, 0, 0.85);
+
+    --hero-overlay-from: rgba(0, 0, 0, 0.5);
+    --hero-overlay-mid: rgba(0, 0, 0, 0.35);
+    --hero-overlay-to: rgba(0, 0, 0, 0.88);
   }
 
   * {
@@ -171,6 +190,19 @@
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
+  }
+
+  /*
+   * The fixed header and the mobile nav panel it opens.
+   *
+   * Same blur as .glass, its own tint. No border of its own: the header draws
+   * a single bottom hairline with border-b, and .glass's all-round border would
+   * fight it.
+   */
+  .glass-header {
+    background: var(--header-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
 
   .glass-light {

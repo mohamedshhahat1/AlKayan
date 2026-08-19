@@ -16,7 +16,7 @@ import { CallCta } from "@/components/call-cta";
  * Deliberately a single tight layer — anything wider reads as a grey smear
  * behind small text rather than as separation.
  */
-const NAV_SHADOW = "0 1px 2px rgba(8,24,48,0.45)";
+const NAV_SHADOW = "0 1px 2px rgba(0,0,0,0.45)";
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -71,10 +71,13 @@ export function SiteHeader() {
   }, [menuOpen]);
 
   return (
+    /* glass-header rather than glass: this bar is pure black in dark mode, and
+       it reads its own --header-bg token so darkening it does not darken every
+       card on the site. See app/globals.css. */
     <header
       className={`fixed top-0 right-0 left-0 z-50 h-[55px] sm:h-[60px] lg:h-[64px] transition-all duration-500 ${
         solid
-          ? "glass border-b border-border"
+          ? "glass-header border-b border-border"
           : "bg-transparent"
       }`}
     >
@@ -172,13 +175,16 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* Mobile navigation */}
+      {/* Mobile navigation.
+
+          Matches the bar it drops out of, so the two read as one surface
+          rather than two slightly different blacks. */}
       <nav
         id="mobile-nav"
         aria-label="التنقل للجوال"
         hidden={!menuOpen}
         data-lenis-prevent
-        className="lg:hidden glass border-t border-border mt-3 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain"
+        className="lg:hidden glass-header border-t border-border mt-3 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain"
       >
         <ul className="container-luxury py-4 flex flex-col">
           {navLinks.map((link) => {

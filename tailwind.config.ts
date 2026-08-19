@@ -15,15 +15,14 @@ const config: Config = {
          * which meant Tailwind could not generate variants or opacity
          * modifiers for them and components resorted to inline hex values.
          *
-         * The dark scale is neutral black — no hue at all. The steps are
-         * spaced the way the old navy scale was, so every surface keeps the
-         * same relative depth and every text/background pair keeps the same
-         * contrast ratio; only the blue is gone.
+         * The dark scale is pure neutral black — no hue at all.
          *
-         * `deepest` is DARKER than the base here, because on this branch it is
-         * the footer and the hero's bottom band — the deepest surfaces on the
-         * page. (main pairs those keys the other way round to suit its
-         * alternating light/dark section rhythm.)
+         * DEFAULT, deep and deepest are all true #000: they are the page shell
+         * (body, footer, the hero's bottom band) and the ink on gold buttons,
+         * and all of those were asked for as pure black. light and lighter keep
+         * a little lift because they are raised surfaces, not the shell — the
+         * hero's fallback gradient needs two steps above black to read as a
+         * gradient at all rather than a flat void.
          *
          * The `navy` key name is historical and kept deliberately: the section
          * layer is full of bg-navy-deepest and text-navy-deep, and renaming it
@@ -31,11 +30,11 @@ const config: Config = {
          * palette change.
          */
         navy: {
-          DEFAULT: "#111111",
+          DEFAULT: "#000000",
           light: "#202020",
           lighter: "#242424",
-          deep: "#111111",
-          deepest: "#0A0A0A",
+          deep: "#000000",
+          deepest: "#000000",
         },
         gold: {
           DEFAULT: "#D4AF37",
