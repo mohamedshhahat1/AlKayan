@@ -14,6 +14,9 @@ export const contentType = "image/png";
  * Deliberately Latin-only: the fonts bundled with Satori do not cover Arabic
  * glyphs, so Arabic text would render as blank boxes. Swap in a Tajawal .ttf
  * via the `fonts` option if an Arabic card is needed.
+ *
+ * The colours are literals rather than tokens because this runs at the edge
+ * with no stylesheet — keep them in step with the palette by hand.
  */
 export default function Image() {
   return new ImageResponse(
@@ -26,7 +29,7 @@ export default function Image() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#0B1F3A",
+          backgroundColor: "#111111",
           backgroundImage:
             "radial-gradient(circle at 25% 20%, rgba(212,175,55,0.22) 0%, transparent 55%)",
         }}
@@ -41,7 +44,7 @@ export default function Image() {
         >
           {siteConfig.nameEn}
         </div>
-        <div style={{ marginTop: 12, fontSize: 34, color: "#E6EDF7" }}>
+        <div style={{ marginTop: 12, fontSize: 34, color: "#F0F0F0" }}>
           Contracting &amp; Luxury Interior Finishing
         </div>
         <div
@@ -53,7 +56,7 @@ export default function Image() {
             backgroundColor: "#D4AF37",
           }}
         />
-        <div style={{ marginTop: 44, fontSize: 26, color: "#93A4BC" }}>
+        <div style={{ marginTop: 44, fontSize: 26, color: "#9A9A9A" }}>
           {siteConfig.url.replace(/^https?:\/\//, "")}
         </div>
       </div>

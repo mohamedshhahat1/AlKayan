@@ -14,13 +14,28 @@ const config: Config = {
          * Brand palette. These used to live only in :root as CSS variables,
          * which meant Tailwind could not generate variants or opacity
          * modifiers for them and components resorted to inline hex values.
+         *
+         * The dark scale is neutral black — no hue at all. The steps are
+         * spaced the way the old navy scale was, so every surface keeps the
+         * same relative depth and every text/background pair keeps the same
+         * contrast ratio; only the blue is gone.
+         *
+         * `deepest` is DARKER than the base here, because on this branch it is
+         * the footer and the hero's bottom band — the deepest surfaces on the
+         * page. (main pairs those keys the other way round to suit its
+         * alternating light/dark section rhythm.)
+         *
+         * The `navy` key name is historical and kept deliberately: the section
+         * layer is full of bg-navy-deepest and text-navy-deep, and renaming it
+         * is a mechanical sweep that does not belong in the same commit as a
+         * palette change.
          */
         navy: {
-          DEFAULT: "#0B1F3A",
-          light: "#132A4D",
-          lighter: "#1A3A63",
-          deep: "#0B1F3A",
-          deepest: "#081830",
+          DEFAULT: "#111111",
+          light: "#202020",
+          lighter: "#242424",
+          deep: "#111111",
+          deepest: "#0A0A0A",
         },
         gold: {
           DEFAULT: "#D4AF37",

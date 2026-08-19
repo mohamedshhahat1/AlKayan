@@ -65,10 +65,13 @@ export function ClientMarquee({
       {/* Scrim. Transparent at the top so it dissolves into the footage rather
           than starting on a line, opaque enough at the bottom to carry white
           text over whatever frame is playing. The slight blur softens busy
-          video detail behind the names without hiding the motion. */}
+          video detail behind the names without hiding the motion.
+
+          Pure black, matching the palette: a tinted scrim over footage reads as
+          a colour cast on the footage itself. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-[rgba(8,24,48,0.85)] via-[rgba(8,24,48,0.55)] to-transparent backdrop-blur-[3px]"
+        className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.85)] via-[rgba(0,0,0,0.55)] to-transparent backdrop-blur-[3px]"
       />
 
       <p className="relative mb-2 text-center text-[9px] font-semibold uppercase tracking-[0.4em] text-white/55 sm:text-[10px] sm:tracking-[0.45em]">

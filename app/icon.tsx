@@ -19,7 +19,7 @@ export default function Icon() {
           justifyContent: "center",
           fontSize: 18,
           fontWeight: 800,
-          color: "#0B1F3A",
+          color: "#111111",
           background: "linear-gradient(135deg, #E4C558, #D4AF37 55%, #B8962E)",
           borderRadius: 7,
         }}
