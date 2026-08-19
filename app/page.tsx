@@ -2,6 +2,7 @@ import { HeroSection } from "@/components/sections/hero-section";
 import { AboutSection } from "@/components/sections/about-section";
 import { ServicesSection } from "@/components/sections/services-section";
 import { ProjectsSection } from "@/components/sections/projects-section";
+import { ProjectsGallerySection } from "@/components/sections/projects-gallery-section";
 import { StatsSection } from "@/components/sections/stats-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { ContactSection } from "@/components/sections/contact-section";
@@ -47,6 +48,11 @@ const jsonLd = {
  * featured ones. The designs gallery and the work-process walkthrough moved to
  * /projects and /about respectively rather than being printed in both places.
  *
+ * The projects grid is followed by the circular gallery — the same featured
+ * rows, turned into a scroll-driven 3D ring. It is the one section that is a
+ * full viewport tall and pinned, so it reads as a deliberate pause between the
+ * portfolio and the numbers, and it links on to /projects like the grid does.
+ *
  * No metadata export: the root layout's title, description and canonical "/"
  * are already exactly right for this route.
  *
@@ -71,6 +77,7 @@ export default function Home() {
         showAllHref="/projects"
         placement="home_featured"
       />
+      <ProjectsGallerySection />
       <StatsSection />
       <TestimonialsSection />
       <ContactSection variant="cta" source="home_cta" />
