@@ -106,7 +106,7 @@ export function DesignsSection() {
                     ? "gold-gradient-bg text-navy"
                     : "glass-light text-muted-foreground hover:text-gold hover:border-gold/30"
                 }`}
-                style={active === cat.id ? { color: "#0B1F3A" } : {}}
+                style={active === cat.id ? { color: "#111111" } : {}}
               >
                 {cat.label}
               </button>
@@ -132,7 +132,7 @@ export function DesignsSection() {
                   className="zoom-image w-full h-40 sm:h-48 lg:h-52 object-cover"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-4" style={{ background: "linear-gradient(180deg, transparent 50%, rgba(11,31,58,0.8) 100%)" }}>
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-4" style={{ background: "linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.8) 100%)" }}>
                   <span className="text-white text-sm font-bold">{activeCategory.label}</span>
                 </div>
               </button>

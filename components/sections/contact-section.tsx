@@ -178,7 +178,7 @@ export function ContactSection({
           <div id="faq">
             <SectionHeading
               eyebrow="الأسئلة الشائعة"
-              title="إجابات على أكثر تساؤلاتكم"
+              title="إجابات على أكثر تساءلاتكم"
             />
 
             <Reveal delay={0.15} className="mt-8 max-w-3xl mx-auto">
@@ -226,7 +226,7 @@ export function ContactSection({
                   href={siteConfig.contact.telHref}
                   onClick={() => trackPhoneClick({ placement: isCta ? "home_cta" : "contact_cta" })}
                   className="shimmer-btn gold-gradient-bg font-bold text-sm px-7 py-3 rounded-full flex items-center justify-center gap-2 hover:scale-105 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                  style={{ color: "#0B1F3A" }}
+                  style={{ color: "#111111" }}
                 >
                   <Phone className="w-4 h-4" aria-hidden="true" />
                   اتصل الآن
