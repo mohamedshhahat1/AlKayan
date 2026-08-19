@@ -35,8 +35,19 @@ export type LeadInput = {
   message?: string | null;
 };
 
-/** Where a lead came from. Reporting only — never trusted, never a permission. */
-export type LeadSource = "contact_page" | "home_cta" | "project_detail" | "services_page";
+/**
+ * Where a lead came from. Reporting only — never trusted, never a permission.
+ *
+ * One member per place a CTA or form can be reached from, so the value on the
+ * row and the value on the analytics event are the same vocabulary.
+ */
+export type LeadSource =
+  | "contact_page"
+  | "home_cta"
+  | "about_page"
+  | "services_page"
+  | "projects_page"
+  | "project_detail";
 
 export type LeadResult =
   | { ok: true }

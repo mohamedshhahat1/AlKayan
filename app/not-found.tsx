@@ -1,19 +1,25 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { BrandLockup } from "@/components/brand";
+import { navLinks } from "@/lib/navigation";
 
 export const metadata: Metadata = {
   title: "الصفحة غير موجودة",
-  // A 404 has nothing worth indexing and should not dilute the one page that
-  // does. `robots` here overrides the index/follow set in the root layout.
+  // A 404 has nothing worth indexing and should not dilute the pages that do.
+  // `robots` here overrides the index/follow set in the root layout.
   robots: { index: false, follow: true },
 };
 
 /**
  * 404.
  *
- * The site is a single page, so almost every 404 is a stale link or a typo.
- * The useful move is therefore to send people back to the top of the page
- * rather than to offer a sitemap of somewhere they were never trying to go.
+ * When the site was one page, the only useful move was to send people back to
+ * the top of it. Now there are five routes and a project URL per project, so a
+ * 404 is usually a stale project link or a mistyped path — and the useful move
+ * is to show where the content actually lives.
+ *
+ * next/link rather than an anchor: a full document reload to recover from a
+ * typo throws away the loaded app for no reason.
  */
 export default function NotFound() {
   return (
@@ -32,12 +38,27 @@ export default function NotFound() {
         </p>
       </div>
 
-      <a
+      <Link
         href="/"
         className="rounded-full gold-gradient-bg px-7 py-3 text-sm font-bold text-navy-deep transition-transform duration-300 hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
       >
         العودة إلى الصفحة الرئيسية
-      </a>
+      </Link>
+
+      <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+        {navLinks
+          .filter((link) => link.href !== "/")
+          .map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                className="text-xs text-muted-foreground hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded"
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
+      </ul>
     </div>
   );
 }

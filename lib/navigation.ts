@@ -34,3 +34,15 @@ export function isActiveRoute(pathname: string | null | undefined, href: string)
 
   return pathname === href || pathname.startsWith(`${href}/`);
 }
+
+/**
+ * Clears the fixed header.
+ *
+ * The header is `fixed` and 55/60/64px tall by breakpoint, and on the homepage
+ * that is intentional: it floats over a full-viewport hero video. Every other
+ * route starts with ordinary content, which would otherwise slide underneath
+ * it. Kept beside the routes because it is the same fact — the shape of the
+ * chrome those routes sit inside — and defined once so the five pages cannot
+ * disagree about it.
+ */
+export const headerOffsetClass = "pt-[55px] sm:pt-[60px] lg:pt-[64px]";

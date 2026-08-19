@@ -2,8 +2,6 @@ import { HeroSection } from "@/components/sections/hero-section";
 import { AboutSection } from "@/components/sections/about-section";
 import { ServicesSection } from "@/components/sections/services-section";
 import { ProjectsSection } from "@/components/sections/projects-section";
-import { DesignsSection } from "@/components/sections/designs-section";
-import { WorkProcessSection } from "@/components/sections/work-process-section";
 import { StatsSection } from "@/components/sections/stats-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { ContactSection } from "@/components/sections/contact-section";
@@ -41,9 +39,19 @@ const jsonLd = {
 };
 
 /**
- * Section order is deliberately short: hero, who we are, what we do, proof,
- * process, numbers, voices, and the ask. Anything that repeated another
- * section was merged rather than stacked.
+ * The homepage.
+ *
+ * Still the same sections in the same order, but each one now shows a cut of
+ * itself and hands off to the page that owns the subject: about is compact and
+ * links to /about, services shows eight of twenty-six, projects shows the
+ * featured ones. The designs gallery and the work-process walkthrough moved to
+ * /projects and /about respectively rather than being printed in both places.
+ *
+ * No metadata export: the root layout's title, description and canonical "/"
+ * are already exactly right for this route.
+ *
+ * A server component, and deliberately still one — nothing here needs the
+ * browser, so nothing here ships to it.
  */
 export default function Home() {
   return (
@@ -53,14 +61,19 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <HeroSection />
-      <AboutSection />
-      <ServicesSection />
-      <ProjectsSection />
-      <DesignsSection />
-      <WorkProcessSection />
+      <AboutSection compact />
+      <ServicesSection showGroups={false} limit={8} showAllHref="/services" />
+      <ProjectsSection
+        featuredOnly
+        limit={6}
+        showFilters={false}
+        showBeforeAfter={false}
+        showAllHref="/projects"
+        placement="home_featured"
+      />
       <StatsSection />
       <TestimonialsSection />
-      <ContactSection />
+      <ContactSection variant="cta" source="home_cta" />
     </>
   );
 }

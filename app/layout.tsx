@@ -8,6 +8,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { ChatWidget } from "@/components/chat-widget";
 import { BackToTop } from "@/components/back-to-top";
+import { Analytics } from "@/components/analytics";
+import { ConsentBanner } from "@/components/consent-banner";
 import { siteConfig } from "@/lib/site-config";
 
 const tajawal = Tajawal({
@@ -81,18 +83,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           {/* Side effect only — it does not render its children. */}
           <SmoothScroll />
+          {/*
+            Targets the <main> below rather than #hero, which only exists on the
+            homepage — on /about the old link went nowhere, which is worse than
+            no skip link for the person who depends on it.
+          */}
           <a
-            href="#hero"
+            href="#main-content"
             className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:right-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-full focus:gold-gradient-bg focus:text-navy-deep focus:font-bold"
           >
             تخطي إلى المحتوى
           </a>
           <SiteHeader />
-          <main>{children}</main>
+          <main id="main-content">{children}</main>
           <SiteFooter />
           <WhatsAppButton />
           <ChatWidget />
           <BackToTop />
+          {/*
+            Mounted here, once, for the whole site: the layout is not remounted
+            on navigation, so the GA and Clarity tags load exactly once no matter
+            how many pages someone visits. Both render nothing until consent is
+            granted, and nothing at all when their env vars are unset.
+          */}
+          <Analytics />
+          <ConsentBanner />
         </ThemeProvider>
       </body>
     </html>
