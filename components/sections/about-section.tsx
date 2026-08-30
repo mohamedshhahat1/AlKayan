@@ -3,45 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Reveal, SectionHeading } from "@/components/reveal";
-import {
-  ArrowDownLeft,
-  ArrowLeft,
-  ArrowUpLeft,
-  Award,
-  Clock3,
-  ShieldCheck,
-  Sparkles,
-  Users,
-} from "lucide-react";
-
-const features = [
-  {
-    icon: Award,
-    title: "جودة استثنائية",
-    desc: "نختار أفضل الخامات ونطبق معايير دقيقة في كل مرحلة من مراحل التنفيذ، بداية من التجهيز وحتى آخر لمسة.",
-  },
-  {
-    icon: Users,
-    title: "فريق متخصص",
-    desc: "يعمل معك فريق من المهندسين والفنيين المتخصصين لضمان تنفيذ التصميم بالشكل المطلوب وبأعلى دقة.",
-  },
-  {
-    icon: Clock3,
-    title: "التزام بالمواعيد",
-    desc: "نضع جدولاً واضحاً للتنفيذ ونتابعه خطوة بخطوة حتى نحافط على موعد التسليم ونقلل أي تأخير غير ضروري.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "ضمان وثقة",
-    desc: "علاقتنا مع العميل لا تنتهي عند التسليم. نقدم المتابعة والدعم لضمان استمرار جودة العمل وراحة العميل.",
-  },
-];
-
-const stats = [
-  { value: "+15", label: "سنة خبرة" },
-  { value: "+250", label: "مشروع مكتمل" },
-  { value: "100%", label: "رضا والتزام" },
-];
+import { ArrowDownLeft, ArrowLeft, ArrowUpLeft, Sparkles } from "lucide-react";
+import { resolveIcon } from "@/lib/content/icons";
+import { useContent, useHeading } from "@/lib/content/context";
 
 export type AboutSectionProps = {
   /**
@@ -54,6 +18,9 @@ export type AboutSectionProps = {
 };
 
 export function AboutSection({ compact = false }: AboutSectionProps = {}) {
+  const { aboutFeatures: features, aboutStats: stats } = useContent();
+  const heading = useHeading("about");
+
   const [openIndex, setOpenIndex] = useState(0);
 
   return (
@@ -70,9 +37,9 @@ export function AboutSection({ compact = false }: AboutSectionProps = {}) {
 
       <div className="container-luxury relative z-10">
         <SectionHeading
-          eyebrow="من نحن"
-          title="نصنع مساحات تستحق أن تُعاش"
-          subtitle="في الكيان، لا نتعامل مع التشطيبات كمرحلة تنفيذ فقط، بل نصنع تجربة متكاملة تبدأ من الفكرة وتنتهي بمساحة تحمل طابعك."
+          eyebrow={heading.eyebrow}
+          title={heading.title}
+          subtitle={heading.subtitle ?? undefined}
         />
 
         {/* LTR controls desktop visual order:
@@ -131,7 +98,7 @@ export function AboutSection({ compact = false }: AboutSectionProps = {}) {
               {!compact && (
                 <div className="mt-9 border-y border-border/70">
                   {features.map((feature, index) => {
-                    const Icon = feature.icon;
+                    const Icon = resolveIcon(feature.icon);
                     const isOpen = openIndex === index;
 
                     return (
@@ -193,7 +160,7 @@ export function AboutSection({ compact = false }: AboutSectionProps = {}) {
                         >
                           <div className="overflow-hidden">
                             <p className="pb-5 pr-14 text-xs leading-7 text-muted-foreground sm:text-sm">
-                              {feature.desc}
+                              {feature.description}
                             </p>
                           </div>
                         </div>

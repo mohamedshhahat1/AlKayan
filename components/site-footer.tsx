@@ -6,6 +6,7 @@ import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { WhatsAppLink } from "@/components/whatsapp-link";
 import { BrandLogo, BrandWordmark } from "@/components/brand";
 import { siteConfig } from "@/lib/site-config";
+import { useContent, useSiteDetails } from "@/lib/content/context";
 import { navLinks } from "@/lib/navigation";
 import { isAnalyticsConfigured, resetConsent, trackPhoneClick } from "@/lib/analytics";
 
@@ -15,23 +16,15 @@ import { isAnalyticsConfigured, resetConsent, trackPhoneClick } from "@/lib/anal
  * rather than trimmed to the five nav routes, because "تشطيبات داخلية فاخرة"
  * is what someone scanning a footer is actually looking for.
  */
-const services = [
-  "تشطيبات داخلية فاخرة",
-  "تصميم داخلي",
-  "تصميم خارجي وواجهات",
-  "مقاولات عامة",
-  "إشراف هندسي",
-  "ترميم وتجديد",
-  "تنسيق حدائق",
-  "أنظمة ذكية",
-];
-
 const socials = [
   { href: siteConfig.social.facebook, label: "فيسبوك", Icon: Facebook },
   { href: siteConfig.social.instagram, label: "انستغرام", Icon: Instagram },
 ].filter((item) => Boolean(item.href));
 
 export function SiteFooter() {
+  const { footerServices } = useContent();
+  const { contact, hours } = useSiteDetails();
+
   const year = new Date().getFullYear();
 
   return (
@@ -94,13 +87,13 @@ export function SiteFooter() {
           <div>
             <h2 className="text-white font-bold mb-5">خدماتنا</h2>
             <ul className="space-y-3">
-              {services.map((service) => (
-                <li key={service}>
+              {footerServices.map((service) => (
+                <li key={service.id}>
                   <Link
                     href="/services"
                     className="text-sm text-gray-400 hover:text-gold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded"
                   >
-                    {service}
+                    {service.label}
                   </Link>
                 </li>
               ))}
@@ -113,40 +106,40 @@ export function SiteFooter() {
               <li className="flex items-start gap-3">
                 <Phone className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <a
-                  href={siteConfig.contact.telHref}
+                  href={contact.telHref}
                   onClick={() => trackPhoneClick({ placement: "footer" })}
                   dir="ltr"
                   className="text-gray-400 hover:text-gold transition-colors"
                 >
-                  {siteConfig.contact.phone}
+                  {contact.phone}
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <Mail className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <a
-                  href={siteConfig.contact.mailtoHref}
+                  href={contact.mailtoHref}
                   className="text-gray-400 hover:text-gold transition-colors break-all"
                 >
-                  {siteConfig.contact.email}
+                  {contact.email}
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <a
-                  href={siteConfig.contact.mapsHref}
+                  href={contact.mapsHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-gold transition-colors"
                 >
-                  {siteConfig.contact.address}
+                  {contact.address}
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <Clock className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <span className="text-gray-400">
-                  {siteConfig.hours.days}
+                  {hours.days}
                   <br />
-                  {siteConfig.hours.time}
+                  {hours.time}
                 </span>
               </li>
             </ul>
@@ -159,7 +152,7 @@ export function SiteFooter() {
           </p>
 
           <div className="flex items-center gap-4">
-            <p className="text-xs text-gray-500">{siteConfig.contact.addressShort}</p>
+            <p className="text-xs text-gray-500">{contact.addressShort}</p>
 
             {/* Consent has to be revocable to mean anything. Hidden entirely
                 when no analytics are configured — there would be nothing to

@@ -16,51 +16,10 @@ import { isSupabaseConfigured } from "@/lib/supabase";
 import { submitLead, type LeadSource } from "@/lib/leads";
 import { bookingSchema, collectErrors, type BookingErrors } from "@/lib/validation";
 import { siteConfig } from "@/lib/site-config";
+import { useContent, useHeading, useSetting, useSiteDetails } from "@/lib/content/context";
 import { trackContactSubmit, trackPhoneClick, trackQuoteRequest } from "@/lib/analytics";
 
 /** Top six only, and collapsed by default so the block starts short. */
-const faqs = [
-  {
-    q: "ما هي مدة تنفيذ المشروع؟",
-    a: "تختلف مدة التنفيذ حسب نوع وحجم المشروع. الشقق السكنية تستغرق عادة 60-90 يوماً، بينما الفلل قد تستغرق 120-180 يوماً. نقدم لك جدولاً زمنياً دقيقاً بعد الاستشارة الأولى.",
-  },
-  {
-    q: "هل تقدمون ضماناً على الأعمال؟",
-    a: "نعم، نقدم ضماناً شاملاً على جميع أعمالنا. مدة الضمان تختلف حسب نوع العمل، وتصل إلى سنتين للأعمال الإنشائية وسنة للتشطيبات والديكورات.",
-  },
-  {
-    q: "هل يمكنني روية المشروع قبل التنفيذ؟",
-    a: "بالتأكيد. نوفر تصاميم ثلاثية الأبعاد وعروضاً واقعية لمشروعك قبل بدء التنفيذ، حتى تتمكن من روية كل تفصيلة والموافقة عليها.",
-  },
-  {
-    q: "كيف يتم تحديد تكلفة المشروع؟",
-    a: "نقوم بزيارة الموقع مجاناً ثم نقدم عرض سعر مفصلاً وشفافاً يشمل جميع التكاليف بدون أي رسوم خفية. السعر يعتمد على المساحة، الخامات المطلوبة، ونوع التشطيب.",
-  },
-  {
-    q: "هل تعملون في جميع المحافطات؟",
-    a: "نعمل في جميع المحافطات الرئيسية بجمهورية مصر العربية. للاستفسار عن توفر الخدمة في منطقتك، يرجى التواصل معنا عبر نموذج الاتصال أو الواتساب.",
-  },
-  {
-    q: "ما هي طرق الدفع المتاحة؟",
-    a: "نقدم خطط دفع مرنة على دفعات مرتبطة بمراحل المشروع. نقبل التحويل البنكي والشيكات. يتم الاتفاق على جدول الدفع في عقد المشروع.",
-  },
-];
-
-const serviceOptions = [
-  "تشطيب شقة",
-  "تشطيب فيلا",
-  "تشطيب مكتب",
-  "تشطيب عيادة",
-  "تشطيب مطعم",
-  "تشطيب محل تجاري",
-  "تصميم داخلي",
-  "تصميم خارجي وواجهات",
-  "تنسيق حدائق",
-  "ترميم وتجديد",
-  "إشراف هندسي",
-  "أخرى",
-];
-
 const emptyForm = {
   name: "",
   phone: "",
@@ -101,6 +60,13 @@ export function ContactSection({
   defaultService,
   showFaq,
 }: ContactSectionProps = {}) {
+  const { faqs, serviceOptions } = useContent();
+  const { contact, hours } = useSiteDetails();
+  const faqHeading = useHeading("faq");
+
+  const submitLabel = useSetting("form.submit_label", "احجز استشارتك المجانية");
+  const successMessage = useSetting("form.success", "تم استلام طلبك بنجاح.");
+
   const isCta = variant === "cta";
   const withFaq = showFaq ?? !isCta;
 
@@ -109,15 +75,17 @@ export function ContactSection({
   const [state, setState] = useState<SubmitState>("idle");
 
   /**
-   * A service arriving from a URL may not be one of the twelve options in the
-   * dropdown — the catalogue has 26 entries. Rather than silently dropping the
-   * visitor's intent, it is offered as its own option. Callers vet the value
-   * against lib/services before passing it, so this cannot become a way to put
-   * arbitrary text on the page.
+   * A service arriving from a URL may not be one of the dropdown's options —
+   * the catalogue is larger than the option list. Rather than silently dropping
+   * the visitor's intent, it is offered as its own option. Callers vet the
+   * value against the published catalogue (lib/services.ts) before passing it,
+   * so this cannot become a way to put arbitrary text on the page.
+   *
+   * The synthetic row carries an id that cannot collide with a seeded one.
    */
   const options =
-    defaultService && !serviceOptions.includes(defaultService)
-      ? [defaultService, ...serviceOptions]
+    defaultService && !serviceOptions.some((option) => option.label === defaultService)
+      ? [{ id: "from-url", label: defaultService, sort_order: -1 }, ...serviceOptions]
       : serviceOptions;
 
   function update(field: keyof typeof emptyForm, value: string) {
@@ -177,28 +145,28 @@ export function ContactSection({
         {withFaq && (
           <div id="faq">
             <SectionHeading
-              eyebrow="الأسئلة الشائعة"
-              title="إجابات على أكثر تساءلاتكم"
+              eyebrow={faqHeading.eyebrow}
+              title={faqHeading.title}
             />
 
             <Reveal delay={0.15} className="mt-8 max-w-3xl mx-auto">
               <Accordion type="single" collapsible className="space-y-3">
                 {faqs.map((faq, i) => (
                   <AccordionItem
-                    key={i}
+                    key={faq.id}
                     value={`item-${i}`}
                     className="glass rounded-xl px-5 border border-border data-[state=open]:border-gold/30 transition-colors duration-300"
                   >
                     <AccordionTrigger className="text-right hover:no-underline py-4 group">
                       <span className="flex items-center justify-between w-full gap-4">
                         <span className="text-sm font-bold text-foreground group-data-[state=open]:text-gold transition-colors duration-300">
-                          {faq.q}
+                          {faq.question}
                         </span>
                         <ChevronDown className="w-4 h-4 text-gold flex-shrink-0 transition-transform duration-300 group-data-[state=open]:rotate-180" />
                       </span>
                     </AccordionTrigger>
                     <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-5 pt-1">
-                      {faq.a}
+                      {faq.answer}
                     </AccordionContent>
                   </AccordionItem>
                 ))}
@@ -391,8 +359,8 @@ export function ContactSection({
                     >
                       <option value="">اختر الخدمة</option>
                       {options.map((service) => (
-                        <option key={service} value={service}>
-                          {service}
+                        <option key={service.id} value={service.label}>
+                          {service.label}
                         </option>
                       ))}
                     </select>

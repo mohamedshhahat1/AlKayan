@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Calendar, ArrowLeft } from "lucide-react";
 import { ClientMarquee } from "@/components/ui/client-marquee";
-import { heroClients } from "@/lib/clients";
+import { useContent, useSetting } from "@/lib/content/context";
 import { siteConfig } from "@/lib/site-config";
 
 /**
@@ -68,6 +68,9 @@ function heroLog(message: string): void {
 }
 
 export function HeroSection() {
+  const { heroClients } = useContent();
+  const clientsLabel = useSetting("hero.clients_label", "TRUSTED BY OUR CLIENTS");
+
   const ref = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -472,8 +475,8 @@ export function HeroSection() {
           reason the scrim above is: white text needs a dark backdrop, and the
           light-mode tokens resolve to a white wash that cannot carry it. */}
       <ClientMarquee
-        clients={heroClients}
-        label="TRUSTED BY OUR CLIENTS"
+        clients={heroClients.map((client) => client.name)}
+        label={clientsLabel}
         className="absolute inset-x-0 bottom-0 z-30"
       />
     </section>

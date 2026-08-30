@@ -24,9 +24,10 @@ type ContactPageProps = {
  * it arrives from a URL, so it is attacker-controlled, and an unrecognised one
  * is dropped rather than rendered.
  */
-export default function ContactPage({ searchParams }: ContactPageProps) {
+export default async function ContactPage({ searchParams }: ContactPageProps) {
   const requested = typeof searchParams.service === "string" ? searchParams.service : undefined;
-  const defaultService = requested && isKnownService(requested) ? requested : undefined;
+  // Async because the catalogue is a Supabase read now, not a module constant.
+  const defaultService = requested && (await isKnownService(requested)) ? requested : undefined;
 
   return (
     <div className={headerOffsetClass}>

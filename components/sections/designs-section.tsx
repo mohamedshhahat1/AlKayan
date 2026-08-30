@@ -3,78 +3,45 @@
 import { Reveal, SectionHeading } from "@/components/reveal";
 import { Lightbox, type LightboxImage } from "@/components/lightbox";
 import { useMemo, useState } from "react";
-
-const designCategories = [
-  { id: "2d-plans", label: "مخططات 2D", images: [
-    "https://images.pexels.com/photos/7722168/pexels-photo-7722168.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/8089172/pexels-photo-8089172.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/7546323/pexels-photo-7546323.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/8135492/pexels-photo-8135492.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/7174113/pexels-photo-7174113.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/34887637/pexels-photo-34887637.jpeg?auto=compress&cs=tinysrgb&w=940",
-  ]},
-  { id: "3d-designs", label: "تصاميم 3D", images: [
-    "https://images.pexels.com/photos/33529500/pexels-photo-33529500.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/27164969/pexels-photo-27164969.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/33529503/pexels-photo-33529503.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/8135492/pexels-photo-8135492.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/30002783/pexels-photo-30002783.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/38468834/pexels-photo-38468834.jpeg?auto=compress&cs=tinysrgb&w=940",
-  ]},
-  { id: "exterior", label: "تصاميم خارجية", images: [
-    "https://images.pexels.com/photos/16573669/pexels-photo-16573669.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/17174768/pexels-photo-17174768.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/10647324/pexels-photo-10647324.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/8134745/pexels-photo-8134745.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/7031594/pexels-photo-7031594.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/14603131/pexels-photo-14603131.jpeg?auto=compress&cs=tinysrgb&w=940",
-  ]},
-  { id: "interior", label: "تصاميم داخلية", images: [
-    "https://images.pexels.com/photos/6585757/pexels-photo-6585757.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/7546276/pexels-photo-7546276.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/8134808/pexels-photo-8134808.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/6492399/pexels-photo-6492399.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/8142047/pexels-photo-8142047.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/7166637/pexels-photo-7166637.jpeg?auto=compress&cs=tinysrgb&w=940",
-  ]},
-  { id: "360-views", label: "عروض 360°", images: [
-    "https://images.pexels.com/photos/33685856/pexels-photo-33685856.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/36121750/pexels-photo-36121750.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/29012619/pexels-photo-29012619.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/34688219/pexels-photo-34688219.jpeg?auto=compress&cs=tinysrgb&w=940",
-  ]},
-  { id: "walkthrough", label: "فيديوهات تجول", images: [
-    "https://images.pexels.com/photos/8082243/pexels-photo-8082243.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/8082233/pexels-photo-8082233.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/35058546/pexels-photo-35058546.jpeg?auto=compress&cs=tinysrgb&w=940",
-    "https://images.pexels.com/photos/33342710/pexels-photo-33342710.jpeg?auto=compress&cs=tinysrgb&w=940",
-  ]},
-];
+import { useContent, useDesignImages, useHeading } from "@/lib/content/context";
 
 /**
- * The grid requests these at w=940. Re-point that parameter rather than reusing
- * one size everywhere: a 940px file is wasteful as a 80px thumbnail and soft
- * when blown up full-screen.
+ * The grid requests images at w=940. Re-point that parameter rather than
+ * reusing one size everywhere: a 940px file is wasteful as an 80px thumbnail
+ * and soft when blown up full-screen.
+ *
+ * Only rewrites a URL that actually carries `w=940`. The seeded Pexels URLs do;
+ * an editor pasting a link to their own storage will not, and that URL has to
+ * pass through untouched rather than be silently mangled.
  */
-const atWidth = (url: string, width: number) => url.replace("w=940", `w=${width}`);
+const atWidth = (url: string, width: number) =>
+  url.includes("w=940") ? url.replace("w=940", `w=${width}`) : url;
 
 export function DesignsSection() {
-  const [active, setActive] = useState(designCategories[0].id);
+  const { designCategories } = useContent();
+  const heading = useHeading("designs");
+
+  const [active, setActive] = useState(() => designCategories[0]?.slug ?? "");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const activeCategory = designCategories.find((c) => c.id === active)!;
+  // Falls back to the first category rather than asserting: the categories come
+  // from the database and can change under the state that points at one.
+  const activeCategory =
+    designCategories.find((category) => category.slug === active) ?? designCategories[0];
+
+  const images = useDesignImages(activeCategory?.slug ?? "");
 
   // Only the active category is passed to the viewer, which is what confines
   // next/previous to the current tab. Memoised so navigating between images
   // does not rebuild the array and re-render every thumbnail.
   const lightboxImages = useMemo<LightboxImage[]>(
     () =>
-      activeCategory.images.map((img, i) => ({
-        src: atWidth(img, 1600),
-        thumb: atWidth(img, 240),
-        alt: `${activeCategory.label} ${i + 1}`,
+      images.map((image, i) => ({
+        src: atWidth(image.image_url, 1600),
+        thumb: atWidth(image.image_url, 240),
+        alt: `${activeCategory?.label ?? ""} ${i + 1}`,
       })),
-    [activeCategory]
+    [images, activeCategory]
   );
 
   const selectCategory = (id: string) => {
@@ -89,9 +56,9 @@ export function DesignsSection() {
 
       <div className="container-luxury">
         <SectionHeading
-          eyebrow="التصميمات"
-          title="استكشف تصاميمنا الإبداعية"
-          subtitle="من المخططات ثنائية الأبعاد إلى العروض ثلاثية الأبعاد والفيديوهات التفاعلية"
+          eyebrow={heading.eyebrow}
+          title={heading.title}
+          subtitle={heading.subtitle ?? undefined}
         />
 
         {/* Tabs */}
@@ -100,13 +67,15 @@ export function DesignsSection() {
             {designCategories.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => selectCategory(cat.id)}
+                type="button"
+                aria-pressed={activeCategory?.slug === cat.slug}
+                onClick={() => selectCategory(cat.slug)}
                 className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
-                  active === cat.id
+                  activeCategory?.slug === cat.slug
                     ? "gold-gradient-bg text-navy"
                     : "glass-light text-muted-foreground hover:text-gold hover:border-gold/30"
                 }`}
-                style={active === cat.id ? { color: "#111111" } : {}}
+                style={activeCategory?.slug === cat.slug ? { color: "#111111" } : {}}
               >
                 {cat.label}
               </button>
@@ -116,24 +85,24 @@ export function DesignsSection() {
 
         {/* Gallery */}
         <div className="mt-8 grid grid-cols-2 lg:grid-cols-3 gap-4">
-          {activeCategory.images.map((img, i) => (
-            <Reveal key={`${active}-${i}`} delay={(i % 3) * 0.08} y={20}>
+          {images.map((image, i) => (
+            <Reveal key={image.id} delay={(i % 3) * 0.08} y={20}>
               {/* A button rather than a div: this is now interactive, so it has
                   to be reachable by keyboard and announced as an action. */}
               <button
                 type="button"
                 onClick={() => setOpenIndex(i)}
-                aria-label={`عرض ${activeCategory.label} ${i + 1} بالحجم الكامل`}
+                aria-label={`عرض ${activeCategory?.label ?? ""} ${i + 1} بالحجم الكامل`}
                 className="zoom-container relative w-full rounded-2xl overflow-hidden glass group cursor-pointer text-right focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               >
                 <img
-                  src={img}
-                  alt={`${activeCategory.label} ${i + 1}`}
+                  src={image.image_url}
+                  alt={`${activeCategory?.label ?? ""} ${i + 1}`}
                   className="zoom-image w-full h-40 sm:h-48 lg:h-52 object-cover"
                   loading="lazy"
                 />
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-4" style={{ background: "linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.8) 100%)" }}>
-                  <span className="text-white text-sm font-bold">{activeCategory.label}</span>
+                  <span className="text-white text-sm font-bold">{activeCategory?.label}</span>
                 </div>
               </button>
             </Reveal>
@@ -146,7 +115,7 @@ export function DesignsSection() {
         index={openIndex}
         onIndexChange={setOpenIndex}
         onClose={() => setOpenIndex(null)}
-        title={activeCategory.label}
+        title={activeCategory?.label ?? ""}
       />
     </section>
   );

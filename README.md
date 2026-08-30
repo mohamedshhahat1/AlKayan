@@ -75,17 +75,26 @@ No test framework is installed. There is no `test` script.
 
 ## Architecture
 
-### Static shell, client-side data
+### Two data paths, on purpose
 
-`app/page.tsx` is a Server Component that composes section components. The page
-is prerendered at build time. Each data-driven section is a Client Component
-that fetches from Supabase in a `useEffect` on mount.
+**Site copy is server-rendered.** `app/layout.tsx` calls `getSiteContent()` once
+per render and `ContentProvider` carries the result to every section. Headings,
+services, FAQs, statistics, gallery images and contact details are therefore in
+the initial HTML and are indexed. Pages revalidate every 5 minutes
+(`export const revalidate` in the layout), so an edit in the Supabase dashboard
+appears without a deploy.
 
-This is a legitimate choice for this site — the shell ships instantly and the
-portfolio is not SEO-critical — but be clear about the trade-off: **project and
-testimonial content is not in the initial HTML and is not indexed.** If that
-matters commercially, the fix is Server Components with `fetch` and a revalidate
-window, not a patch.
+**Portfolio collections stay client-side.** Projects, testimonials and partners
+are still fetched in a `useEffect` on mount. They are genuinely dynamic, may
+legitimately be empty, and a skeleton is an honest thing to show for them — but
+be clear about the trade-off: **project and testimonial content is not in the
+initial HTML and is not indexed.** Individual project pages at
+`/projects/[slug]` *are* server-rendered, so the SEO-critical half is covered.
+
+A client component that needs contact details, opening hours or warranty terms
+should call `useSiteDetails()` rather than importing `siteConfig`. `siteConfig`
+is still correct at build time and is what the page metadata is built from, but
+it cannot see a value an editor changed in the dashboard.
 
 ### One config file
 
@@ -112,8 +121,10 @@ its SVG fails to load. See [docs/BRAND-ASSETS.md](./docs/BRAND-ASSETS.md).
 Everything under `components/` that animates, fetches or holds state is
 `"use client"`.
 
-There is no server-side Supabase client. There is no privileged code path at
-all — which is why there is no secret in this repository to leak.
+There is no privileged code path anywhere — which is why there is no secret in
+this repository to leak. The content read in `app/layout.tsx` runs on the
+server, but through the same anon client and the same public `SELECT` policies
+a browser would use.
 
 ### Directory layout
 
@@ -125,9 +136,11 @@ components/ui/            shadcn/ui primitives (largely unused; see notes)
 components/icons/         hand-rolled SVG icons
 hooks/                    use-toast
 lib/                      config, supabase client, validation, helpers
+lib/content/              editable content: types, defaults, icons, fetch, context
+scripts/                  build-time codegen (the content seed)
 supabase/migrations/      SQL, applied in filename order
 docs/                     deployment and brand documentation
-public/brand/             logo.svg + company_name.svg (to be added)
+public/brand/             logo.svg, company_name.svg, hero video and poster
 ```
 
 ---
@@ -275,20 +288,66 @@ supabase db push
 | `testimonials` | anon `SELECT` | none | Client quotes with a rating. Ordered by `sort_order`. |
 | `partners` | anon `SELECT` | none | Logo marquee. Ordered by `sort_order`. |
 | `bookings` | `authenticated` `SELECT` | anon `INSERT` | Form submissions. `status` starts at `new`. |
+| `site_settings` | anon `SELECT` | none | Key/value copy: contact details, hours, warranty terms, CTA and chat strings. |
+| `section_headings` | anon `SELECT` | none | The eyebrow / title / subtitle above each section. |
+| `service_groups`, `services` | anon `SELECT` | none | The service tabs and their contents. |
+| `about_features`, `about_stats` | anon `SELECT` | none | The four strengths and three figures on /about. |
+| `process_steps` | anon `SELECT` | none | The work-process rail. |
+| `stats` | anon `SELECT` | none | The animated counters. |
+| `faqs` | anon `SELECT` | none | The accordion above the contact form. |
+| `design_categories`, `design_images` | anon `SELECT` | none | The designs gallery tabs and images. |
+| `before_after` | anon `SELECT` | none | The before/after comparison pairs. |
+| `service_options` | anon `SELECT` | none | The booking form's service dropdown. |
+| `footer_services` | anon `SELECT` | none | The footer's services column. |
+| `hero_clients` | anon `SELECT` | none | The hero's trusted-by marquee. |
+
+Every content list table carries `id` (a stable text slug), `sort_order`
+(seeded in tens, so a row slots between two others without renumbering) and
+`is_published` (take content off the site without deleting it).
 
 Read the migration files for exact columns; they are the authority.
 
+### Editing site content
+
+Everything the site says lives in the content tables above and is edited from
+the Supabase dashboard — no code change, no redeploy. Three things are worth
+knowing first:
+
+- **Nothing an editor does can break the site.** `lib/content/fetch.ts` falls
+  back per table to `lib/content/defaults.ts`, a complete copy of the shipped
+  content. A missing table, a failed request, no credentials at all, or a list
+  emptied by accident renders the original content rather than a blank section.
+  A setting whose value is blanked falls back the same way, since clearing a
+  cell is easy to do by mistake.
+- **Icons are a fixed set.** `services`, `about_features` and `process_steps`
+  store an icon *name*, resolved against the allow-list in
+  `lib/content/icons.ts`. A name outside that list renders a neutral square. To
+  add one, import it there.
+- **The defaults and the seed are the same data.** The seed inside
+  `20260830140000_editable_content.sql` is generated from `defaults.ts` by
+  `node scripts/generate-content-seed.mjs`. After changing the defaults,
+  regenerate rather than editing the SQL by hand. Each statement upserts on the
+  row's id, so re-running the migration refreshes seeded rows without
+  duplicating them or touching rows an editor added.
+
 ### 7. Row-level security
 
-RLS is **enabled on all four tables**, and there is no policy anywhere that
-allows anonymous `UPDATE` or `DELETE`. Verify after migrating:
+RLS is **enabled on every table**, and there is no policy anywhere that allows
+anonymous `UPDATE` or `DELETE`. Verify after migrating:
 
-**Dashboard → Authentication → Policies** — all four tables should show RLS
+**Dashboard → Authentication → Policies** — every table should show RLS
 enabled, with:
 
-- `projects`, `testimonials`, `partners`: one `SELECT` policy for `anon`.
+- `projects`, `testimonials`, `partners` and all the content tables: one
+  `SELECT` policy for `anon`.
 - `bookings`: one `INSERT` policy for `anon` (with the validation `WITH CHECK`),
   and one `SELECT` policy for `authenticated` only.
+
+The content tables are deliberately read-only to `anon`. Everything in them is
+already visible to anyone loading the page, so public read gives nothing away —
+but the anon key ships to every browser, so a write policy would let anyone
+rewrite the site's copy. Editing goes through the dashboard as the service
+role.
 
 The last point is the one that matters most: **`bookings` must not be readable
 by `anon`.** It holds customer names and phone numbers. If you ever see an anon

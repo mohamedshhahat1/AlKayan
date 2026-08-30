@@ -4,7 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Reveal, SectionHeading } from "@/components/reveal";
-import { allServices, serviceGroups, type Service } from "@/lib/services";
+import { resolveIcon } from "@/lib/content/icons";
+import { useContent, useHeading, useServicesInGroup } from "@/lib/content/context";
+import type { Service } from "@/lib/content/types";
 import { trackServiceView } from "@/lib/analytics";
 
 export type ServicesSectionProps = {
@@ -27,8 +29,9 @@ export type ServicesSectionProps = {
  * The services grid.
  *
  * All 26 services used to render at once in three stacked blocks; the tabs
- * reduced that to a single screen. The catalogue itself now lives in
- * lib/services.ts, because the homepage and the contact form need it too.
+ * reduced that to a single screen. The catalogue itself now lives in Supabase
+ * — see lib/content — so the groups, the services in them and their icons are
+ * an editor's decision, not a deploy.
  *
  * Each card is a link to the contact form with that service already selected —
  * the shortest path from "I want this" to an enquiry, and what makes
@@ -38,27 +41,46 @@ export function ServicesSection({
   showGroups = true,
   limit,
   showAllHref,
-  eyebrow = "خدماتنا",
-  title = "حلول متكاملة تحت سقف واحد",
-  subtitle = "باقة شاملة من خدمات المقاولات والتشطيبات والتصميم لتلبية كل احتياجاتك",
+  eyebrow,
+  title,
+  subtitle,
 }: ServicesSectionProps = {}) {
-  const [active, setActive] = useState(serviceGroups[0].id);
-  const activeGroup = serviceGroups.find((group) => group.id === active)!;
+  const { serviceGroups, services: allServices } = useContent();
+  const heading = useHeading("services");
+
+  // Seeded from the first group rather than a hardcoded slug: an editor may
+  // reorder the groups or unpublish the one that used to be first.
+  const [active, setActive] = useState(() => serviceGroups[0]?.slug ?? "");
+
+  // `find` with a fallback rather than a non-null assertion. The active slug is
+  // state and the groups come from the database, so they can change under it —
+  // an editor unpublishing the open tab between two revalidations would
+  // otherwise crash the section on a null deref.
+  const activeGroup =
+    serviceGroups.find((group) => group.slug === active) ?? serviceGroups[0];
+
+  const groupServices = useServicesInGroup(activeGroup?.slug ?? "");
 
   const services = showGroups
-    ? activeGroup.services
+    ? groupServices
     : typeof limit === "number"
       ? allServices.slice(0, limit)
       : allServices;
 
   // Part of the Reveal key, so switching tabs replays the entrance animation
   // instead of reusing the previous group's mounted cards.
-  const keyPrefix = showGroups ? active : "featured";
+  const keyPrefix = showGroups ? activeGroup?.slug ?? "none" : "featured";
 
   return (
     <section id="services" className="relative py-14 lg:py-20">
       <div className="container-luxury">
-        <SectionHeading eyebrow={eyebrow} title={title} subtitle={subtitle} />
+        {/* Props still win, so /services and the homepage can each say
+            something specific; the database supplies the default. */}
+        <SectionHeading
+          eyebrow={eyebrow ?? heading.eyebrow}
+          title={title ?? heading.title}
+          subtitle={subtitle ?? heading.subtitle ?? undefined}
+        />
 
         {showGroups && (
           <Reveal delay={0.15} className="mt-8">
@@ -68,14 +90,13 @@ export function ServicesSection({
                   key={group.id}
                   type="button"
                   role="tab"
-                  aria-selected={active === group.id}
-                  onClick={() => setActive(group.id)}
+                  aria-selected={activeGroup?.slug === group.slug}
+                  onClick={() => setActive(group.slug)}
                   className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
-                    active === group.id
-                      ? "gold-gradient-bg"
+                    activeGroup?.slug === group.slug
+                      ? "gold-gradient-bg text-on-gold"
                       : "glass-light text-muted-foreground hover:text-gold hover:border-gold/30"
                   }`}
-                  style={active === group.id ? { color: "#0B1F3A" } : {}}
                 >
                   {group.label}
                 </button>
@@ -86,7 +107,7 @@ export function ServicesSection({
 
         <div className="mt-8 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {services.map((service, i) => (
-            <Reveal key={`${keyPrefix}-${service.title}`} delay={(i % 4) * 0.06} y={20}>
+            <Reveal key={`${keyPrefix}-${service.id}`} delay={(i % 4) * 0.06} y={20}>
               <ServiceCard service={service} />
             </Reveal>
           ))}
@@ -117,6 +138,8 @@ export function ServicesSection({
  * identical.
  */
 function ServiceCard({ service }: { service: Service }) {
+  const Icon = resolveIcon(service.icon);
+
   return (
     <Link
       href={`/contact?service=${encodeURIComponent(service.title)}`}
@@ -130,12 +153,12 @@ function ServiceCard({ service }: { service: Service }) {
 
       <div className="relative">
         <div className="w-10 h-10 rounded-lg glass-gold flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-          <service.icon className="w-4 h-4 text-gold" aria-hidden="true" />
+          <Icon className="w-4 h-4 text-gold" aria-hidden="true" />
         </div>
         <h3 className="text-sm font-bold text-foreground mb-1 group-hover:text-gold transition-colors duration-300">
           {service.title}
         </h3>
-        <p className="text-xs text-muted-foreground leading-relaxed">{service.desc}</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">{service.description}</p>
       </div>
     </Link>
   );

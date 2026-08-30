@@ -3,6 +3,8 @@ import { Tajawal } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { SmoothScroll } from "@/components/smooth-scroll";
+import { getSiteContent } from "@/lib/content/fetch";
+import { ContentProvider } from "@/lib/content/context";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { WhatsAppButton } from "@/components/whatsapp-button";
@@ -58,7 +60,23 @@ export const viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+/**
+ * How long a rendered page may serve before the content tables are read again.
+ *
+ * Five minutes. The content is edited in the Supabase dashboard by hand, so
+ * the write rate is a few changes an hour at most; re-reading fifteen tables
+ * on every request to catch them would be pure waste. Long enough that the
+ * site serves from cache under load, short enough that an editor sees their
+ * change without asking anyone to redeploy.
+ */
+export const revalidate = 300;
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // One read for the whole site. The sections are client components and cannot
+  // fetch on the server themselves; this is the single place content enters
+  // the tree, and ContentProvider carries it down through every route.
+  const content = await getSiteContent();
+
   return (
     <html lang="ar" dir="rtl" className={tajawal.variable} suppressHydrationWarning>
       <head>
@@ -83,6 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={tajawal.className}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+         <ContentProvider content={content}>
           {/* Side effect only — it does not render its children. */}
           <SmoothScroll />
           {/*
@@ -110,6 +129,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           */}
           <Analytics />
           <ConsentBanner />
+         </ContentProvider>
         </ThemeProvider>
       </body>
     </html>

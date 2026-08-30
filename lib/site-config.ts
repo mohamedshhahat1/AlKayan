@@ -40,12 +40,37 @@ const phoneDigits = phoneRaw.replace(/\D/g, "");
  * conventionally grouped 2-4-4. Anything that does not match is returned
  * unformatted rather than mis-spaced.
  */
-function formatPhone(digits: string): string {
+export function formatPhone(digits: string): string {
   const match = digits.match(/^(20)(1\d)(\d{4})(\d{4})$/);
   return match ? `+${match[1]} ${match[2]} ${match[3]} ${match[4]}` : `+${digits}`;
 }
 
 const email = envOr(process.env.NEXT_PUBLIC_COMPANY_EMAIL, "info@al-kayan.com");
+
+/**
+ * Derives every phone and email link from one raw number and one address.
+ *
+ * Exported because the number is editable from Supabase as well: when a
+ * `contact.phone` setting is present, lib/content/site-details.ts calls this
+ * again with that value. The derivation has to happen in one place — the
+ * `tel:`, `wa.me`, display and E.164 forms must all agree, and a setting that
+ * moved the displayed number while the link still pointed at the old one would
+ * be worse than the number not being editable at all.
+ */
+export function buildContactLinks(rawPhone: string, rawEmail: string) {
+  const digits = rawPhone.replace(/\D/g, "");
+
+  return {
+    phone: formatPhone(digits),
+    phoneE164: "+" + digits,
+    telHref: "tel:+" + digits,
+    whatsappHref: "https://wa.me/" + digits,
+    email: rawEmail,
+    mailtoHref: "mailto:" + rawEmail,
+  };
+}
+
+const contactLinks = buildContactLinks(phoneRaw, email);
 
 /**
  * Optional links. Leave the env var unset and the corresponding icon is hidden
@@ -163,12 +188,7 @@ export const siteConfig = {
     "مقاولات مصر",
   ],
   contact: {
-    phone: formatPhone(phoneDigits),
-    phoneE164: "+" + phoneDigits,
-    telHref: "tel:+" + phoneDigits,
-    whatsappHref: "https://wa.me/" + phoneDigits,
-    email,
-    mailtoHref: "mailto:" + email,
+    ...contactLinks,
     address: "القاهرة الجديدة، القاهرة، مصر",
     addressShort: "القاهرة الجديدة، مصر",
     city: "القاهرة الجديدة",
