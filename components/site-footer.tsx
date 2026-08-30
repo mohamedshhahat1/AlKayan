@@ -23,7 +23,7 @@ const services = [
   "إشراف هندسي",
   "ترميم وتجديد",
   "تنسيق حدائق",
-  "أنطمة ذكية",
+  "أنظمة ذكية",
 ];
 
 const socials = [
@@ -42,8 +42,8 @@ export function SiteFooter() {
             {/* Nothing here labels the company, so the wordmark carries the
                 accessible name and the mark beside it is decorative. */}
             <div className="flex items-center gap-3 mb-5">
-              <BrandLogo alt="" className="h-11 shrink-0" />
-              <BrandWordmark alt={siteConfig.name} imgClassName="h-6" tone="on-dark" />
+              <BrandLogo alt="" className="h-14 shrink-0" />
+              <BrandWordmark alt={siteConfig.name} imgClassName="h-7" tone="on-dark" />
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">{siteConfig.shortDescription}</p>
 

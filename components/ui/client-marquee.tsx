@@ -87,9 +87,12 @@ export function ClientMarquee({
           style={durationSeconds ? { animationDuration: `${durationSeconds}s` } : undefined}
         >
           {[0, 1].map((copy) =>
-            clients.map((name) => (
+            clients.map((name, index) => (
               <li
-                key={`${copy}-${name}`}
+                // Keyed by position, not by name. Two clients can legitimately
+                // share a name, and a repeated entry would otherwise collide
+                // with its twin inside the same copy.
+                key={`${copy}-${index}`}
                 // The second pass exists only so the loop can close. Announcing
                 // it would read the whole client list twice.
                 aria-hidden={copy === 1 || undefined}

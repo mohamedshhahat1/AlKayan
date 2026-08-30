@@ -88,14 +88,22 @@ export function SiteHeader() {
           className="flex min-w-0 h-full items-center gap-3 sm:gap-4 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           aria-label={`${siteConfig.name} — الصفحة الرئيسية`}
         >
+          {/* These heights are the artwork's height, not a padded box's.
+              The SVGs used to sit on their Illustrator artboards — a
+              1920x1080 canvas holding a mark that filled 57% of it — so a
+              h-16 box painted a 37px mark and the logo read as small however
+              large the box was made. The canvases are now cropped to the
+              artwork, so a height set here is the height that shows, and
+              these values leave the bar some margin instead of running the
+              mark edge to edge. */}
           <BrandLogo
             alt=""
-            className="h-11 shrink-0 sm:h-14 lg:h-16"
+            className="h-10 shrink-0 sm:h-12 lg:h-14"
           />
 
           <BrandWordmark
             alt=""
-            imgClassName="h-6 sm:h-7 lg:h-8"
+            imgClassName="h-5 sm:h-6 lg:h-7"
             className="hidden min-[380px]:block"
           />
         </Link>

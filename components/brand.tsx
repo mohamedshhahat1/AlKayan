@@ -15,29 +15,49 @@ import { cn } from "@/lib/utils";
  *
  *  - The SVGs are used exactly as supplied. They are referenced by URL and
  *    never inlined, recoloured, or redrawn, so nothing in this codebase can
- *    alter the brand's visual identity.
+ *    alter the brand's visual identity. (Their viewBoxes have been cropped to
+ *    the artwork — see "Canvas padding" below — which moves no path and
+ *    changes no colour.)
  *  - Size is set with a height class and `width: auto`. Whatever aspect ratio
  *    the files happen to have is preserved at every breakpoint, which matters
  *    because the components must not assume dimensions they cannot verify.
  *  - Paths come from `siteConfig.branding`, never from a literal at the call
  *    site.
  *
- * Asset weight — OUTSTANDING
- * --------------------------
- * The supplied files are large: logo.svg is 839 KB and company_name.svg is
- * 889 KB. A vector mark is normally 2-20 KB, so ~1.7 MB across the pair points
- * to embedded raster data rather than paths, and both load in the header above
- * the fold.
+ * Asset weight — RESOLVED
+ * -----------------------
+ * This comment used to record logo.svg at 839 KB and company_name.svg at
+ * 889 KB and flag the pair as outstanding work. They are now 44 KB and 41 KB
+ * — real paths, no embedded raster — so the concern no longer applies.
+ * `decoding="async"` is kept regardless: it costs nothing and both files
+ * still load in the header above the fold.
  *
- * Nothing here modifies them — that is not this file's call to make. What it
- * does do is refuse to make the situation worse:
+ * Canvas padding — RESOLVED
+ * -------------------------
+ * Both files were exported from Illustrator on their original artboards, so
+ * the artwork floated inside a much larger empty canvas: logo.svg was a
+ * 1920x1080 box containing a mark 1083x620 in size, filling 57% of the
+ * height, and company_name.svg was a 640x480 box around a 511x223 wordmark,
+ * filling 46%.
  *
- *  - `decoding="async"` keeps a large decode off the critical path.
- *  - `max-w-full` plus `object-contain` means an unexpected intrinsic ratio
- *    letterboxes rather than pushing the header wider than the viewport. The
- *    real dimensions could not be measured, so they are not assumed.
+ * That is invisible in the file and brutal in the layout. A CSS height sizes
+ * the canvas, so `h-16` on the header logo reserved 64px and painted a 37px
+ * mark, with ~25px of dead space either side of it horizontally. The logo
+ * read as small at every size, and no CSS change could fix it — the box was
+ * already the full height of the header bar.
  *
- * See docs/BRAND-ASSETS.md for what should happen before launch.
+ * Both viewBoxes are now cropped to the measured bounding box of the paths
+ * plus a 2-unit margin, verified with getBBox() against the rendered
+ * geometry: nothing is clipped, and each canvas is now 98-99% artwork. A
+ * height set at a call site is now the height that actually shows.
+ *
+ * If either asset is ever re-exported from Illustrator, expect the padding to
+ * come back and re-crop it.
+ *
+ * `max-w-full` plus `object-contain` still guard against an unexpected
+ * intrinsic ratio pushing the header wider than the viewport.
+ *
+ * See docs/BRAND-ASSETS.md.
  *
  * Fallback
  * --------

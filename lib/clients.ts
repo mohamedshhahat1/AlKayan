@@ -11,14 +11,12 @@
  * a one-file edit and nobody has to read the hero to find out where they came
  * from.
  *
- * Latin script on purpose: the marquee renders LTR and styles these as brand
- * marks rather than as body copy, which is why they are not translated.
+ * List each name once. ClientMarquee renders the list twice itself to close
+ * its loop, so repeating entries here does not lengthen the strip evenly — it
+ * makes those names appear four times against everyone else's two. The last
+ * four entries were repeats of the first four and have been removed.
  */
 export const heroClients = [
-
-
-
-
   "شركة الدهانات الفاخرة",
   "مجموعة البورسلان الدولية",
   "شركة أنظمة السمارت هوم",
@@ -27,8 +25,4 @@ export const heroClients = [
   "مجموعة الإضاءة الحديثة",
   "شركة الخشب الطبيعي",
   "مؤسسة الألمنيوم الذهبي",
-  "شركة الدهانات الفاخرة",
-  "مجموعة البورسلان الدولية",
-  "شركة أنظمة السمارت هوم",
-  "مؤسسة الحجر الطبيعي",
 ] as const;
