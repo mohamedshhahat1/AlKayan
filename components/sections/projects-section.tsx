@@ -22,6 +22,8 @@ type Project = {
   materials_used: string[] | null;
   client_testimonial: string | null;
   client_name: string | null;
+  /** Column exists and `select("*")` fetches it; nothing renders it yet. */
+  video_url: string | null;
   hero_image: string;
   gallery_images: string[] | null;
   before_image: string | null;

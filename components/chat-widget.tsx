@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { siteConfig } from "@/lib/site-config";
+import { arabicYears } from "@/lib/arabic";
 
 type Message = { id: number; from: "bot" | "user"; text: string };
 
@@ -17,7 +18,7 @@ const answers: Array<{ keywords: string[]; reply: string }> = [
   },
   {
     keywords: ["ضمان", "الضمان"],
-    reply: `نقدم ضماناً لمدة ${warranty.structuralYears} سنتين على الأعمال الإنشائية وسنة واحدة على أعمال التشطيبات.`,
+    reply: `نقدم ضماناً لمدة ${arabicYears(warranty.structuralYears)} على الأعمال الإنشائية و${arabicYears(warranty.finishingYears)} على أعمال التشطيبات.`,
   },
   {
     keywords: ["مدة", "مده", "وقت", "كم يوم", "متى يخلص", "تسليم"],

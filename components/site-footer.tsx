@@ -50,34 +50,34 @@ export function SiteFooter() {
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">{siteConfig.shortDescription}</p>
 
-            {(socials.length > 0 || true) && (
-              <ul className="flex items-center gap-3 mt-6">
-                <li>
+            {/* WhatsApp is always available, so the list always renders; the
+                optional social profiles below it may be empty. */}
+            <ul className="flex items-center gap-3 mt-6">
+              <li>
+                <a
+                  href={siteConfig.contact.whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="واتساب"
+                  className="w-10 h-10 rounded-full glass-on-dark flex items-center justify-center text-gray-300 hover:text-gold hover:border-gold/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                >
+                  <WhatsAppIcon className="w-4 h-4 fill-current" />
+                </a>
+              </li>
+              {socials.map(({ href, label, Icon }) => (
+                <li key={label}>
                   <a
-                    href={siteConfig.contact.whatsappHref}
+                    href={href as string}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="واتساب"
+                    aria-label={label}
                     className="w-10 h-10 rounded-full glass-on-dark flex items-center justify-center text-gray-300 hover:text-gold hover:border-gold/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                   >
-                    <WhatsAppIcon className="w-4 h-4 fill-current" />
+                    <Icon className="w-4 h-4" aria-hidden="true" />
                   </a>
                 </li>
-                {socials.map(({ href, label, Icon }) => (
-                  <li key={label}>
-                    <a
-                      href={href as string}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={label}
-                      className="w-10 h-10 rounded-full glass-on-dark flex items-center justify-center text-gray-300 hover:text-gold hover:border-gold/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-                    >
-                      <Icon className="w-4 h-4" aria-hidden="true" />
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
+              ))}
+            </ul>
           </div>
 
           <nav aria-labelledby="footer-links">
