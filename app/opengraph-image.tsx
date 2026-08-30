@@ -2,6 +2,7 @@
 // only introduced in Next 14 — switch these imports if the project upgrades.
 import { ImageResponse } from "next/server";
 import { siteConfig } from "@/lib/site-config";
+import { LogoMark } from "@/components/brand/logo-mark";
 
 export const runtime = "edge";
 export const alt = siteConfig.title;
@@ -15,10 +16,8 @@ export const contentType = "image/png";
  * glyphs, so Arabic text would render as blank boxes. Swap in a Tajawal .ttf
  * via the `fonts` option if an Arabic card is needed.
  *
- * The card should eventually carry the real logo rather than set type — the
- * pattern is to read the file with
- * fetch(new URL("./file.png", import.meta.url)).arrayBuffer() and pass it to
- * an <img>. That needs the artwork committed inside app/ first.
+ * The card now carries the real mark. No file to fetch and decode: the mark is
+ * a component, so Satori lays out its vectors directly.
  */
 export default function Image() {
   return new ImageResponse(
@@ -32,13 +31,20 @@ export default function Image() {
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "#111111",
+          // The mark is painted with currentColor; flat gold reads better than
+          // the gradient at this scale and avoids relying on Satori's <defs>
+          // support.
+          color: "#C9A15A",
           backgroundImage:
             "radial-gradient(circle at 25% 20%, rgba(201,161,90,0.22) 0%, transparent 55%)",
         }}
       >
+        <LogoMark tone="current" width={150} height={150} />
+
         <div
           style={{
-            fontSize: 108,
+            marginTop: 30,
+            fontSize: 92,
             fontWeight: 800,
             letterSpacing: 12,
             color: "#C9A15A",

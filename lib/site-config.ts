@@ -40,8 +40,12 @@ const instagram = process.env.NEXT_PUBLIC_INSTAGRAM_URL || null;
 export const siteConfig = {
   name: "الكيان",
   nameEn: "AL-KAYAN",
-  /** Two-letter Arabic monogram used in the logo tiles. */
-  monogram: "الك",
+  /**
+   * The descriptor that sits under the wordmark in the logo lockup. Not the
+   * same string as `legalName`: this is the trading line, the other is the
+   * registered entity used in the copyright notice and structured data.
+   */
+  descriptor: "للتشطيبات والمقاولات",
   legalName: "الكيان للمقاولات والتشطيبات",
   title: "الكيان | شركة مقاولات وتشطيبات داخلية فاخرة",
   description:

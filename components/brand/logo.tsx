@@ -1,79 +1,91 @@
-import Image from "next/image";
+import { LogoMark, type LogoTone } from "@/components/brand/logo-mark";
 import { siteConfig } from "@/lib/site-config";
 
 /**
  * The brand logo.
  *
- * This is the only module that knows where the logo artwork lives — nothing
- * else should reference /brand/* directly. Two official variants are supplied
- * and each has one job:
+ * This is the only module that knows what the logo looks like — nothing else
+ * should draw a monogram tile or reach for an image path. Two variants, each
+ * with one job:
  *
- *   mark    The triangle-and-skyline symbol on its own. Used wherever the
- *           available height is under roughly 64px, because the wordmark and
- *           tagline inside the full lockup stop being readable below that.
- *   lockup  Symbol + الكيان wordmark + tagline. Used where there is room to
- *           actually read it: the footer, and any intro treatment.
+ *   mark    The symbol on its own. Use where there is no room to read a
+ *           wordmark, or where the company name is already announced beside it.
+ *   lockup  Symbol + الكيان wordmark + descriptor. Use in the header, the
+ *           footer, and any intro treatment.
  *
- * Sizing contract: callers pass height utilities through `className`. The
- * component pins `w-auto`, so the browser derives the width from the
- * artwork's own proportions instead of from the width attribute below. A
- * caller who passes the wrong box therefore cannot stretch the logo, and it
- * never needs cropping to fit. `object-contain` is a second guard for callers
- * that set both dimensions anyway.
+ * The wordmark is real text in Cairo, not part of the artwork. That keeps it
+ * selectable, translatable and searchable, lets it hint against the pixel grid
+ * at small sizes the way an outlined path never can, and means the display face
+ * already loaded for the headings is reused rather than a second copy of the
+ * same glyphs being shipped as vectors.
  *
- * The declared width/height only reserve layout space to prevent shift; they
- * are not a promise about the file's exact pixel size.
- *
- * No filter, shadow, gradient or glow is applied here, and none should be
- * added by a caller — the artwork ships with its own finish.
+ * Sizing contract: callers pass a height utility through `className` and the
+ * symbol scales from it. A caller therefore cannot stretch the logo, and the
+ * wordmark's own scale is set by `size` rather than being derived from a box.
  */
 
-const VARIANTS = {
-  mark: {
-    src: "/brand/al-kayan-mark.png",
-    width: 880,
-    height: 546,
-  },
-  lockup: {
-    src: "/brand/al-kayan-lockup.png",
-    width: 1244,
-    height: 1244,
-  },
+const SIZES = {
+  /** Footer, mobile header. */
+  sm: { mark: "h-10 w-10", name: "text-lg", descriptor: "text-[9px]" },
+  /** Desktop header. */
+  md: { mark: "h-12 w-12 sm:h-14 sm:w-14", name: "text-xl sm:text-2xl", descriptor: "text-[10px] sm:text-[11px]" },
+  /** Intro treatments, Open Graph. */
+  lg: { mark: "h-20 w-20", name: "text-4xl", descriptor: "text-sm" },
 } as const;
 
-export type LogoVariant = keyof typeof VARIANTS;
+export type LogoSize = keyof typeof SIZES;
+export type LogoVariant = "mark" | "lockup";
 
 type LogoProps = {
   variant?: LogoVariant;
-  /** Height utilities, e.g. "h-10 sm:h-11". Width is always derived. */
+  size?: LogoSize;
+  tone?: LogoTone;
   className?: string;
-  /** Set on the header instance only — it is the one above the fold. */
-  priority?: boolean;
   /**
-   * Use when the company name is already announced next to the logo. An empty
-   * alt keeps the image out of the accessibility tree rather than having a
-   * screen reader read the same name twice.
+   * Colour for the descriptor line. A separate prop rather than something the
+   * caller folds into `className`, because two colour utilities on one element
+   * are resolved by their order in the compiled stylesheet, not by their order
+   * in the string — so a caller's override would win or lose unpredictably.
+   * The header needs this: the descriptor sits on the hero photograph before
+   * the header acquires its surface, and muted ink is unreadable there.
    */
-  decorative?: boolean;
+  descriptorClassName?: string;
 };
 
 export function Logo({
-  variant = "mark",
-  className = "h-11",
-  priority = false,
-  decorative = false,
+  variant = "lockup",
+  size = "md",
+  tone = "gold",
+  className = "",
+  descriptorClassName = "text-ink-muted",
 }: LogoProps) {
-  const asset = VARIANTS[variant];
+  const scale = SIZES[size];
+
+  if (variant === "mark") {
+    return <LogoMark tone={tone} className={`${scale.mark} ${className}`} />;
+  }
 
   return (
-    <Image
-      src={asset.src}
-      width={asset.width}
-      height={asset.height}
-      alt={decorative ? "" : siteConfig.legalName}
-      priority={priority}
-      className={`w-auto object-contain ${className}`}
-      draggable={false}
-    />
+    <span className={`flex items-center gap-3 ${className}`}>
+      <LogoMark tone={tone} className={`${scale.mark} flex-shrink-0`} />
+      <span className="flex flex-col leading-none">
+        <span
+          className={`font-display font-extrabold ${scale.name} ${
+            // The gradient text treatment only reads on a dark surface. On a
+            // gold fill the caller passes tone="current" and the wordmark
+            // follows the surrounding ink instead.
+            tone === "gold" ? "gold-gradient-text" : "text-current"
+          }`}
+        >
+          {siteConfig.name}
+        </span>
+        {/* The descriptor from the logo lockup itself. No letter-spacing:
+            tracking breaks the cursive joins in Arabic, so للتشطيبات would
+            render as disconnected letterforms. */}
+        <span className={`${scale.descriptor} mt-1.5 font-medium ${descriptorClassName}`}>
+          {siteConfig.descriptor}
+        </span>
+      </span>
+    </span>
   );
 }

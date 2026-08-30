@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { Calendar, ArrowLeft } from "lucide-react";
+import { LogoMark } from "@/components/brand/logo-mark";
 
 /**
  * Brand constants, written as literals rather than tokens.
@@ -140,9 +141,13 @@ export function HeroSection() {
         className="relative z-20 h-full flex items-center justify-center"
       >
         <div className="container-luxury text-center">
-          {/* TODO(logo): the lockup mounts here — <Logo variant="lockup" /> above
-              the headline, once public/brand/ holds the real artwork. Left as
-              type until then rather than shipping a broken <img>. */}
+          {/* The mark, above the headline. Only the symbol: the wordmark and
+              descriptor would repeat the eyebrow and the h1 immediately below
+              it, and the lockup's muted descriptor is the wrong weight against
+              a photograph. */}
+          <div className="hero-in flex justify-center mb-6" style={{ animationDelay: "0.15s" }}>
+            <LogoMark tone="current" className="h-20 w-20 sm:h-24 sm:w-24" style={{ color: GOLD, filter: "drop-shadow(0 4px 16px rgba(17,17,17,0.55))" }} />
+          </div>
 
           {/* Eyebrow: the company descriptor from the logo itself, flanked by
               gold hairlines.

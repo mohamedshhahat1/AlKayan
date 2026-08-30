@@ -2,6 +2,7 @@
 
 import { Phone, Mail, MapPin, Clock, Facebook, Instagram } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
+import { Logo } from "@/components/brand/logo";
 import { siteConfig } from "@/lib/site-config";
 
 const quickLinks = [
@@ -39,15 +40,12 @@ export function SiteFooter() {
       <div className="container-luxury py-16 lg:py-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
           <div>
-            <div className="flex items-center gap-3 mb-5">
-              <span className="flex items-center justify-center w-11 h-11 rounded-xl gold-gradient-bg text-navy-deep font-extrabold text-lg">
-                {siteConfig.monogram}
-              </span>
-              <span className="flex flex-col leading-tight">
-                <span className="text-lg font-extrabold gold-gradient-text">{siteConfig.name}</span>
-                <span className="text-[10px] tracking-[0.25em] text-gray-400">{siteConfig.nameEn}</span>
-              </span>
-            </div>
+            <Logo
+              variant="lockup"
+              size="sm"
+              className="mb-5"
+              descriptorClassName="text-gray-400"
+            />
             <p className="text-sm text-gray-400 leading-relaxed">{siteConfig.shortDescription}</p>
 
             {/* WhatsApp is always available, so the list always renders; the

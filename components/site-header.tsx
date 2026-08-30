@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Menu, X, Phone } from "lucide-react";
+import { Logo } from "@/components/brand/logo";
 import { siteConfig } from "@/lib/site-config";
 import { lockScroll, unlockScroll } from "@/lib/lenis";
 import { getScrollOffset } from "@/lib/header-offset";
@@ -125,16 +126,18 @@ export function SiteHeader() {
       <div className="container-luxury flex items-center justify-between gap-4">
         <a
           href="#hero"
-          className="flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-lg"
+          className="rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           aria-label={`${siteConfig.name} — العودة إلى أعلى الصفحة`}
         >
-          <span className="flex items-center justify-center w-11 h-11 rounded-xl gold-gradient-bg text-navy-deep font-extrabold text-lg">
-            {siteConfig.monogram}
-          </span>
-          <span className="flex flex-col leading-tight">
-            <span className="text-lg font-extrabold gold-gradient-text">{siteConfig.name}</span>
-            <span className="text-[10px] tracking-[0.25em] text-muted-foreground">{siteConfig.nameEn}</span>
-          </span>
+          {/* The lockup carries the company name as text, so the anchor's
+              aria-label is the only announcement a screen reader needs. */}
+          <Logo
+            variant="lockup"
+            size="md"
+            // Before the header takes on its own surface it sits directly on
+            // the hero photograph, where muted ink disappears.
+            descriptorClassName={scrolled ? "text-ink-muted" : "text-white/85"}
+          />
         </a>
 
         <nav aria-label="التنقل الرئيسي" className="hidden lg:flex items-center gap-1">
