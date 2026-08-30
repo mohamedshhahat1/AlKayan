@@ -2,75 +2,34 @@
 
 import { useRef, useState } from "react";
 import { Reveal, SectionHeading } from "@/components/reveal";
-import {
-  Building2, Home, Briefcase, Store, Stethoscope, UtensilsCrossed,
-  Building, Sofa, Palette, Ruler, Box, Trees, Flower2, DoorOpen,
-  Sun, Zap, Droplets, Layers, Paintbrush, Grid3x3, Gem, TreePine,
-  Cpu, RefreshCw, Wrench, type LucideIcon
-} from "lucide-react";
-
-type Service = {
-  icon: LucideIcon;
-  title: string;
-  desc: string;
-};
-
-const serviceGroups: { id: string; label: string; services: Service[] }[] = [
-  {
-    id: "finishing",
-    label: "التشطيبات",
-    services: [
-      { icon: Home, title: "تشطيب الشقق", desc: "تصاميم عصرية وجودة عالية" },
-      { icon: Building2, title: "تشطيب الفلل", desc: "فلل فاخرة بأدق التفاصيل" },
-      { icon: Briefcase, title: "تشطيب المكاتب", desc: "مساحات عمل احترافية" },
-      { icon: Store, title: "تشطيب المحلات", desc: "تصاميم تجارية جذابة" },
-      { icon: Stethoscope, title: "تشطيب العيادات", desc: "بيئات طبية نزيهة ومريحة" },
-      { icon: UtensilsCrossed, title: "المطاعم والكافيهات", desc: "أجواء استثنائية لا تُنسى" },
-      { icon: Building, title: "تشطيب الشركات", desc: "مقرات تعكس الاحترافية" },
-    ],
-  },
-  {
-    id: "design",
-    label: "التصميم",
-    services: [
-      { icon: Sofa, title: "تصميم داخلي", desc: "تصاميم فاخرة تناسب ذوقك" },
-      { icon: Palette, title: "تصميم خارجي", desc: "واجهات معمارية لافتة" },
-      { icon: Ruler, title: "تصميم 2D", desc: "مخططات دقيقة وشاملة" },
-      { icon: Box, title: "تصميم 3D", desc: "مشاهدة واقعية قبل التنفيذ" },
-      { icon: Trees, title: "تصميم حدائق", desc: "مساحات خضراء ساحرة" },
-      { icon: Flower2, title: "تصميم المناطر", desc: "تنسيق خارجي متكامل" },
-      { icon: DoorOpen, title: "المداخل", desc: "انطباع أول قوي" },
-      { icon: Sun, title: "الواجهات", desc: "واجهات مبتكرة وعصرية" },
-    ],
-  },
-  {
-    id: "specialized",
-    label: "الأعمال المتخصصة",
-    services: [
-      { icon: Zap, title: "الإضاءة", desc: "أنظمة تخلق الأجواء المثالية" },
-      { icon: Droplets, title: "السباكة", desc: "أنظمة صحية متكاملة" },
-      { icon: Layers, title: "الجبس بورد", desc: "تشكيلات ديكورية أنيقة" },
-      { icon: Paintbrush, title: "الدهانات", desc: "دهانات فاخرة ودائمة" },
-      { icon: Grid3x3, title: "الأرضيات", desc: "أفضل الخامات والتشطيبات" },
-      { icon: Gem, title: "الرخام", desc: "أعمال رخام فاخرة" },
-      { icon: TreePine, title: "النجارة", desc: "دقة وخامات ممتازة" },
-      { icon: DoorOpen, title: "الألمنيوم", desc: "ألمنيوم حراري وديكوري" },
-      { icon: Cpu, title: "السمارت هوم", desc: "أنظمة منزل ذكي متكاملة" },
-      { icon: RefreshCw, title: "الترميم", desc: "تجديد بلمسة عصرية" },
-      { icon: Wrench, title: "الصيانة", desc: "صيانة دورية احترافية" },
-    ],
-  },
-];
+import { resolveIcon } from "@/lib/content/icons";
+import { useContent, useHeading, useServicesInGroup } from "@/lib/content/context";
 
 /**
- * All 26 services used to render at once in three stacked blocks. Same
- * catalogue, but only the active group is in the DOM, so the section is a
+ * The service catalogue used to render all at once in three stacked blocks.
+ * Same catalogue, but only the active group is in the DOM, so the section is a
  * single screen instead of three.
+ *
+ * Groups, services, icons and the heading above them all come from Supabase —
+ * see lib/content. The three-tab shape is the only thing fixed here; the
+ * number of tabs and what is in them is an editor's decision.
  */
 export function ServicesSection() {
-  const [active, setActive] = useState(serviceGroups[0].id);
-  const activeGroup = serviceGroups.find((group) => group.id === active)!;
+  const { serviceGroups } = useContent();
+  const heading = useHeading("services");
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  // Seeded from the first group rather than a hardcoded slug: an editor may
+  // reorder the groups or unpublish the one that used to be first.
+  const [active, setActive] = useState(() => serviceGroups[0]?.slug ?? "");
+
+  // `find` rather than a non-null assertion. The active slug is state, and the
+  // groups can change under it — an editor unpublishing the open tab between
+  // two revalidations would otherwise crash the section on a null deref.
+  const activeGroup =
+    serviceGroups.find((group) => group.slug === active) ?? serviceGroups[0];
+
+  const activeServices = useServicesInGroup(activeGroup?.slug ?? "");
 
   /**
    * Roving focus for the tablist.
@@ -94,7 +53,7 @@ export function ServicesSection() {
 
     if (next === null) return;
     event.preventDefault();
-    setActive(serviceGroups[next].id);
+    setActive(serviceGroups[next].slug);
     tabRefs.current[next]?.focus();
   };
 
@@ -110,9 +69,9 @@ export function ServicesSection() {
     >
       <div className="container-luxury">
         <SectionHeading
-          eyebrow="خدماتنا"
-          title="حلول متكاملة تحت سقف واحد"
-          subtitle="باقة شاملة من خدمات المقاولات والتشطيبات والتصميم لتلبية كل احتياجاتك"
+          eyebrow={heading.eyebrow}
+          title={heading.title}
+          subtitle={heading.subtitle ?? undefined}
         />
 
         <Reveal delay={0.15} className="mt-10">
@@ -122,7 +81,7 @@ export function ServicesSection() {
             className="flex flex-wrap items-center justify-center gap-2 sm:gap-3"
           >
             {serviceGroups.map((group, index) => {
-              const isActive = active === group.id;
+              const isActive = activeGroup?.slug === group.slug;
               return (
                 <button
                   key={group.id}
@@ -131,12 +90,12 @@ export function ServicesSection() {
                   }}
                   type="button"
                   role="tab"
-                  id={`services-tab-${group.id}`}
+                  id={`services-tab-${group.slug}`}
                   aria-selected={isActive}
-                  aria-controls={`services-panel-${group.id}`}
+                  aria-controls={`services-panel-${group.slug}`}
                   /* Only the active tab is in the tab order; arrows move within. */
                   tabIndex={isActive ? 0 : -1}
-                  onClick={() => setActive(group.id)}
+                  onClick={() => setActive(group.slug)}
                   onKeyDown={(event) => onTabKeyDown(event, index)}
                   className={`rounded-sm px-6 py-3 text-sm font-semibold transition-colors duration-400 ease-arch focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
                     isActive
@@ -153,12 +112,15 @@ export function ServicesSection() {
 
         <div
           role="tabpanel"
-          id={`services-panel-${activeGroup.id}`}
-          aria-labelledby={`services-tab-${activeGroup.id}`}
+          id={`services-panel-${activeGroup?.slug ?? "none"}`}
+          aria-labelledby={`services-tab-${activeGroup?.slug ?? "none"}`}
           className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4"
         >
-          {activeGroup.services.map((service, i) => (
-            <Reveal key={`${active}-${service.title}`} delay={(i % 4) * 0.06} y={20}>
+          {activeServices.map((service, i) => {
+            const Icon = resolveIcon(service.icon);
+
+            return (
+            <Reveal key={service.id} delay={(i % 4) * 0.06} y={20}>
               {/*
                 A card, not a glass panel: #242424 fill, hairline border, 4px
                 corner. On hover it steps to #2B2B2B, the border warms to the
@@ -167,15 +129,16 @@ export function ServicesSection() {
               */}
               <div className="group h-full cursor-default rounded-sm border border-line-subtle bg-card p-5 transition-[background-color,border-color,transform] duration-500 ease-arch hover:-translate-y-0.5 hover:border-line-gold hover:bg-card-hover">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-sm border border-line-gold/60 bg-gold/10">
-                  <service.icon className="h-4 w-4 text-gold" aria-hidden="true" />
+                  <Icon className="h-4 w-4 text-gold" aria-hidden="true" />
                 </div>
                 <h3 className="font-display mb-1.5 text-sm font-bold text-ink transition-colors duration-400 ease-arch group-hover:text-gold">
                   {service.title}
                 </h3>
-                <p className="text-xs leading-relaxed text-ink-muted">{service.desc}</p>
+                <p className="text-xs leading-relaxed text-ink-muted">{service.description}</p>
               </div>
             </Reveal>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

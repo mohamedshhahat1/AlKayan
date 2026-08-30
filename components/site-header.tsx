@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Menu, X, Phone } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
+import { useSiteDetails } from "@/lib/content/context";
 import { siteConfig } from "@/lib/site-config";
 import { lockScroll, unlockScroll } from "@/lib/lenis";
 import { getScrollOffset } from "@/lib/header-offset";
@@ -26,6 +27,7 @@ const navLinks = [
 const NAV_SHADOW = "0 1px 2px rgba(8,24,48,0.45)";
 
 export function SiteHeader() {
+  const { contact } = useSiteDetails();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeHref, setActiveHref] = useState("#hero");
@@ -177,11 +179,11 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <a
-            href={siteConfig.contact.telHref}
+            href={contact.telHref}
             className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full gold-gradient-bg text-navy-deep text-sm font-bold hover:scale-105 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
             <Phone className="w-4 h-4" aria-hidden="true" />
-            <span dir="ltr">{siteConfig.contact.phone}</span>
+            <span dir="ltr">{contact.phone}</span>
           </a>
 
           <button
@@ -231,12 +233,12 @@ export function SiteHeader() {
           })}
           <li className="pt-4">
             <a
-              href={siteConfig.contact.telHref}
+              href={contact.telHref}
               onClick={() => setMenuOpen(false)}
               className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-full gold-gradient-bg text-navy-deep font-bold"
             >
               <Phone className="w-4 h-4" aria-hidden="true" />
-              <span dir="ltr">{siteConfig.contact.phone}</span>
+              <span dir="ltr">{contact.phone}</span>
             </a>
           </li>
         </ul>

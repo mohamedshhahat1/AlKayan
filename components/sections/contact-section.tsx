@@ -13,49 +13,7 @@ import {
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import { bookingSchema, collectErrors, type BookingErrors } from "@/lib/validation";
 import { siteConfig } from "@/lib/site-config";
-
-/** Top six only, and collapsed by default so the block starts short. */
-const faqs = [
-  {
-    q: "ما هي مدة تنفيذ المشروع؟",
-    a: "تختلف مدة التنفيذ حسب نوع وحجم المشروع. الشقق السكنية تستغرق عادة 60-90 يوماً، بينما الفلل قد تستغرق 120-180 يوماً. نقدم لك جدولاً زمنياً دقيقاً بعد الاستشارة الأولى.",
-  },
-  {
-    q: "هل تقدمون ضماناً على الأعمال؟",
-    a: "نعم، نقدم ضماناً شاملاً على جميع أعمالنا. مدة الضمان تختلف حسب نوع العمل، وتصل إلى سنتين للأعمال الإنشائية وسنة للتشطيبات والديكورات.",
-  },
-  {
-    q: "هل يمكنني رؤية المشروع قبل التنفيذ؟",
-    a: "بالتأكيد. نوفر تصاميم ثلاثية الأبعاد وعروضاً واقعية لمشروعك قبل بدء التنفيذ، حتى تتمكن من رؤية كل تفصيلة والموافقة عليها.",
-  },
-  {
-    q: "كيف يتم تحديد تكلفة المشروع؟",
-    a: "نقوم بزيارة الموقع مجاناً ثم نقدم عرض سعر مفصلاً وشفافاً يشمل جميع التكاليف بدون أي رسوم خفية. السعر يعتمد على المساحة، الخامات المطلوبة، ونوع التشطيب.",
-  },
-  {
-    q: "هل تعملون في جميع المحافظات؟",
-    a: "نعمل في جميع المحافظات الرئيسية بجمهورية مصر العربية. للاستفسار عن توفر الخدمة في منطقتك، يرجى التواصل معنا عبر نموذج الاتصال أو الواتساب.",
-  },
-  {
-    q: "ما هي طرق الدفع المتاحة؟",
-    a: "نقدم خطط دفع مرنة على دفعات مرتبطة بمراحل المشروع. نقبل التحويل البنكي والشيكات. يتم الاتفاق على جدول الدفع في عقد المشروع.",
-  },
-];
-
-const serviceOptions = [
-  "تشطيب شقة",
-  "تشطيب فيلا",
-  "تشطيب مكتب",
-  "تشطيب عيادة",
-  "تشطيب مطعم",
-  "تشطيب محل تجاري",
-  "تصميم داخلي",
-  "تصميم خارجي وواجهات",
-  "تنسيق حدائق",
-  "ترميم وتجديد",
-  "إشراف هندسي",
-  "أخرى",
-];
+import { useContent, useHeading, useSetting, useSiteDetails } from "@/lib/content/context";
 
 const emptyForm = {
   name: "",
@@ -78,6 +36,18 @@ type SubmitState = "idle" | "submitting" | "success" | "error";
  * heading, and the "تواصل معنا" nav link would scroll to the FAQ.
  */
 export function ContactSection() {
+  const { faqs, serviceOptions } = useContent();
+  const { contact, hours } = useSiteDetails();
+  const faqHeading = useHeading("faq");
+
+  const ctaTitleLead = useSetting("cta.title_lead", "جاهز لبدء");
+  const ctaTitleAccent = useSetting("cta.title_accent", "مشروعك؟");
+  const ctaSubtitle = useSetting("cta.subtitle", "");
+  const callLabel = useSetting("cta.call_label", "اتصل الآن");
+  const whatsappLabel = useSetting("cta.whatsapp_label", "واتساب");
+  const submitLabel = useSetting("form.submit_label", "احجز استشارتك المجانية");
+  const successMessage = useSetting("form.success", "تم استلام طلبك بنجاح.");
+
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<BookingErrors>({});
   const [state, setState] = useState<SubmitState>("idle");
@@ -142,29 +112,26 @@ export function ContactSection() {
       <div className="container-luxury">
         {/* FAQ */}
         <div id="faq">
-          <SectionHeading
-            eyebrow="الأسئلة الشائعة"
-            title="إجابات على أكثر تساؤلاتكم"
-          />
+          <SectionHeading eyebrow={faqHeading.eyebrow} title={faqHeading.title} />
 
           <Reveal delay={0.15} className="mt-8 max-w-3xl mx-auto">
             <Accordion type="single" collapsible className="space-y-3">
               {faqs.map((faq, i) => (
                 <AccordionItem
-                  key={i}
+                  key={faq.id}
                   value={`item-${i}`}
                   className="glass rounded-xl px-5 border border-border data-[state=open]:border-gold/30 transition-colors duration-300"
                 >
                   <AccordionTrigger className="text-right hover:no-underline py-4 group">
                     <span className="flex items-center justify-between w-full gap-4">
                       <span className="text-sm font-bold text-foreground group-data-[state=open]:text-gold transition-colors duration-300">
-                        {faq.q}
+                        {faq.question}
                       </span>
                       <ChevronDown className="w-4 h-4 text-gold flex-shrink-0 transition-transform duration-300 group-data-[state=open]:rotate-180" />
                     </span>
                   </AccordionTrigger>
                   <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-5 pt-1">
-                    {faq.a}
+                    {faq.answer}
                   </AccordionContent>
                 </AccordionItem>
               ))}
@@ -179,30 +146,28 @@ export function ContactSection() {
             <div className="glass rounded-3xl border border-gold/20 p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 text-center lg:text-right">
               <div>
                 <h2 className="text-2xl lg:text-3xl font-extrabold text-foreground">
-                  جاهز لبدء <span className="gold-gradient-text">مشروعك؟</span>
+                  {ctaTitleLead} <span className="gold-gradient-text">{ctaTitleAccent}</span>
                 </h2>
-                <p className="text-sm text-muted-foreground mt-2">
-                  معاينة واستشارة مجانية، ورد من فريقنا خلال 24 ساعة
-                </p>
+                <p className="text-sm text-muted-foreground mt-2">{ctaSubtitle}</p>
               </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-shrink-0">
                 <a
-                  href={siteConfig.contact.telHref}
+                  href={contact.telHref}
                   className="shimmer-btn gold-gradient-bg font-bold text-sm px-7 py-3 rounded-full flex items-center justify-center gap-2 hover:scale-105 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   style={{ color: "#0B1F3A" }}
                 >
                   <Phone className="w-4 h-4" aria-hidden="true" />
-                  اتصل الآن
+                  {callLabel}
                 </a>
                 <a
-                  href={siteConfig.contact.whatsappHref}
+                  href={contact.whatsappHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="glass-light border border-border text-foreground font-bold text-sm px-7 py-3 rounded-full flex items-center justify-center gap-2 hover:text-gold hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                 >
                   <WhatsAppIcon className="w-4 h-4 fill-gold" />
-                  واتساب
+                  {whatsappLabel}
                 </a>
               </div>
             </div>
@@ -215,7 +180,7 @@ export function ContactSection() {
             <ul className="space-y-3">
               <li>
                 <a
-                  href={siteConfig.contact.telHref}
+                  href={contact.telHref}
                   className="flex items-start gap-3 glass rounded-xl p-4 hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                 >
                   <span className="w-9 h-9 rounded-lg glass-gold flex items-center justify-center flex-shrink-0">
@@ -224,7 +189,7 @@ export function ContactSection() {
                   <span>
                     <span className="block text-xs text-muted-foreground mb-0.5">اتصل بنا</span>
                     <span className="block text-sm font-bold text-foreground" dir="ltr">
-                      {siteConfig.contact.phone}
+                      {contact.phone}
                     </span>
                   </span>
                 </a>
@@ -232,7 +197,7 @@ export function ContactSection() {
 
               <li>
                 <a
-                  href={siteConfig.contact.mailtoHref}
+                  href={contact.mailtoHref}
                   className="flex items-start gap-3 glass rounded-xl p-4 hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                 >
                   <span className="w-9 h-9 rounded-lg glass-gold flex items-center justify-center flex-shrink-0">
@@ -240,14 +205,14 @@ export function ContactSection() {
                   </span>
                   <span className="min-w-0">
                     <span className="block text-xs text-muted-foreground mb-0.5">البريد الإلكتروني</span>
-                    <span className="block text-sm font-bold text-foreground break-all">{siteConfig.contact.email}</span>
+                    <span className="block text-sm font-bold text-foreground break-all">{contact.email}</span>
                   </span>
                 </a>
               </li>
 
               <li>
                 <a
-                  href={siteConfig.contact.mapsHref}
+                  href={contact.mapsHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-start gap-3 glass rounded-xl p-4 hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
@@ -257,7 +222,7 @@ export function ContactSection() {
                   </span>
                   <span>
                     <span className="block text-xs text-muted-foreground mb-0.5">العنوان</span>
-                    <span className="block text-sm font-bold text-foreground">{siteConfig.contact.address}</span>
+                    <span className="block text-sm font-bold text-foreground">{contact.address}</span>
                   </span>
                 </a>
               </li>
@@ -269,8 +234,8 @@ export function ContactSection() {
                 </span>
                 <span>
                   <span className="block text-xs text-muted-foreground mb-0.5">ساعات العمل</span>
-                  <span className="block text-sm font-bold text-foreground">{siteConfig.hours.days}</span>
-                  <span className="block text-xs text-muted-foreground">{siteConfig.hours.time}</span>
+                  <span className="block text-sm font-bold text-foreground">{hours.days}</span>
+                  <span className="block text-xs text-muted-foreground">{hours.time}</span>
                 </span>
               </li>
             </ul>
@@ -332,8 +297,8 @@ export function ContactSection() {
                   >
                     <option value="">اختر الخدمة</option>
                     {serviceOptions.map((service) => (
-                      <option key={service} value={service}>
-                        {service}
+                      <option key={service.id} value={service.label}>
+                        {service.label}
                       </option>
                     ))}
                   </select>
@@ -382,7 +347,7 @@ export function ContactSection() {
                 className="mt-6 w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-full gold-gradient-bg text-navy-deep font-bold shimmer-btn hover:scale-[1.02] transition-transform duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 <Send className="w-4 h-4" aria-hidden="true" />
-                {state === "submitting" ? "جارٍ الإرسال..." : "احجز استشارتك المجانية"}
+                {state === "submitting" ? "جارٍ الإرسال..." : submitLabel}
               </button>
 
               <div aria-live="polite" className="mt-3">
@@ -395,7 +360,7 @@ export function ContactSection() {
                 {state === "success" && (
                   <p className="flex items-center gap-2 text-sm text-green-400">
                     <CheckCircle2 className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-                    تم استلام طلبك بنجاح. سنتواصل معك خلال 24 ساعة.
+                    {successMessage}
                   </p>
                 )}
                 {state === "error" && (

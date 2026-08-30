@@ -3,6 +3,7 @@
 import { Phone, Mail, MapPin, Clock, Facebook, Instagram } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { Logo } from "@/components/brand/logo";
+import { useSiteDetails } from "@/lib/content/context";
 import { siteConfig } from "@/lib/site-config";
 
 const quickLinks = [
@@ -33,6 +34,7 @@ const socials = [
 ].filter((item) => Boolean(item.href));
 
 export function SiteFooter() {
+  const { contact, hours } = useSiteDetails();
   const year = new Date().getFullYear();
 
   return (
@@ -53,7 +55,7 @@ export function SiteFooter() {
             <ul className="flex items-center gap-3 mt-6">
               <li>
                 <a
-                  href={siteConfig.contact.whatsappHref}
+                  href={contact.whatsappHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="واتساب"
@@ -118,39 +120,39 @@ export function SiteFooter() {
               <li className="flex items-start gap-3">
                 <Phone className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <a
-                  href={siteConfig.contact.telHref}
+                  href={contact.telHref}
                   dir="ltr"
                   className="text-gray-400 hover:text-gold transition-colors"
                 >
-                  {siteConfig.contact.phone}
+                  {contact.phone}
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <Mail className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <a
-                  href={siteConfig.contact.mailtoHref}
+                  href={contact.mailtoHref}
                   className="text-gray-400 hover:text-gold transition-colors break-all"
                 >
-                  {siteConfig.contact.email}
+                  {contact.email}
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <a
-                  href={siteConfig.contact.mapsHref}
+                  href={contact.mapsHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-gold transition-colors"
                 >
-                  {siteConfig.contact.address}
+                  {contact.address}
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <Clock className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <span className="text-gray-400">
-                  {siteConfig.hours.days}
+                  {hours.days}
                   <br />
-                  {siteConfig.hours.time}
+                  {hours.time}
                 </span>
               </li>
             </ul>
@@ -161,7 +163,7 @@ export function SiteFooter() {
           <p className="text-xs text-gray-500">
             © {year} {siteConfig.legalName}. جميع الحقوق محفوظة.
           </p>
-          <p className="text-xs text-gray-500">{siteConfig.contact.addressShort}</p>
+          <p className="text-xs text-gray-500">{contact.addressShort}</p>
         </div>
       </div>
     </footer>

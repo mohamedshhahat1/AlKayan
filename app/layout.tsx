@@ -9,6 +9,8 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 import { ChatWidget } from "@/components/chat-widget";
 import { BackToTop } from "@/components/back-to-top";
 import { siteConfig } from "@/lib/site-config";
+import { getSiteContent } from "@/lib/content/fetch";
+import { ContentProvider } from "@/lib/content/context";
 
 /**
  * Two faces, one family of shapes.
@@ -65,6 +67,17 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * How long a rendered page may serve before the content tables are read again.
+ *
+ * Five minutes. The content is edited in the Supabase dashboard by hand, so
+ * the write rate is a few changes an hour at most; re-reading eleven tables on
+ * every request to catch them would be pure waste. Long enough that the site
+ * is served from cache under load, short enough that an editor sees their
+ * change without asking anyone to redeploy.
+ */
+export const revalidate = 300;
+
 export const viewport = {
   themeColor: "#111111",
   width: "device-width",
@@ -81,7 +94,12 @@ export const viewport = {
  * class strategy) also means every dark: utility already in the component layer
  * resolves exactly as before.
  */
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // One read for the whole page. The sections are client components and cannot
+  // fetch on the server themselves; this is the single place the content
+  // enters the tree, and ContentProvider carries it down.
+  const content = await getSiteContent();
+
   return (
     <html lang="ar" dir="rtl" className={`dark ${cairo.variable} ${tajawal.variable}`}>
       <body className={tajawal.className}>
@@ -93,12 +111,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           تخطي إلى المحتوى
         </a>
-        <SiteHeader />
-        <main>{children}</main>
-        <SiteFooter />
-        <WhatsAppButton />
-        <ChatWidget />
-        <BackToTop />
+        <ContentProvider content={content}>
+          <SiteHeader />
+          <main>{children}</main>
+          <SiteFooter />
+          <WhatsAppButton />
+          <ChatWidget />
+          <BackToTop />
+        </ContentProvider>
       </body>
     </html>
   );

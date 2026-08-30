@@ -1,54 +1,68 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { siteConfig } from "@/lib/site-config";
 import { arabicYears } from "@/lib/arabic";
+import { useSetting, useSiteDetails } from "@/lib/content/context";
+import type { SiteDetails } from "@/lib/content/site-details";
 
 type Message = { id: number; from: "bot" | "user"; text: string };
 
-const { warranty, timelines, hours, contact } = siteConfig;
+/**
+ * The keyword matcher, built from the current site details.
+ *
+ * A function of the details rather than a module-level constant: the warranty
+ * terms, timelines, opening hours and phone number are all editable in
+ * Supabase now, and a constant evaluated at import time would quote whatever
+ * the build shipped with — so the widget would confidently tell a customer a
+ * warranty length nobody offers any more.
+ */
+function buildAnswers(details: SiteDetails): Array<{ keywords: string[]; reply: string }> {
+  const { warranty, timelines, hours, contact } = details;
 
-const answers: Array<{ keywords: string[]; reply: string }> = [
-  {
-    keywords: ["سعر", "اسعار", "أسعار", "تكلفة", "ميزانية", "كم يكلف"],
-    reply:
-      "تختلف التكلفة حسب المساحة ومستوى التشطيب والخامات المختارة. أرسل لنا تفاصيل مشروعك عبر نموذج الحجز وسنزودك بعرض سعر مفصل مجاناً.",
-  },
-  {
-    keywords: ["ضمان", "الضمان"],
-    reply: `نقدم ضماناً لمدة ${arabicYears(warranty.structuralYears)} على الأعمال الإنشائية و${arabicYears(warranty.finishingYears)} على أعمال التشطيبات.`,
-  },
-  {
-    keywords: ["مدة", "مده", "وقت", "كم يوم", "متى يخلص", "تسليم"],
-    reply: `متوسط مدة التنفيذ: الشقق ${timelines.apartments}، الفلل ${timelines.villas}، المكاتب ${timelines.offices}. تعتمد المدة النهائية على نطاق العمل.`,
-  },
-  {
-    keywords: ["دوام", "ساعات", "متى تفتح", "اوقات"],
-    reply: `أوقات العمل: ${hours.days} من ${hours.time}.`,
-  },
-  {
-    keywords: ["جوال", "موبايل", "رقم", "اتصال", "تواصل", "هاتف"],
-    reply: `يمكنك الاتصال بنا على ${contact.phone} أو مراسلتنا عبر واتساب.`,
-  },
-  {
-    keywords: ["موقع", "عنوان", "وين", "فين", "أين"],
-    reply: `مقرنا في ${contact.address}، وننفذ مشاريع في مختلف محافظات مصر.`,
-  },
-  {
-    keywords: ["تصميم", "ديكور", "3d", "مخطط"],
-    reply:
-      "نقدم خدمات التصميم الداخلي والخارجي والمخططات ثنائية وثلاثية الأبعاد والجولات الافتراضية. تصفح قسم التصاميم للاطلاع.",
-  },
-];
-
-const fallback =
-  "لم أفهم سؤالك تماماً. يسعدنا مساعدتك مباشرة عبر واتساب أو من خلال نموذج الحجز.";
+  return [
+    {
+      keywords: ["سعر", "اسعار", "أسعار", "تكلفة", "ميزانية", "كم يكلف"],
+      reply:
+        "تختلف التكلفة حسب المساحة ومستوى التشطيب والخامات المختارة. أرسل لنا تفاصيل مشروعك عبر نموذج الحجز وسنزودك بعرض سعر مفصل مجاناً.",
+    },
+    {
+      keywords: ["ضمان", "الضمان"],
+      reply: `نقدم ضماناً لمدة ${arabicYears(warranty.structuralYears)} على الأعمال الإنشائية و${arabicYears(warranty.finishingYears)} على أعمال التشطيبات.`,
+    },
+    {
+      keywords: ["مدة", "مده", "وقت", "كم يوم", "متى يخلص", "تسليم"],
+      reply: `متوسط مدة التنفيذ: الشقق ${timelines.apartments}، الفلل ${timelines.villas}، المكاتب ${timelines.offices}. تعتمد المدة النهائية على نطاق العمل.`,
+    },
+    {
+      keywords: ["دوام", "ساعات", "متى تفتح", "اوقات"],
+      reply: `أوقات العمل: ${hours.days} من ${hours.time}.`,
+    },
+    {
+      keywords: ["جوال", "موبايل", "رقم", "اتصال", "تواصل", "هاتف"],
+      reply: `يمكنك الاتصال بنا على ${contact.phone} أو مراسلتنا عبر واتساب.`,
+    },
+    {
+      keywords: ["موقع", "عنوان", "وين", "فين", "أين"],
+      reply: `مقرنا في ${contact.address}، وننفذ مشاريع في مختلف محافظات مصر.`,
+    },
+    {
+      keywords: ["تصميم", "ديكور", "3d", "مخطط"],
+      reply:
+        "نقدم خدمات التصميم الداخلي والخارجي والمخططات ثنائية وثلاثية الأبعاد والجولات الافتراضية. تصفح قسم التصاميم للاطلاع.",
+    },
+  ];
+}
 
 const quickQuestions = ["كم تكلفة التشطيب؟", "ما مدة التنفيذ؟", "هل يوجد ضمان؟", "ما هي أوقات الدوام؟"];
 
-function findReply(input: string) {
+function findReply(
+  input: string,
+  answers: ReturnType<typeof buildAnswers>,
+  fallback: string
+) {
   const normalized = input.toLowerCase();
   const match = answers.find((answer) =>
     answer.keywords.some((keyword) => normalized.includes(keyword.toLowerCase()))
@@ -57,6 +71,15 @@ function findReply(input: string) {
 }
 
 export function ChatWidget() {
+  const details = useSiteDetails();
+  const { contact } = details;
+
+  const roleNote = useSetting("chat.role_note", "مساعد آلي — للتحدث مع فريقنا استخدم واتساب");
+  const fallback = useSetting("chat.fallback", "يسعدنا مساعدتك عبر واتساب.");
+  const whatsappCta = useSetting("chat.whatsapp_cta", "التحدث مع فريقنا على واتساب");
+
+  const answers = useMemo(() => buildAnswers(details), [details]);
+
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([
@@ -88,7 +111,11 @@ export function ChatWidget() {
     if (!trimmed) return;
 
     const userMessage: Message = { id: nextId.current++, from: "user", text: trimmed };
-    const botMessage: Message = { id: nextId.current++, from: "bot", text: findReply(trimmed) };
+    const botMessage: Message = {
+      id: nextId.current++,
+      from: "bot",
+      text: findReply(trimmed, answers, fallback),
+    };
 
     setMessages((current) => [...current, userMessage, botMessage]);
     setInput("");
@@ -116,7 +143,7 @@ export function ChatWidget() {
         >
           <div className="p-4 border-b border-border">
             <p className="font-bold text-foreground">{siteConfig.name}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">مساعد آلي — للتحدث مع فريقنا استخدم واتساب</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{roleNote}</p>
           </div>
 
           <div
@@ -185,7 +212,7 @@ export function ChatWidget() {
             className="flex items-center justify-center gap-2 py-3 bg-[#25D366]/10 text-[#25D366] text-sm font-medium hover:bg-[#25D366]/20 transition-colors"
           >
             <WhatsAppIcon className="w-4 h-4 fill-current" />
-            التحدث مع فريقنا على واتساب
+            {whatsappCta}
           </a>
         </div>
       )}

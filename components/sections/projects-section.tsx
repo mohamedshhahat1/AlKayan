@@ -8,6 +8,7 @@ import { Reveal, SectionHeading } from "@/components/reveal";
 import { BeforeAfterSlider } from "@/components/before-after-slider";
 import { getSupabaseClient } from "@/lib/supabase";
 import { lockScroll, unlockScroll } from "@/lib/lenis";
+import { useContent, useHeading, useSetting } from "@/lib/content/context";
 
 type Project = {
   id: string;
@@ -60,24 +61,10 @@ const dateFormatter = new Intl.DateTimeFormat("ar-EG-u-ca-gregory", {
 /** How many cards to show before the user asks for the rest. */
 const INITIAL_VISIBLE = 6;
 
-const beforeAfterProjects = [
-  {
-    before:
-      "https://images.pexels.com/photos/15087186/pexels-photo-15087186.jpeg?auto=compress&cs=tinysrgb&w=1920",
-    after:
-      "https://images.pexels.com/photos/7546323/pexels-photo-7546323.jpeg?auto=compress&cs=tinysrgb&w=1920",
-    title: "شقة النخبة - التجمع الخامس",
-  },
-  {
-    before:
-      "https://images.pexels.com/photos/19408681/pexels-photo-19408681.jpeg?auto=compress&cs=tinysrgb&w=1920",
-    after:
-      "https://images.pexels.com/photos/16573669/pexels-photo-16573669.jpeg?auto=compress&cs=tinysrgb&w=1920",
-    title: "فيلا الياسمين - الشيخ زايد",
-  },
-];
-
 export function ProjectsSection() {
+  const heading = useHeading("projects");
+  const emptyMessage = useSetting("projects.empty", "سيتم إضافة المشاريع قريباً.");
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [status, setStatus] = useState<Status>("loading");
   const [activeCategory, setActiveCategory] = useState("all");
@@ -131,9 +118,9 @@ export function ProjectsSection() {
     <section id="projects" className="relative py-14 lg:py-20">
       <div className="container-luxury">
         <SectionHeading
-          eyebrow="مشاريعنا"
-          title="معرض أعمالنا الفاخرة"
-          subtitle="نظرة على بعض مشاريعنا التي نفذناها بأعلى معايير الجودة والاحترافية"
+          eyebrow={heading.eyebrow}
+          title={heading.title}
+          subtitle={heading.subtitle ?? undefined}
         />
 
         {status === "loading" && (
@@ -151,7 +138,7 @@ export function ProjectsSection() {
         )}
 
         {status === "ready" && projects.length === 0 && (
-          <p className="mt-8 text-center text-muted-foreground">سيتم إضافة المشاريع قريباً.</p>
+          <p className="mt-8 text-center text-muted-foreground">{emptyMessage}</p>
         )}
 
         {status === "ready" && projects.length > 0 && (
@@ -253,8 +240,21 @@ export function ProjectsSection() {
 }
 
 function BeforeAfterBlock() {
+  const { beforeAfter } = useContent();
+  const eyebrow = useSetting("before_after.eyebrow", "قبل و بعد");
+  const title = useSetting("before_after.title", "شاهد التحول بنفسك");
+  const hint = useSetting("before_after.hint", "");
+
   const [active, setActive] = useState(0);
-  const project = beforeAfterProjects[active];
+
+  // Clamped rather than indexed directly: `active` is state and the list comes
+  // from the database, so an editor unpublishing the selected pair would leave
+  // the index pointing past the end.
+  const pair = beforeAfter[active] ?? beforeAfter[0];
+
+  // Nothing to compare against — render nothing rather than an empty slider
+  // with a dangling heading above it.
+  if (!pair) return null;
 
   return (
     <div id="before-after" className="mt-14 pt-10 border-t border-border">
@@ -262,21 +262,21 @@ function BeforeAfterBlock() {
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
             <span className="inline-block text-xs font-bold tracking-[0.3em] text-gold uppercase mb-2">
-              قبل و بعد
+              {eyebrow}
             </span>
-            <h3 className="text-2xl lg:text-3xl font-extrabold text-foreground">شاهد التحول بنفسك</h3>
+            <h3 className="text-2xl lg:text-3xl font-extrabold text-foreground">{title}</h3>
           </div>
 
           <div role="tablist" aria-label="اختر المشروع" className="flex flex-wrap items-center gap-2">
-            {beforeAfterProjects.map((item, index) => (
+            {beforeAfter.map((item, index) => (
               <button
-                key={item.title}
+                key={item.id}
                 type="button"
                 role="tab"
-                aria-selected={active === index}
+                aria-selected={pair.id === item.id}
                 onClick={() => setActive(index)}
                 className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
-                  active === index
+                  pair.id === item.id
                     ? "gold-gradient-bg text-navy-deep"
                     : "glass-light text-muted-foreground hover:text-gold hover:border-gold/30"
                 }`}
@@ -290,14 +290,12 @@ function BeforeAfterBlock() {
 
       <Reveal delay={0.15} className="mt-6">
         <BeforeAfterSlider
-          key={project.title}
-          before={project.before}
-          after={project.after}
+          key={pair.id}
+          before={pair.before_image}
+          after={pair.after_image}
           className="h-64 sm:h-80 lg:h-[420px] rounded-3xl"
         />
-        <p className="text-center text-muted-foreground text-xs mt-3">
-          اسحب المقبض أو استخدم أسهم لوحة المفاتيح لرؤية الفرق
-        </p>
+        <p className="text-center text-muted-foreground text-xs mt-3">{hint}</p>
       </Reveal>
     </div>
   );

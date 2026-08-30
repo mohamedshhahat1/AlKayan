@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { Calendar, ArrowLeft } from "lucide-react";
 import { LogoMark } from "@/components/brand/logo-mark";
+import { useSetting } from "@/lib/content/context";
 
 /**
  * Brand constants, written as literals rather than tokens.
@@ -30,6 +31,16 @@ const HEADING_SHADOW = "0 2px 4px rgba(17,17,17,0.4), 0 8px 28px rgba(17,17,17,0
 const BODY_SHADOW = "0 1px 3px rgba(17,17,17,0.45), 0 4px 16px rgba(17,17,17,0.4)";
 
 export function HeroSection() {
+  const imageUrl = useSetting("hero.image_url", "");
+  const eyebrow = useSetting("hero.eyebrow", "للتشطيبات والمقاولات العامة");
+  const headlineLead = useSetting("hero.headline_lead", "من الفكرة …");
+  const headlineConnector = useSetting("hero.headline_connector", "إلى");
+  const headlineAccent = useSetting("hero.headline_accent", "تسليم المفتاح");
+  const tagline = useSetting("hero.tagline", "نبني مساحات أفضل لحياتك");
+  const subheadline = useSetting("hero.subheadline", "");
+  const ctaPrimary = useSetting("hero.cta_primary", "احجز معاينة");
+  const ctaSecondary = useSetting("hero.cta_secondary", "تصفح أعمالنا");
+
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -63,11 +74,12 @@ export function HeroSection() {
         <div
           className="w-full h-full bg-cover bg-center bg-no-repeat ken-burns"
           style={{
-            // w=2560 rather than 1920: the layer is also scaled up by the Ken
-            // Burns keyframes, so at 1920 the browser was upscaling on any
-            // large or retina screen. That was the softness, not compression.
-            backgroundImage:
-              "url(https://images.pexels.com/photos/33529500/pexels-photo-33529500.jpeg?auto=compress&cs=tinysrgb&w=2560)",
+            // The seeded URL asks Pexels for w=2560 rather than 1920: the layer
+            // is also scaled up by the Ken Burns keyframes, so at 1920 the
+            // browser was upscaling on any large or retina screen. That was the
+            // softness, not compression. Worth keeping in mind when swapping
+            // this image from the dashboard.
+            backgroundImage: `url(${imageUrl})`,
             // Conservative lift. Saturation does most of the work on marble and
             // wood; brightness past ~1.1 blows out the window highlights here.
             filter: "brightness(1.07) contrast(1.06) saturate(1.12)",
@@ -164,7 +176,7 @@ export function HeroSection() {
               className="text-xs sm:text-sm font-semibold"
               style={{ color: GOLD, textShadow: BODY_SHADOW }}
             >
-              للتشطيبات والمقاولات العامة
+              {eyebrow}
             </span>
             <span className="h-px w-8 sm:w-12" style={{ background: `${GOLD}80` }} aria-hidden="true" />
           </div>
@@ -175,25 +187,25 @@ export function HeroSection() {
             className="hero-in font-display text-display-xl text-balance mb-5"
             style={{ color: IVORY, textShadow: HEADING_SHADOW, animationDelay: "0.5s" }}
           >
-            من الفكرة …
+            {headlineLead}
             <br />
-            إلى
+            {headlineConnector}
             <br />
-            <span style={{ color: GOLD }}>تسليم المفتاح</span>
+            <span style={{ color: GOLD }}>{headlineAccent}</span>
           </h1>
 
           <p
             className="hero-in font-display text-lg sm:text-xl lg:text-2xl mb-4"
             style={{ color: GOLD_LIGHT, textShadow: BODY_SHADOW, animationDelay: "0.7s" }}
           >
-            نبني مساحات أفضل لحياتك
+            {tagline}
           </p>
 
           <p
             className="hero-in text-base sm:text-lg max-w-2xl mx-auto mb-9 leading-relaxed text-balance"
             style={{ color: `${IVORY}d9`, textShadow: BODY_SHADOW, animationDelay: "0.85s" }}
           >
-            نصمم، ننفذ، ونشرف على جميع أعمال التشطيبات والمقاولات بأعلى معايير الجودة والاحترافية
+            {subheadline}
           </p>
 
           {/* Mobile gets full-width stacked CTAs rather than two shrunken
@@ -217,7 +229,7 @@ export function HeroSection() {
               }}
             >
               <Calendar className="w-5 h-5" aria-hidden="true" />
-              احجز معاينة
+              {ctaPrimary}
             </a>
 
             {/* Secondary: transparent, 1px gold border, light gold label. */}
@@ -226,7 +238,7 @@ export function HeroSection() {
               className="group inline-flex items-center justify-center gap-2.5 rounded-sm border px-8 py-4 text-base font-bold transition-colors duration-400 ease-arch hover:bg-[rgba(201,161,90,0.12)]"
               style={{ borderColor: GOLD, color: GOLD_LIGHT }}
             >
-              تصفح أعمالنا
+              {ctaSecondary}
               <ArrowLeft
                 className="w-5 h-5 transition-transform duration-400 ease-arch group-hover:-translate-x-1"
                 aria-hidden="true"

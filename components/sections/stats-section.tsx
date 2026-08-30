@@ -4,13 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Reveal, Counter } from "@/components/reveal";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { getSupabaseClient } from "@/lib/supabase";
-
-const stats = [
-  { target: 450, suffix: "+", label: "مشروع منجز", icon: "🏗️" },
-  { target: 15, suffix: "+", label: "سنة خبرة", icon: "⭐" },
-  { target: 380, suffix: "+", label: "عميل سعيد", icon: "😊" },
-  { target: 250000, suffix: " م²", label: "مساحة منجزة", icon: "📐" },
-];
+import { useContent, useSetting } from "@/lib/content/context";
 
 type Partner = {
   id: string;
@@ -26,6 +20,10 @@ const BAND = "rgba(11,31,58,0.95)";
  * one dark band instead of two full sections.
  */
 export function StatsSection() {
+  const { stats } = useContent();
+  const backgroundUrl = useSetting("stats.image_url", "");
+  const partnersTitle = useSetting("partners.title", "شركاؤنا");
+
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -71,10 +69,7 @@ export function StatsSection() {
       <motion.div style={{ y }} className="absolute inset-0 z-0">
         <div
           className="w-full h-full bg-cover bg-center opacity-15"
-          style={{
-            backgroundImage:
-              "url(https://images.pexels.com/photos/35300835/pexels-photo-35300835.jpeg?auto=compress&cs=tinysrgb&w=1920)",
-          }}
+          style={{ backgroundImage: `url(${backgroundUrl})` }}
         />
       </motion.div>
       <div className="absolute inset-0 z-0" style={{ background: "linear-gradient(180deg, rgba(11,31,58,0.95), rgba(11,31,58,0.85), rgba(11,31,58,0.95))" }} />
@@ -83,10 +78,10 @@ export function StatsSection() {
         <div className="container-luxury">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {stats.map((stat, i) => (
-              <Reveal key={i} delay={i * 0.12} y={30}>
+              <Reveal key={stat.id} delay={i * 0.12} y={30}>
                 <div className="text-center group">
                   <div className="text-2xl mb-2 opacity-80 group-hover:scale-110 transition-transform duration-300">
-                    {stat.icon}
+                    {stat.emoji}
                   </div>
                   <div className="text-3xl lg:text-5xl font-extrabold gold-gradient-text mb-1">
                     <Counter target={stat.target} suffix={stat.suffix} duration={2.5} />
@@ -102,7 +97,7 @@ export function StatsSection() {
           <div className="mt-12 pt-10" style={{ borderTop: "1px solid rgba(212,175,55,0.15)" }}>
             <Reveal>
               <h2 className="text-center text-xs font-bold tracking-[0.3em] text-gold uppercase mb-6">
-                شركاؤنا
+                {partnersTitle}
               </h2>
             </Reveal>
 
