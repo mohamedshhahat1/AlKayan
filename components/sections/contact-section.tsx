@@ -64,7 +64,7 @@ export function ContactSection({
   const { contact, hours } = useSiteDetails();
   const faqHeading = useHeading("faq");
 
-  const submitLabel = useSetting("form.submit_label", "احجز استشارتك المجانية");
+  const submitLabel = useSetting("form.submit_label", "احجز استشارتك الآن");
   const successMessage = useSetting("form.success", "تم استلام طلبك بنجاح.");
 
   const isCta = variant === "cta";
@@ -218,7 +218,7 @@ export function ContactSection({
                     className="glass-light border border-border text-foreground font-bold text-sm px-7 py-3 rounded-full flex items-center justify-center gap-2 hover:text-gold hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                   >
                     <Send className="w-4 h-4 text-gold" aria-hidden="true" />
-                    احجز استشارتك المجانية
+                    {submitLabel}
                   </Link>
                 )}
               </div>
@@ -409,7 +409,7 @@ export function ContactSection({
                   className="mt-6 w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-full gold-gradient-bg text-navy-deep font-bold shimmer-btn hover:scale-[1.02] transition-transform duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 >
                   <Send className="w-4 h-4" aria-hidden="true" />
-                  {state === "submitting" ? "جارٍ الإرسال..." : "احجز استشارتك المجانية"}
+                  {state === "submitting" ? "جارٍ الإرسال..." : submitLabel}
                 </button>
 
                 <div aria-live="polite" className="mt-3">

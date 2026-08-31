@@ -55,7 +55,7 @@ export const defaultContent: SiteContent = {
     "partners.title": "شركاؤنا",
 
     // Booking form.
-    "form.submit_label": "احجز استشارتك المجانية",
+    "form.submit_label": "احجز استشارتك الآن",
     "form.success": "تم استلام طلبك بنجاح. سنتواصل معك خلال 24 ساعة.",
 
     // Chat widget.
