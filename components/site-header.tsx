@@ -101,9 +101,13 @@ export function SiteHeader() {
             className="h-10 shrink-0 sm:h-12 lg:h-14"
           />
 
+          {/* Taller than the mark's own steps because the wordmark is the
+              company's name and was reading as a caption beside the logo. The
+              bar's height is untouched: at 40px inside a 64px bar it still
+              leaves the same kind of margin the logo does. */}
           <BrandWordmark
             alt=""
-            imgClassName="h-5 sm:h-6 lg:h-7"
+            imgClassName="h-8 sm:h-9 lg:h-10"
             className="hidden min-[380px]:block"
           />
         </Link>
