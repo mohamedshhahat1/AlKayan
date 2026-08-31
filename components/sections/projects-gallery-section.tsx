@@ -183,8 +183,14 @@ function toGalleryItems(projects: Project[]): GalleryItem[] {
  * a 390px screen while its two neighbours were sliced in half by the pinned
  * container's overflow-hidden. The card has to shrink with the ring.
  *
- * Each row below keeps the front card near 60% of the viewport with the
- * neighbours reading as the rest of a ring, and keeps the published 3:4 card.
+ * Each row below keeps the front card wide enough to be the subject with the
+ * neighbours reading as the rest of a ring. The phone card is taller than the
+ * published 3:4 — a phone has height to spare and width it cannot lend, so the
+ * ring earns its size vertically. It is still bounded by the shortest phones:
+ * perspective renders the 320px card 364px tall, which a centred pinned area
+ * would start level with the hint line — hence the pt on that area and the
+ * notch the hint itself moves up by, which together clear it down to a 600px
+ * viewport.
  *
  * Measured on resize rather than with a CSS media query because these are
  * numbers passed to a transform, not classes.
@@ -193,7 +199,7 @@ type RingSize = { radius: number; cardWidth: number; cardHeight: number };
 
 const DESKTOP_RING: RingSize = { radius: 600, cardWidth: 300, cardHeight: 400 };
 const TABLET_RING: RingSize = { radius: 440, cardWidth: 250, cardHeight: 335 };
-const PHONE_RING: RingSize = { radius: 220, cardWidth: 200, cardHeight: 270 };
+const PHONE_RING: RingSize = { radius: 240, cardWidth: 230, cardHeight: 320 };
 
 function useResponsiveRing(): RingSize {
   const [size, setSize] = useState<RingSize>(DESKTOP_RING);
@@ -275,11 +281,16 @@ export function ProjectsGallerySection() {
           thumb. */}
       <div ref={scrollAreaRef} className="relative mt-8 h-[220vh] sm:h-[300vh]">
         {/* Pinned for as long as the element above is being scrolled through. */}
-        <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
-          {/* top-24 clears the fixed header (see lib/header-offset.ts).
-              pointer-events-none so the hint never swallows a gesture meant for
-              the ring behind it. */}
-          <p className="pointer-events-none absolute top-24 z-10 px-4 text-center text-sm text-muted-foreground sm:top-28">
+        {/* pt on phones only: the ring is centred in this box, and on a short
+            phone a centred card of the size below starts level with the hint
+            line. The padding gives the hint its own band and pushes the ring
+            into the space underneath it. */}
+        <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden pt-12 sm:pt-0">
+          {/* The top offsets clear the fixed header (see lib/header-offset.ts);
+              the phone one is a notch tighter to leave the taller phone card
+              its room. pointer-events-none so the hint never swallows a gesture
+              meant for the ring behind it. */}
+          <p className="pointer-events-none absolute top-20 z-10 px-4 text-center text-sm text-muted-foreground sm:top-28">
             {showingProjects
               ? "مرر لأسفل لتدوير المعرض"
               : "نماذج من تصاميمنا — مرر لأسفل لتدوير المعرض"}
