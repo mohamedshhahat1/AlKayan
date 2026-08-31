@@ -256,7 +256,7 @@ In `components/sections/hero-section.tsx`:
 - `src` is set directly on `<video>` rather than on a `<source>` child, because
   error events from a `<source>` do not reach the parent's `onError` and this
   fallback has to be reliable.
-- Readability: the existing shaped navy scrim is unchanged, plus one extra flat
+- Readability: the existing shaped black scrim is unchanged, plus one extra flat
   25% layer that exists *only* while footage is playing. A still can be judged
   once; video walks through frames nobody approved, some far brighter than the
   photograph the gradient was tuned against. Gating it means the photographic

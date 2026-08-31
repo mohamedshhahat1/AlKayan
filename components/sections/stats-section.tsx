@@ -13,7 +13,7 @@ type Partner = {
 };
 
 /** The band the whole section sits on, reused by the marquee edge fades. */
-const BAND = "rgba(11,31,58,0.95)";
+const BAND = "rgba(0,0,0,0.95)";
 
 /**
  * Numbers and partners are the same argument — social proof — so they share
@@ -74,7 +74,7 @@ export function StatsSection() {
           }}
         />
       </motion.div>
-      <div className="absolute inset-0 z-0" style={{ background: "linear-gradient(180deg, rgba(11,31,58,0.95), rgba(11,31,58,0.85), rgba(11,31,58,0.95))" }} />
+      <div className="absolute inset-0 z-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.95), rgba(0,0,0,0.85), rgba(0,0,0,0.95))" }} />
 
       <div className="relative z-10">
         <div className="container-luxury">

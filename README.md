@@ -15,9 +15,10 @@ partner logos — is read from Supabase at runtime from the browser. Everything
 else is static. Booking requests are inserted straight into Supabase from the
 form; there is no backend of our own, no CMS and no admin panel.
 
-The design language is fixed and deliberate: navy `#0B1F3A` and gold `#D4AF37`,
-glassmorphism panels, scroll-triggered reveals, smooth scrolling. If you are
-changing this project, work within it.
+The design language is fixed and deliberate: pure black `#000000` and gold
+`#D4AF37`, glassmorphism panels, scroll-triggered reveals, smooth scrolling. The
+`navy` Tailwind key is historical — the whole scale is black; see the comment in
+`tailwind.config.ts`. If you are changing this project, work within it.
 
 > **Two things a new developer should know before starting.** The official brand
 > SVGs are referenced by the code but **not yet committed** — see
@@ -702,7 +703,7 @@ next.config.js            images + security headers
 vercel.json               Vercel build config
 railway.json              Railway build, start and health check
 netlify.toml              legacy Netlify config, still present
-tailwind.config.ts        navy/gold palette, fonts, animations
+tailwind.config.ts        black/gold palette, fonts, animations
 tsconfig.json             strict, @/* → repository root
 .eslintrc.json            next/core-web-vitals
 ```

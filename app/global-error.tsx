@@ -39,8 +39,8 @@ export default function GlobalError({
           gap: 24,
           padding: 24,
           textAlign: "center",
-          backgroundColor: "#0B1F3A",
-          color: "#F5F7FA",
+          backgroundColor: "#000000",
+          color: "#FAFAFA",
           fontFamily: "system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif",
         }}
       >
@@ -57,7 +57,7 @@ export default function GlobalError({
 
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>{siteConfig.name}</h1>
 
-        <p style={{ margin: 0, maxWidth: 420, fontSize: 14, lineHeight: 1.7, color: "#93A4BC" }}>
+        <p style={{ margin: 0, maxWidth: 420, fontSize: 14, lineHeight: 1.7, color: "#A6A6A6" }}>
           حدث خطأ غير متوقع وتعذر تحميل الموقع. يرجى إعادة المحاولة أو الاتصال بنا مباشرة.
         </p>
 
@@ -72,7 +72,7 @@ export default function GlobalError({
               padding: "12px 28px",
               fontSize: 14,
               fontWeight: 700,
-              color: "#0B1F3A",
+              color: "#000000",
               background: "linear-gradient(135deg, #E4C558, #D4AF37 55%, #B8962E)",
             }}
           >
@@ -87,7 +87,7 @@ export default function GlobalError({
               padding: "12px 28px",
               fontSize: 14,
               fontWeight: 700,
-              color: "#F5F7FA",
+              color: "#FAFAFA",
               textDecoration: "none",
             }}
           >
