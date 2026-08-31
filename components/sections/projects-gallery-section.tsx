@@ -174,20 +174,34 @@ function toGalleryItems(projects: Project[]): GalleryItem[] {
 }
 
 /**
- * The ring's radius, by viewport width.
+ * The ring's dimensions, by viewport width.
  *
- * The published default of 600px assumes a desktop viewport: with a 2000px
- * perspective the front card is scaled to roughly 430px, so on a phone it would
- * be clipped by both edges of the screen. Measured on resize rather than with a
- * CSS media query because the value is a number passed to a transform.
+ * The published numbers — a 600px radius and 300x400 cards — assume a desktop
+ * viewport, and the radius alone was made responsive first. That was not
+ * enough: perspective scales the front card by p/(p-radius), so even at a
+ * phone-sized radius of 300 the 300px card rendered 353px wide, all but filling
+ * a 390px screen while its two neighbours were sliced in half by the pinned
+ * container's overflow-hidden. The card has to shrink with the ring.
+ *
+ * Each row below keeps the front card near 60% of the viewport with the
+ * neighbours reading as the rest of a ring, and keeps the published 3:4 card.
+ *
+ * Measured on resize rather than with a CSS media query because these are
+ * numbers passed to a transform, not classes.
  */
-function useResponsiveRadius(): number {
-  const [radius, setRadius] = useState(600);
+type RingSize = { radius: number; cardWidth: number; cardHeight: number };
+
+const DESKTOP_RING: RingSize = { radius: 600, cardWidth: 300, cardHeight: 400 };
+const TABLET_RING: RingSize = { radius: 440, cardWidth: 250, cardHeight: 335 };
+const PHONE_RING: RingSize = { radius: 220, cardWidth: 200, cardHeight: 270 };
+
+function useResponsiveRing(): RingSize {
+  const [size, setSize] = useState<RingSize>(DESKTOP_RING);
 
   useEffect(() => {
     const update = () => {
       const width = window.innerWidth;
-      setRadius(width < 640 ? 300 : width < 1024 ? 440 : 600);
+      setSize(width < 640 ? PHONE_RING : width < 1024 ? TABLET_RING : DESKTOP_RING);
     };
 
     update();
@@ -195,7 +209,7 @@ function useResponsiveRadius(): number {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  return radius;
+  return size;
 }
 
 /** True when the visitor has asked the OS for less animation. */
@@ -221,7 +235,7 @@ export function ProjectsGallerySection() {
   const [items, setItems] = useState<GalleryItem[]>(fallbackItems);
   // Which of the two sets the ring is showing. Drives the hint line only.
   const [showingProjects, setShowingProjects] = useState(false);
-  const radius = useResponsiveRadius();
+  const ring = useResponsiveRing();
   const prefersReducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
@@ -273,7 +287,9 @@ export function ProjectsGallerySection() {
 
           <CircularGallery
             items={items}
-            radius={radius}
+            radius={ring.radius}
+            cardWidth={ring.cardWidth}
+            cardHeight={ring.cardHeight}
             // 0 holds the ring still for anyone on reduced motion; scrolling
             // still turns it, because that is a direct response to input.
             autoRotateSpeed={prefersReducedMotion ? 0 : 0.02}

@@ -29,6 +29,19 @@ export interface CircularGalleryProps extends HTMLAttributes<HTMLDivElement> {
   items: GalleryItem[];
   /** Controls how far the items are from the center. */
   radius?: number;
+  /**
+   * The size of one card, in pixels.
+   *
+   * Added for this codebase. Upstream hard-codes 300x400, which assumes a
+   * desktop viewport twice over: perspective scales the front card up by
+   * p/(p-radius), so at the radius a phone needs it renders 353px wide and
+   * overflows the screen, with the two neighbouring cards sliced in half by the
+   * container's overflow-hidden. The radius alone cannot fix that — shrinking
+   * it only moves the cards closer together, and shrinking it far enough to fit
+   * collapses the ring into a stack. Defaults are the published numbers.
+   */
+  cardWidth?: number;
+  cardHeight?: number;
   /** Controls the speed of auto-rotation when not scrolling. */
   autoRotateSpeed?: number;
   /**
@@ -81,6 +94,8 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
       items,
       className,
       radius = 600,
+      cardWidth = 300,
+      cardHeight = 400,
       autoRotateSpeed = 0.02,
       scrollTargetRef,
       creditLabel = "Photo by:",
@@ -180,13 +195,18 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                 key={item.photo.url}
                 role="group"
                 aria-label={item.common}
-                className="absolute w-[300px] h-[400px]"
+                className="absolute"
                 style={{
+                  width: `${cardWidth}px`,
+                  height: `${cardHeight}px`,
                   transform: `rotateY(${itemAngle}deg) translateZ(${radius}px)`,
                   left: "50%",
                   top: "50%",
-                  marginLeft: "-150px",
-                  marginTop: "-200px",
+                  // Half the card, so left/top 50% centres it rather than
+                  // hanging it off the middle. Upstream's -150px/-200px with
+                  // the size no longer fixed.
+                  marginLeft: `${-cardWidth / 2}px`,
+                  marginTop: `${-cardHeight / 2}px`,
                   opacity: opacity,
                   transition: "opacity 0.3s linear",
                 }}
