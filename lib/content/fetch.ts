@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
 import { defaultContent } from "@/lib/content/defaults";
 import type { SectionHeading, SiteContent, SiteSettings } from "@/lib/content/types";
@@ -51,7 +52,19 @@ async function readTable<T>(table: string, fallback: T[]): Promise<T[]> {
   return data && data.length > 0 ? (data as T[]) : fallback;
 }
 
-export async function getSiteContent(): Promise<SiteContent> {
+/**
+ * Wrapped in React's `cache` so the fifteen queries below run once per request
+ * no matter how many server components ask for the content.
+ *
+ * The root layout has always called this. Routes now call it too — /services
+ * needs the catalogue to emit its OfferCatalog structured data on the server —
+ * and without the memo that would be thirty round trips to Supabase to render
+ * one page. `cache` is per-request, so it dedupes without ever serving one
+ * visitor's read to another.
+ */
+export const getSiteContent = cache(loadSiteContent);
+
+async function loadSiteContent(): Promise<SiteContent> {
   const supabase = getSupabaseClient();
   if (!supabase) return defaultContent;
 

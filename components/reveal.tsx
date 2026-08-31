@@ -42,9 +42,28 @@ type SectionHeadingProps = {
   subtitle?: string;
   center?: boolean;
   className?: string;
+  /**
+   * Heading level for the title.
+   *
+   * h2 everywhere by default, which is right when this heading introduces one
+   * section of a longer page. On a route whose whole subject is this section —
+   * /services, /projects, /about, /contact — it is the page's one h1 instead,
+   * and the route says so.
+   *
+   * A level, not a look: both render with identical classes, so promoting a
+   * heading changes the document outline and nothing on screen.
+   */
+  as?: "h1" | "h2";
 };
 
-export function SectionHeading({ eyebrow, title, subtitle, center = true, className }: SectionHeadingProps) {
+export function SectionHeading({
+  eyebrow,
+  title,
+  subtitle,
+  center = true,
+  className,
+  as: Heading = "h2",
+}: SectionHeadingProps) {
   return (
     <div className={cn(center ? "text-center mx-auto" : "text-right", "max-w-3xl", className)}>
       {eyebrow && (
@@ -55,9 +74,9 @@ export function SectionHeading({ eyebrow, title, subtitle, center = true, classN
         </Reveal>
       )}
       <Reveal delay={0.1}>
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground leading-tight text-balance">
+        <Heading className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground leading-tight text-balance">
           {title}
-        </h2>
+        </Heading>
       </Reveal>
       {subtitle && (
         <Reveal delay={0.2}>

@@ -29,8 +29,31 @@ export type ProjectsSectionProps = {
   eyebrow?: string;
   title?: string;
   subtitle?: string;
+  /**
+   * Promotes this section's heading to the page's h1.
+   *
+   * Set by the route that owns this subject; left alone on the homepage, where
+   * the hero already holds the h1 and a second one would leave the page with
+   * two competing titles.
+   */
+  headingAs?: "h1" | "h2";
   /** Reporting label for the cards, e.g. "home_featured". */
   placement?: string;
+  /**
+   * Projects already read on the server, rendered on first paint.
+   *
+   * Without this the grid is a skeleton in the initial HTML and the cards —
+   * which are the only links to every project page on the site — appear one
+   * round trip later, in JavaScript. Googlebot does render, so the links are
+   * eventually found, but "eventually, if the render queue gets to it" is a
+   * worse guarantee than "in the HTML", and the skeleton-to-cards swap is a
+   * layout shift a visitor pays for too.
+   *
+   * Optional, because the homepage still fetches in the browser: it shows a
+   * ring of featured projects rather than the crawlable grid, and making the
+   * homepage wait on Supabase to paint the hero would be a bad trade.
+   */
+  initialProjects?: Project[];
 };
 
 /**
@@ -55,16 +78,22 @@ export function ProjectsSection({
   title,
   subtitle,
   placement,
+  headingAs,
+  initialProjects,
 }: ProjectsSectionProps = {}) {
   const heading = useHeading("projects");
   const emptyMessage = useSetting("projects.empty", "سيتم إضافة المشاريع قريباً.");
 
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [status, setStatus] = useState<Status>("loading");
+  const [projects, setProjects] = useState<Project[]>(initialProjects ?? []);
+  const [status, setStatus] = useState<Status>(initialProjects ? "ready" : "loading");
   const [activeCategory, setActiveCategory] = useState("all");
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
+    // Already served with the rows. Re-querying would swap identical data in
+    // for a second render and, on a slow connection, briefly nothing at all.
+    if (initialProjects) return;
+
     let cancelled = false;
 
     getProjects().then(({ projects: rows, failed }) => {
@@ -82,7 +111,7 @@ export function ProjectsSection({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialProjects]);
 
   const pool = featuredOnly ? selectFeatured(projects) : projects;
 
@@ -105,6 +134,7 @@ export function ProjectsSection({
         {/* Props still win, so a page can say something specific; the
             database supplies the default. */}
         <SectionHeading
+          as={headingAs}
           eyebrow={eyebrow ?? heading.eyebrow}
           title={title ?? heading.title}
           subtitle={subtitle ?? heading.subtitle ?? undefined}

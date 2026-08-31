@@ -220,6 +220,19 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                   <img
                     src={item.photo.url}
                     alt={item.photo.text}
+                    // Ten photographs, every one of them below the fold.
+                    // Without this the app router emits a
+                    // <link rel="preload" as="image"> for each in <head> — the
+                    // ring alone was eight of the homepage's eleven image
+                    // preloads, all racing the hero poster, which is the LCP
+                    // element and the one image that has to arrive first.
+                    //
+                    // Every other gallery on this site already lazy-loads; the
+                    // ring was the outlier. Chrome starts lazy images roughly a
+                    // viewport ahead, so the cards are decoded before the
+                    // section scrolls in.
+                    loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 w-full h-full object-cover"
                     style={{ objectPosition: item.photo.pos || "center" }}
                   />

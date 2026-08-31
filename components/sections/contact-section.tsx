@@ -44,6 +44,19 @@ export type ContactSectionProps = {
   defaultService?: string;
   /** Defaults to on for the full variant, off for the CTA. */
   showFaq?: boolean;
+  /**
+   * A lead heading for the page, rendered above everything else as the h1.
+   *
+   * /about, /services and /projects each open with their section's own
+   * heading, which the route promotes to h1. This section had none to promote:
+   * the contact page began at the FAQ's h2, leaving the one page whose entire
+   * job is "get in touch" with no heading that says so — to a reader arriving
+   * cold, or to a crawler.
+   *
+   * Optional, and unset on the homepage, where this section is the closing CTA
+   * and the hero already holds the h1.
+   */
+  pageHeading?: { eyebrow?: string; title: string; subtitle?: string };
 };
 
 /**
@@ -59,6 +72,7 @@ export function ContactSection({
   source = "contact_page",
   defaultService,
   showFaq,
+  pageHeading,
 }: ContactSectionProps = {}) {
   const { faqs, serviceOptions } = useContent();
   const { contact, hours } = useSiteDetails();
@@ -141,6 +155,17 @@ export function ContactSection({
   return (
     <section className="relative py-14 lg:py-20">
       <div className="container-luxury">
+        {pageHeading && (
+          <div className="mb-12">
+            <SectionHeading
+              as="h1"
+              eyebrow={pageHeading.eyebrow}
+              title={pageHeading.title}
+              subtitle={pageHeading.subtitle}
+            />
+          </div>
+        )}
+
         {/* FAQ */}
         {withFaq && (
           <div id="faq">

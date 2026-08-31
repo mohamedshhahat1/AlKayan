@@ -5,38 +5,25 @@ import { ProjectsGallerySection } from "@/components/sections/projects-gallery-s
 import { StatsSection } from "@/components/sections/stats-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { ContactSection } from "@/components/sections/contact-section";
+import { JsonLd } from "@/components/json-ld";
 import { siteConfig } from "@/lib/site-config";
+import { webPageJsonLd } from "@/lib/seo";
 
-/** Structured data, built from site config so it cannot drift from the footer. */
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "GeneralContractor",
-  "@id": `${siteConfig.url}#organization`,
-  name: siteConfig.name,
-  alternateName: siteConfig.nameEn,
-  legalName: siteConfig.legalName,
+/**
+ * The homepage node.
+ *
+ * The Organization and WebSite that used to be built here now live in the root
+ * layout, so they are present on every route rather than only this one — see
+ * lib/seo.ts. What is left is the page itself, pointing at both by @id.
+ *
+ * No BreadcrumbList: the homepage is the root of every trail, and a trail with
+ * one item is not a trail.
+ */
+const jsonLd = webPageJsonLd({
+  path: "/",
+  name: siteConfig.title,
   description: siteConfig.description,
-  url: siteConfig.url,
-  telephone: siteConfig.contact.phoneE164,
-  email: siteConfig.contact.email,
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: siteConfig.contact.city,
-    addressCountry: siteConfig.contact.countryCode,
-  },
-  areaServed: {
-    "@type": "Country",
-    name: "Egypt",
-  },
-  openingHoursSpecification: {
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
-    opens: "09:00",
-    closes: "21:00",
-  },
-  sameAs: [siteConfig.social.facebook, siteConfig.social.instagram].filter(Boolean),
-  priceRange: "$$$",
-};
+});
 
 /**
  * The homepage.
@@ -62,10 +49,7 @@ const jsonLd = {
 export default function Home() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd nodes={[jsonLd]} />
       <HeroSection />
       <AboutSection compact />
       <ServicesSection showGroups={false} limit={8} showAllHref="/services" />

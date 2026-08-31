@@ -48,6 +48,65 @@ export function formatPhone(digits: string): string {
 const email = envOr(process.env.NEXT_PUBLIC_COMPANY_EMAIL, "info@al-kayan.com");
 
 /**
+ * The one public home of this website.
+ *
+ * Hardcoded rather than env-only, and deliberately so. This value is what goes
+ * into every canonical tag, every Open Graph URL, every sitemap <loc> and the
+ * Sitemap line of robots.txt. When it is wrong, it is not "slightly wrong":
+ * Google reads a canonical pointing somewhere else, treats that somewhere else
+ * as the real page, and drops this domain from the index entirely.
+ *
+ * That is not hypothetical. Production ran with NEXT_PUBLIC_SITE_URL set to
+ * https://alkayan.vercel.app — which is a different Vercel project serving an
+ * unrelated placeholder page — so every page on this domain told Google its
+ * true home was a stranger's URL, and `site:alkayan.studio` returned nothing.
+ *
+ * The env var still overrides, because localhost and staging need it. What it
+ * can no longer do is aim the canonical at a deployment host.
+ */
+const CANONICAL_ORIGIN = "https://www.alkayan.studio";
+
+/**
+ * Turns NEXT_PUBLIC_SITE_URL into an origin fit to be a canonical.
+ *
+ * Four things can go wrong with a hand-typed origin, and all four have:
+ *
+ *   unset / blank      the fallback is the real domain, not a guess
+ *   trailing slash     `${url}/about` would become `//about`
+ *   a *.vercel.app     never a canonical — see above
+ *   the bare apex      alkayan.studio 308s to www, so publishing the apex as
+ *                      canonical publishes a URL that redirects
+ *
+ * Anything unparseable falls back rather than throwing: a malformed variable
+ * should cost a deploy nothing, and shipping the correct origin is a better
+ * failure than a build error at the top of a module every page imports.
+ */
+function resolveSiteUrl(raw: string | undefined): string {
+  const value = raw?.trim();
+  if (!value) return CANONICAL_ORIGIN;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    return CANONICAL_ORIGIN;
+  }
+
+  // Preview and production deployment hosts are for reaching the app, never for
+  // naming it. A canonical is a claim about identity, and this is not it.
+  if (parsed.hostname === "vercel.app" || parsed.hostname.endsWith(".vercel.app")) {
+    return CANONICAL_ORIGIN;
+  }
+
+  // The apex redirects to www at the edge (308). Canonicalising to a URL that
+  // redirects makes Google follow a hop to find the page it was already given.
+  if (parsed.hostname === "alkayan.studio") return CANONICAL_ORIGIN;
+
+  // `.origin` drops any path, query, fragment and trailing slash in one move.
+  return parsed.origin;
+}
+
+/**
  * Derives every phone and email link from one raw number and one address.
  *
  * Exported because the number is editable from Supabase as well: when a
@@ -140,7 +199,11 @@ export const siteConfig = {
     "الكيان - شركة رائدة في مجال المقاولات والتشطيبات الداخلية والتصميم الداخلي والخارجي. من الفكرة إلى تسليم المفتاح بأعلى معايير الجودة والاحترافية.",
   shortDescription:
     "نصمم، ننفذ، ونشرف على جميع أعمال التشطيبات والمقاولات بأعلى معايير الجودة والاحترافية.",
-  url: envOr(process.env.NEXT_PUBLIC_SITE_URL, "https://al-kayan.com"),
+  /**
+   * Absolute origin, no trailing slash. Drives metadataBase, every canonical,
+   * Open Graph, the sitemap and robots.txt. See resolveSiteUrl above.
+   */
+  url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   locale: "ar_EG",
 
   /**

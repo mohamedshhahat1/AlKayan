@@ -4,6 +4,7 @@ import { Reveal, SectionHeading } from "@/components/reveal";
 import { Lightbox, type LightboxImage } from "@/components/lightbox";
 import { useMemo, useState } from "react";
 import { useContent, useDesignImages, useHeading } from "@/lib/content/context";
+import { siteConfig } from "@/lib/site-config";
 
 /**
  * The grid requests images at w=940. Re-point that parameter rather than
@@ -97,7 +98,10 @@ export function DesignsSection() {
               >
                 <img
                   src={image.image_url}
-                  alt={`${activeCategory?.label ?? ""} ${i + 1}`}
+                  // "ديكور 3" names the file, not the picture. Naming the
+                  // company and the discipline is the only thing here an image
+                  // search has to go on, and it is what a screen reader hears.
+                  alt={`${activeCategory?.label ?? "تصميم"} من تصميم ${siteConfig.name} — نموذج ${i + 1}`}
                   className="zoom-image w-full h-40 sm:h-48 lg:h-52 object-cover"
                   loading="lazy"
                 />

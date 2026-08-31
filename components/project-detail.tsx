@@ -23,6 +23,7 @@ import {
   type Project,
 } from "@/lib/projects";
 import { trackOnce, trackProjectView } from "@/lib/analytics";
+import { siteConfig } from "@/lib/site-config";
 
 /**
  * A single project.
@@ -91,7 +92,15 @@ export function ProjectDetail({ project }: { project: Project }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={project.hero_image}
-              alt=""
+              // Named, not decorative. The h1 below sits on top of this image
+              // but describes the project, not the photograph — and this is the
+              // one image on the page a search engine has any reason to rank.
+              alt={`${project.title} — ${categoryLabel(project.category)} من تنفيذ ${siteConfig.name}`}
+              // The LCP element on every project page: it fills the top of the
+              // viewport and nothing above it paints later. Left to the default
+              // it competes with the gallery thumbnails below the fold.
+              fetchPriority="high"
+              decoding="async"
               className="w-full h-full object-cover"
               onLoad={onHeroLoad}
             />

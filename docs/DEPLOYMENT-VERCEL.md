@@ -43,9 +43,9 @@ git push origin new-main
 1. <https://vercel.com/new>
 2. **Import Git Repository** → authorise GitHub → pick `AlKayan`.
 3. **Root Directory**: leave as `./`. The Next.js app is at the repository root.
-4. Do not deploy yet — add the environment variables first (§6). Deploying
-   without `NEXT_PUBLIC_SITE_URL` produces a build whose canonical URLs and
-   sitemap all point at `https://al-kayan.com` regardless of where it lands.
+4. Do not deploy yet — add the environment variables first (§6). Without
+   `NEXT_PUBLIC_SITE_URL` the build falls back to `https://www.alkayan.studio`,
+   which is correct for production and wrong for anything else.
 
 ---
 
@@ -150,11 +150,11 @@ Full walkthrough: [README → Supabase Setup](../README.md#supabase-setup).
 Every push to a non-production branch, and every pull request, gets its own
 URL.
 
-- Leave `NEXT_PUBLIC_SITE_URL` **unset** in the Preview scope. It then falls
-  back to `https://al-kayan.com`, which is wrong — but the alternative, a
-  hardcoded preview domain, is wrong on every deployment but one. If exact
-  preview metadata matters, set it to `https://$VERCEL_URL` using a
-  [system environment variable](https://vercel.com/docs/environment-variables/system-environment-variables).
+- Leave `NEXT_PUBLIC_SITE_URL` **unset** in the Preview scope. It falls back to
+  the production origin, which is the safe wrong answer: a preview whose
+  canonical points at production will never compete with production in the
+  index. Do **not** set it to `https://$VERCEL_URL` — `lib/site-config.ts`
+  rejects every `*.vercel.app` value on purpose and would ignore it anyway.
 - Previews are indexable by default only if your `robots.ts` allows it — it
   does. Vercel adds `X-Robots-Tag: noindex` to preview deployments
   automatically, so this is handled, but verify it if you ever serve previews
@@ -165,7 +165,10 @@ URL.
 
 ## 10. Custom domain
 
-1. **Project Settings → Domains → Add**, e.g. `al-kayan.com`.
+1. **Project Settings → Domains → Add**: add both `alkayan.studio` and
+   `www.alkayan.studio`, and mark **`www.alkayan.studio` as the primary** so
+   the apex 308s to it. That is the direction the code canonicalises in — see
+   `resolveSiteUrl` in `lib/site-config.ts` — and the two must agree.
 2. Add the DNS records Vercel shows you at your registrar:
    - apex: `A` → `76.76.21.21`
    - `www`: `CNAME` → `cname.vercel-dns.com`
@@ -173,8 +176,21 @@ URL.
 3. Pick one canonical host and redirect the other. Vercel does this for you
    when you mark a domain as the primary.
 4. Wait for the certificate to issue (usually minutes).
-5. **Update `NEXT_PUBLIC_SITE_URL` to the final domain and redeploy.** Until you
-   do, the canonical tags and sitemap still advertise the old value.
+5. **Set `NEXT_PUBLIC_SITE_URL` to `https://www.alkayan.studio` and redeploy.**
+   Until you do, whatever the variable currently holds is what every canonical
+   tag, Open Graph URL and sitemap entry advertises.
+
+### The `alkayan.vercel.app` alias
+
+Vercel gives every project a `*.vercel.app` production alias, and it cannot be
+removed. It is harmless as long as nothing ever names it as the canonical —
+which is now enforced in code — because the pages served from it carry
+canonical tags pointing at `www.alkayan.studio`, and Google consolidates on
+those.
+
+Note that `alkayan.vercel.app` currently belongs to a **different** Vercel
+project serving an unrelated placeholder page. Nothing in this repository
+should reference it.
 
 ---
 

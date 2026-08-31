@@ -14,10 +14,18 @@ export type AboutSectionProps = {
    * substance of /about — printing them on the homepage too would leave that
    * page with nothing of its own to say.
    */
+  /**
+   * Promotes this section's heading to the page's h1.
+   *
+   * Set by the route that owns this subject; left alone on the homepage, where
+   * the hero already holds the h1 and a second one would leave the page with
+   * two competing titles.
+   */
+  headingAs?: "h1" | "h2";
   compact?: boolean;
 };
 
-export function AboutSection({ compact = false }: AboutSectionProps = {}) {
+export function AboutSection({ compact = false, headingAs }: AboutSectionProps = {}) {
   const { aboutFeatures: features, aboutStats: stats } = useContent();
   const heading = useHeading("about");
 
@@ -37,6 +45,7 @@ export function AboutSection({ compact = false }: AboutSectionProps = {}) {
 
       <div className="container-luxury relative z-10">
         <SectionHeading
+          as={headingAs}
           eyebrow={heading.eyebrow}
           title={heading.title}
           subtitle={heading.subtitle ?? undefined}
@@ -58,6 +67,11 @@ export function AboutSection({ compact = false }: AboutSectionProps = {}) {
                 <img
                   src="https://images.pexels.com/photos/7722168/pexels-photo-7722168.jpeg?auto=compress&cs=tinysrgb&w=1600"
                   alt="تصميم داخلي فاخر من تنفيذ الكيان"
+                  // Below the fold on both routes that render this section.
+                  // Eager, it was preloaded in <head> and competed with the
+                  // hero poster for the homepage's first paint.
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
                 />
               </div>

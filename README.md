@@ -223,7 +223,8 @@ anywhere. Do not add one.
 | --- | --- | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Recommended | All | Supabase project REST URL. Unset → empty states, form disabled. | `https://abcdefgh.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Recommended | All | Public anon key. Safe to expose; constrained by RLS. | JWT string, `eyJ...` |
-| `NEXT_PUBLIC_SITE_URL` | **Yes** for prod | All | Absolute origin. Drives `metadataBase`, canonical, OG URLs, sitemap, robots. No trailing slash. | `https://al-kayan.com` |
+| `NEXT_PUBLIC_SITE_URL` | **Yes** for prod | All | Absolute origin. Drives `metadataBase`, canonical, OG URLs, sitemap, robots. No trailing slash. A `*.vercel.app` value is ignored — see `lib/site-config.ts`. | `https://www.alkayan.studio` |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | No | Prod | Search Console HTML-tag token. Unset → no tag. DNS verification needs nothing here. | `abc123...` |
 | `NEXT_PUBLIC_COMPANY_PHONE` | **Yes** for prod | All | Egyptian mobile. Used for display, `tel:`, `wa.me` and JSON-LD. Must match `^(\+?20\|0020\|0)?1[0125][0-9]{8}$`. | `+201001234567` |
 | `NEXT_PUBLIC_COMPANY_EMAIL` | **Yes** for prod | All | Contact email, footer + contact card + JSON-LD. | `info@al-kayan.com` |
 | `NEXT_PUBLIC_HERO_VIDEO_URL` | No | All | Hero video. Local path or absolute URL. Empty string disables video and keeps the still. | `/brand/hero.mp4` |
@@ -600,19 +601,31 @@ what else is served from the apex domain. Add them once you have confirmed that.
 | Twitter/X card | `app/layout.tsx` | `summary_large_image` |
 | `robots.txt` | `app/robots.ts` | Allows all, points at the sitemap |
 | `sitemap.xml` | `app/sitemap.ts` | Single entry — correct for a one-page site |
-| JSON-LD | `app/layout.tsx` | `LocalBusiness`, `addressCountry: EG` |
+| JSON-LD | `app/layout.tsx` + per route | `GeneralContractor` + `WebSite` sitewide; `WebPage`/`BreadcrumbList` per route; `OfferCatalog` on /services; `ItemList` on /projects; `CreativeWork` per project |
 | `lang` / `dir` | `app/layout.tsx` | `lang="ar"`, `dir="rtl"` |
 | Semantic HTML | sections | `<section>` + one `<h1>`, descending headings |
 | Image alt text | throughout | Present; decorative images correctly `alt=""` |
 | 404 | `app/not-found.tsx` | `noindex, follow` |
 
-**The one thing that will bite you:** `NEXT_PUBLIC_SITE_URL` defaults to
-`https://al-kayan.com`. Deploy anywhere without setting it and every canonical
-tag, OG URL and sitemap entry advertises that domain instead of yours.
+**The one thing that bit us:** `NEXT_PUBLIC_SITE_URL` was set in Vercel to
+`https://alkayan.vercel.app` — a different Vercel project serving an unrelated
+placeholder page. Every page on `www.alkayan.studio` therefore carried
+`<link rel="canonical" href="https://alkayan.vercel.app/…">`, robots.txt
+advertised that host, and the whole sitemap listed it. Google read the
+canonical, concluded the real home of every page was somewhere else, and
+`site:alkayan.studio` returned nothing.
 
-**Also worth knowing:** project and testimonial content is fetched client-side
-and is therefore **not in the crawled HTML**. For a portfolio you want indexed,
-move those reads to Server Components.
+`lib/site-config.ts` now hardcodes `https://www.alkayan.studio` as the
+fallback, rejects any `*.vercel.app` value outright, and upgrades the bare apex
+to `www` (the apex 308s to `www`, so canonicalising to it would publish a URL
+that redirects). The env var still overrides for localhost and staging; what it
+can no longer do is aim a canonical at a deployment host.
+
+**Server-rendered project links:** `/projects` reads the portfolio on the
+server and passes it to the grid as `initialProjects`, so every project URL is
+a real `<a href>` in the initial HTML. The homepage ring and the testimonials
+still fetch in the browser; that is fine, because nothing else on the site
+depends on them for discovery.
 
 ---
 

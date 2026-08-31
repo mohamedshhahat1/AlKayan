@@ -13,10 +13,37 @@ import { BackToTop } from "@/components/back-to-top";
 import { Analytics } from "@/components/analytics";
 import { ConsentBanner } from "@/components/consent-banner";
 import { siteConfig } from "@/lib/site-config";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/json-ld";
 
+/**
+ * Search Console's HTML-tag verification, if that is the method chosen.
+ *
+ * Read here rather than in siteConfig because it is not a fact about the
+ * business — it is a token belonging to one Search Console property.
+ */
+const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim() || null;
+
+/**
+ * Tajawal, self-hosted and subsetted by next/font.
+ *
+ * Five weights, not seven. 200 and 300 were declared and never used: no
+ * `font-extralight` or `font-light` class exists anywhere in the app, and no
+ * component sets those numerically. Each declared weight is a separate woff2
+ * per subset, and every one of them is emitted as a `<link rel="preload">` in
+ * <head> on every page — so two unused weights were four render-blocking-ish
+ * font fetches competing with the hero poster for bandwidth on first paint.
+ *
+ * The five that remain are the ones the classes actually resolve to: 400
+ * normal, 500 medium, 700 bold, 800 extrabold, 900 black. `font-semibold`
+ * (600) is used too but Tajawal has no 600 — the browser has always picked the
+ * nearest, and that is unchanged.
+ *
+ * Before adding a weight back, check a class or a style actually asks for it.
+ */
 const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
-  weight: ["200", "300", "400", "500", "700", "800", "900"],
+  weight: ["400", "500", "700", "800", "900"],
   variable: "--font-tajawal",
   display: "swap",
 });
@@ -49,7 +76,27 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    // Googlebot gets the explicit form as well. The defaults are already
+    // index/follow, but the three preview caps are not: without them Google
+    // may show a thumbnail-sized image and a truncated snippet for a portfolio
+    // site whose whole argument is photographs.
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
+  // Rendered as <meta name="google-site-verification"> when the variable is
+  // set. Search Console's DNS TXT method is better — it survives a redeploy
+  // with the variable missing — so this is the fallback, not the plan.
+  verification: googleVerification ? { google: googleVerification } : undefined,
+  manifest: "/manifest.webmanifest",
+  category: "construction",
+  authors: [{ name: siteConfig.name, url: siteConfig.url }],
+  creator: siteConfig.name,
+  publisher: siteConfig.name,
 };
 
 export const viewport = {
@@ -100,6 +147,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
       </head>
       <body className={tajawal.className}>
+        {/*
+          The company and the website, once, on every route.
+
+          In the layout rather than on the homepage because a crawler's first
+          contact with this site is often a project page or /services, and the
+          entity behind the page should not depend on which door it came in by.
+          Every per-page graph below references these two nodes by @id instead
+          of restating them, so there is exactly one Organization on the site.
+        */}
+        <JsonLd nodes={[organizationJsonLd(), websiteJsonLd()]} />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
          <ContentProvider content={content}>
           {/* Side effect only — it does not render its children. */}

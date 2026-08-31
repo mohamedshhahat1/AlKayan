@@ -6,11 +6,19 @@ import {
   categoryLabel,
   getProjectBySlug,
   getProjects,
+  projectGallery,
   projectSlug,
   type Project,
 } from "@/lib/projects";
+import { JsonLd } from "@/components/json-ld";
 import { headerOffsetClass } from "@/lib/navigation";
-import { pageMetadata } from "@/lib/seo";
+import {
+  absoluteUrl,
+  breadcrumbJsonLd,
+  ORGANIZATION_ID,
+  pageMetadata,
+  webPageJsonLd,
+} from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 
 /**
@@ -101,8 +109,68 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   // still land here rather than here.
   if (!project) notFound();
 
+  const path = `/projects/${encodeURIComponent(projectSlug(project))}`;
+  const description = projectDescription(project);
+  const crumbs = [
+    { name: "مشاريعنا", path: "/projects" },
+    { name: project.title, path },
+  ];
+
   return (
     <div className={headerOffsetClass}>
+      <JsonLd
+        nodes={[
+          webPageJsonLd({
+            path,
+            name: project.title,
+            description,
+            type: "ItemPage",
+            crumbs,
+          }),
+          breadcrumbJsonLd(crumbs, path),
+          {
+            /**
+             * The project itself.
+             *
+             * `CreativeWork` rather than `Product`: this is a completed piece
+             * of work in a portfolio, not something for sale. Product markup
+             * would invite Google to look for a price and a rating that do not
+             * exist, and be wrong about what the page is.
+             *
+             * Every field is conditional on the column being populated. A
+             * project row with no location contributes no `locationCreated`
+             * rather than an empty one.
+             */
+            "@type": "CreativeWork",
+            "@id": `${absoluteUrl(path)}#project`,
+            name: project.title,
+            ...(project.title_en ? { alternateName: project.title_en } : {}),
+            description,
+            url: absoluteUrl(path),
+            inLanguage: "ar",
+            creator: { "@id": ORGANIZATION_ID },
+            mainEntityOfPage: { "@id": `${absoluteUrl(path)}#webpage` },
+            ...(project.hero_image
+              ? { image: projectGallery(project).map((src) => absoluteUrl(src)) }
+              : {}),
+            ...(project.category ? { genre: categoryLabel(project.category) } : {}),
+            ...(project.location
+              ? {
+                  locationCreated: {
+                    "@type": "Place",
+                    name: project.location,
+                    address: {
+                      "@type": "PostalAddress",
+                      addressLocality: project.location,
+                      addressCountry: siteConfig.contact.countryCode,
+                    },
+                  },
+                }
+              : {}),
+            ...(project.execution_date ? { dateCreated: project.execution_date } : {}),
+          },
+        ]}
+      />
       <ProjectDetail project={project} />
       <ContactSection variant="cta" source="project_detail" />
     </div>

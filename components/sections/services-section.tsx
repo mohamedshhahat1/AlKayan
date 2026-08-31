@@ -20,6 +20,14 @@ export type ServicesSectionProps = {
   limit?: number;
   /** Renders a link onward, e.g. "/services". */
   showAllHref?: string;
+  /**
+   * Promotes this section's heading to the page's h1.
+   *
+   * Set by the route that owns this subject; left alone on the homepage, where
+   * the hero already holds the h1 and a second one would leave the page with
+   * two competing titles.
+   */
+  headingAs?: "h1" | "h2";
   eyebrow?: string;
   title?: string;
   subtitle?: string;
@@ -44,6 +52,7 @@ export function ServicesSection({
   eyebrow,
   title,
   subtitle,
+  headingAs,
 }: ServicesSectionProps = {}) {
   const { serviceGroups, services: allServices } = useContent();
   const heading = useHeading("services");
@@ -77,6 +86,7 @@ export function ServicesSection({
         {/* Props still win, so /services and the homepage can each say
             something specific; the database supplies the default. */}
         <SectionHeading
+          as={headingAs}
           eyebrow={eyebrow ?? heading.eyebrow}
           title={title ?? heading.title}
           subtitle={subtitle ?? heading.subtitle ?? undefined}
