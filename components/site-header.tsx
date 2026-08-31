@@ -146,7 +146,9 @@ export function SiteHeader() {
         {/* Actions */}
         <div className="flex shrink-0 items-center gap-2">
           {/* Desktop CTA */}
-          <CallCta className="hidden sm:flex" placement="header" />
+          {/* The number itself is on the button's title and one tap away
+              on /contact; the header just needs the ask. */}
+          <CallCta className="hidden sm:flex" label="اتصل بنا" placement="header" />
 
           {/* Mobile CTA */}
           <CallCta

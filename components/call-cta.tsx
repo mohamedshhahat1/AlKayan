@@ -16,7 +16,10 @@ import { trackPhoneClick } from "@/lib/analytics";
  * --------
  * `full` — the desktop pill, byte-for-byte the classes the header shipped
  *          with. Callers supply the display class (`hidden sm:flex`), which is
- *          the only thing that ever differed.
+ *          the only thing that ever differed. It shows the number unless the
+ *          caller passes a `label` to show instead; either way the number is on
+ *          the anchor's `title`, and the href is the same tel: link, so the
+ *          button dials whatever it says on it.
  *
  * `icon` — the same action at 44x44, the minimum comfortable touch target, for
  *          the mobile navbar. Deliberately shaped like the theme toggle and
@@ -36,11 +39,14 @@ import { trackPhoneClick } from "@/lib/analytics";
 export function CallCta({
   variant = "full",
   className,
+  label,
   onNavigate,
   placement = "call_cta",
 }: {
   variant?: "full" | "icon";
   className?: string;
+  /** Shown in place of the number on the `full` variant. */
+  label?: string;
   /** Lets the mobile menu close itself as the dialer opens. */
   onNavigate?: () => void;
   /** Where this button lives: "header", "header_mobile", "contact_section". */
@@ -72,13 +78,16 @@ export function CallCta({
     <a
       href={siteConfig.contact.telHref}
       onClick={handleClick}
+      title={siteConfig.contact.phone}
       className={cn(
         "items-center gap-2 px-4 py-2.5 rounded-full gold-gradient-bg text-navy-deep text-sm font-bold hover:scale-105 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white",
         className
       )}
     >
       <Phone className="w-4 h-4" aria-hidden="true" />
-      <span dir="ltr">{siteConfig.contact.phone}</span>
+      {/* dir="ltr" belongs to the number, not to the button: an Arabic label in
+          an LTR span would render its punctuation on the wrong side. */}
+      {label ? <span>{label}</span> : <span dir="ltr">{siteConfig.contact.phone}</span>}
     </a>
   );
 }
