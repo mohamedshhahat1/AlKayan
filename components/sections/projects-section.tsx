@@ -258,7 +258,9 @@ function BeforeAfterBlock() {
           key={pair.id}
           before={pair.before_image}
           after={pair.after_image}
-          className="h-64 sm:h-80 lg:h-[420px] rounded-3xl"
+          // Not a height: the slider takes the pair's own shape and treats
+          // this as the ceiling, so nothing is cropped to fit a fixed box.
+          className="[--ba-h:26rem] lg:[--ba-h:30rem] rounded-3xl"
         />
         <p className="text-center text-muted-foreground text-xs mt-3">{hint}</p>
       </Reveal>

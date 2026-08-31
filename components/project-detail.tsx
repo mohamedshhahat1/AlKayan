@@ -151,7 +151,7 @@ export function ProjectDetail({ project }: { project: Project }) {
               <BeforeAfterSlider
                 before={project.before_image}
                 after={project.after_image}
-                className="h-72 sm:h-96 rounded-2xl"
+                className="[--ba-h:26rem] sm:[--ba-h:28rem] rounded-2xl"
               />
               <p className="text-center text-muted-foreground text-xs mt-3">
                 اسحب المقبض أو استخدم أسهم لوحة المفاتيح لرؤية الفرق
