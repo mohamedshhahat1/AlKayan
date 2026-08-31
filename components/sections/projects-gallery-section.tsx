@@ -20,8 +20,8 @@ import { siteConfig } from "@/lib/site-config";
  *
  * Structure follows the upstream demo: a tall element supplies the scroll range
  * and a full-height child is pinned inside it. The rows come from the same
- * `projects` query and the same selectFeatured() the grid uses, so the homepage
- * and /projects can never show two different ideas of "featured".
+ * `projects` query the grid uses, ordered by the same selectFeatured(), so the
+ * homepage and /projects can never show two different ideas of "featured".
  *
  * Fetches in the browser for the same reason the grid does: the rows are public,
  * and making every page that mounts this dynamic buys nothing.
@@ -123,6 +123,22 @@ const fallbackItems: GalleryItem[] = [
 ];
 
 /**
+ * Every project, featured ones first.
+ *
+ * selectFeatured() still decides what "featured" means and what leads the ring,
+ * so the homepage and /projects agree on that. But the ring holds MAX_ITEMS and
+ * the table is smaller than that, so the projects nobody ticked follow the ones
+ * who were rather than being dropped: a half-empty ring is a worse homepage
+ * than one that shows the whole portfolio in a curated order.
+ */
+function orderedForGallery(projects: Project[]): Project[] {
+  const featured = selectFeatured(projects);
+  const chosen = new Set(featured.map((project) => project.id));
+
+  return [...featured, ...projects.filter((project) => !chosen.has(project.id))];
+}
+
+/**
  * Projects to gallery items.
  *
  * De-duplicated by image URL because the component keys its cards on
@@ -133,7 +149,7 @@ function toGalleryItems(projects: Project[]): GalleryItem[] {
   const seen = new Set<string>();
   const items: GalleryItem[] = [];
 
-  for (const project of selectFeatured(projects)) {
+  for (const project of orderedForGallery(projects)) {
     if (items.length >= MAX_ITEMS) break;
 
     const url = typeof project.hero_image === "string" ? project.hero_image.trim() : "";
