@@ -7,7 +7,6 @@ import { Reveal, SectionHeading } from "@/components/reveal";
 import { resolveIcon } from "@/lib/content/icons";
 import { useContent, useHeading, useServicesInGroup } from "@/lib/content/context";
 import type { Service } from "@/lib/content/types";
-import { trackServiceView } from "@/lib/analytics";
 
 export type ServicesSectionProps = {
   /**
@@ -142,20 +141,28 @@ export function ServicesSection({
 /**
  * One service.
  *
- * Was a div with `cursor-default`, which is an odd thing to tell someone about a
- * service they might want to buy. Now it goes somewhere: /contact with this
- * service preselected. Every other class is unchanged, so the grid looks
- * identical.
+ * Presentational, and deliberately not a link.
+ *
+ * It has been both. Originally a div with `cursor-default`; then a <Link> to
+ * /contact with the service preselected, on the reasoning that a service
+ * someone is reading about should have somewhere to go. In practice that made
+ * the catalogue a minefield — twenty-six cards that each threw you into the
+ * enquiry form the moment you clicked one to read it. Browsing a list of
+ * services is not a request to be handed a contact form.
+ *
+ * So: no href, no onClick, no tab stop, and `cursor-default` so the pointer
+ * promises nothing. The hover lift and the gold glow stay — they are the
+ * grid's design, and a card may respond to the cursor without claiming to be
+ * a button.
+ *
+ * The contact form still accepts ?service=, still validated against the real
+ * catalogue, so a link minted before this change keeps working.
  */
 export function ServiceCard({ service }: { service: Service }) {
   const Icon = resolveIcon(service.icon);
 
   return (
-    <Link
-      href={`/contact?service=${encodeURIComponent(service.title)}`}
-      onClick={() => trackServiceView(service.title, "services_grid")}
-      className="group relative block glass rounded-xl p-4 sm:p-5 h-full hover:border-gold/30 transition-all duration-500 hover:-translate-y-1 cursor-pointer overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-    >
+    <div className="group relative block glass rounded-xl p-4 sm:p-5 h-full hover:border-gold/30 transition-all duration-500 hover:-translate-y-1 cursor-default overflow-hidden">
       <div
         className="absolute -top-10 -right-10 w-28 h-28 rounded-full opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500"
         style={{ background: "radial-gradient(circle, rgba(212,175,55,0.15), transparent)" }}
@@ -170,6 +177,6 @@ export function ServiceCard({ service }: { service: Service }) {
         </h3>
         <p className="text-xs text-muted-foreground leading-relaxed">{service.description}</p>
       </div>
-    </Link>
+    </div>
   );
 }
