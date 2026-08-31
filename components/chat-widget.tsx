@@ -21,6 +21,10 @@ declare global {
   interface Window {
     MojeebWidget?: {
       attach?: (selector: string) => void;
+      detach?: (selector: string) => void;
+      toggle?: () => void;
+      close?: () => void;
+      isOpen?: () => boolean;
     };
   }
 }
@@ -151,6 +155,15 @@ export function ChatWidget() {
    */
   const [mojeebOwnsButton, setMojeebOwnsButton] = useState(false);
 
+  /**
+   * Whether Mojeeb's dialog is on screen.
+   *
+   * Tracked here because the widget publishes no open/close event and renders
+   * into its own iframe, so nothing about it reaches React on its own. Without
+   * this the button could only ever show the "open" icon, which is what it did.
+   */
+  const [mojeebOpen, setMojeebOpen] = useState(false);
+
   const endRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(1);
 useEffect(() => {
@@ -204,11 +217,26 @@ useEffect(() => {
   };
 }, [mojeebOwnsButton]);
   /**
-   * Hand the button over to Mojeeb.
+   * Hand the button over to Mojeeb — but keep the click.
+   *
+   * The widget's own attach() is deliberately not used. Its handler is
+   *
+   *     const clickHandler = function (e) { ...; api.open(options); };
+   *
+   * which calls open(), never toggle() — and open() on an already-open chat
+   * just logs "[Mojeeb] Chat is already open" and returns. Bound that way the
+   * button could open the chat and never close it, and because the click was
+   * swallowed by a listener React knew nothing about (it calls
+   * stopPropagation), this component could not tell the chat was open and so
+   * never swapped the icon for a close one either.
+   *
+   * So we drive the documented API ourselves: toggle() from our own onClick,
+   * isOpen() to know which icon to draw. attach() is kept only as a fallback
+   * for a widget build too old to expose toggle().
    *
    * Runs only after the script reports ready, and only touches `window` inside
    * the effect, so nothing here executes during server rendering. Every step is
-   * defensive: the global may be absent, `attach` may not be a function, and
+   * defensive: the global may be absent, the methods may not be functions, and
    * third-party code can throw. Any of those simply leaves the local panel in
    * charge rather than taking the page down.
    */
@@ -233,20 +261,28 @@ useEffect(() => {
       if (cancelled) return;
 
       const widget = window.MojeebWidget;
+      const canDrive = typeof widget?.toggle === "function";
 
-      if (typeof widget?.attach === "function") {
+      if (canDrive || typeof widget?.attach === "function") {
         try {
-          widget.attach(MOJEEB_SELECTOR);
+          if (canDrive) {
+            // Nothing to bind: our own onClick calls toggle(). Recording the
+            // button keeps the StrictMode guard meaningful either way.
+            chatLog("driving Mojeeb through toggle()/isOpen()");
+          } else {
+            widget!.attach!(MOJEEB_SELECTOR);
+            chatLog(`no toggle() on this build — fell back to attach(${MOJEEB_SELECTOR})`);
+          }
+
           mojeebAttachedTo = button;
           setMojeebOwnsButton(true);
           // Mojeeb is the chat interface from here on. If the local panel
           // happened to be open when it arrived, close it so the two are never
           // on screen together.
           setOpen(false);
-          chatLog(`Mojeeb attached to ${MOJEEB_SELECTOR}`);
         } catch (error) {
           chatLog(
-            `MojeebWidget.attach() threw (${
+            `handing over to Mojeeb threw (${
               error instanceof Error ? error.message : String(error)
             }). Keeping the built-in assistant.`
           );
@@ -257,7 +293,7 @@ useEffect(() => {
       attempts += 1;
       if (attempts >= MOJEEB_POLL_ATTEMPTS) {
         chatLog(
-          "the Mojeeb script loaded but never exposed window.MojeebWidget.attach. Keeping the built-in assistant."
+          "the Mojeeb script loaded but never exposed window.MojeebWidget. Keeping the built-in assistant."
         );
         return;
       }
@@ -279,6 +315,46 @@ useEffect(() => {
    * interfaces could be mounted.
    */
   const showLocalPanel = open && !mojeebOwnsButton;
+
+  /** Either chat being on screen means the button's job is now "close". */
+  const showCloseIcon = showLocalPanel || mojeebOpen;
+
+  /**
+   * Follow Mojeeb when it is closed from inside its own dialog.
+   *
+   * It has an X of its own and no event to announce it, so a poll is the only
+   * way to hear about it. Cheap — isOpen() reads a boolean — and it only runs
+   * while the chat is actually open, so an idle page polls nothing.
+   */
+  useEffect(() => {
+    if (!mojeebOpen) return;
+
+    const id = window.setInterval(() => {
+      const widget = window.MojeebWidget;
+      if (typeof widget?.isOpen !== "function") return;
+      if (!widget.isOpen()) setMojeebOpen(false);
+    }, 500);
+
+    return () => window.clearInterval(id);
+  }, [mojeebOpen]);
+
+  /** Escape closes Mojeeb too, matching the local panel's behaviour. */
+  useEffect(() => {
+    if (!mojeebOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+
+      const widget = window.MojeebWidget;
+      if (typeof widget?.close !== "function") return;
+
+      widget.close();
+      setMojeebOpen(false);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mojeebOpen]);
 
   useEffect(() => {
     if (showLocalPanel) endRef.current?.scrollIntoView({ block: "end" });
@@ -351,8 +427,27 @@ useEffect(() => {
         type="button"
         id={MOJEEB_BUTTON_ID}
         onClick={() => {
-          if (mojeebOwnsButton) return;
-          setOpen((value) => !value);
+          if (!mojeebOwnsButton) {
+            setOpen((value) => !value);
+            return;
+          }
+
+          const widget = window.MojeebWidget;
+          // No toggle() means the attach() fallback is in charge and has
+          // already handled this click by opening. Nothing to toggle, and
+          // nothing we can reliably report about its state.
+          if (typeof widget?.toggle !== "function") return;
+
+          try {
+            widget.toggle();
+            setMojeebOpen(typeof widget.isOpen === "function" ? widget.isOpen() : true);
+          } catch (error) {
+            chatLog(
+              `MojeebWidget.toggle() threw (${
+                error instanceof Error ? error.message : String(error)
+              })`
+            );
+          }
         }}
         // Only describe the local panel while it is the thing being controlled.
         // Under Mojeeb this button opens a dialog we neither render nor track,
@@ -361,10 +456,10 @@ useEffect(() => {
         aria-expanded={mojeebOwnsButton ? undefined : open}
         aria-controls={mojeebOwnsButton ? undefined : "chat-panel"}
         aria-haspopup={mojeebOwnsButton ? "dialog" : undefined}
-        aria-label={showLocalPanel ? "إغلاق المحادثة" : "فتح المحادثة"}
+        aria-label={showCloseIcon ? "إغلاق المحادثة" : "فتح المحادثة"}
         className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full glass-gold flex items-center justify-center text-gold hover:scale-110 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       >
-        {showLocalPanel ? <X className="w-6 h-6" aria-hidden="true" /> : <MessageCircle className="w-6 h-6" aria-hidden="true" />}
+        {showCloseIcon ? <X className="w-6 h-6" aria-hidden="true" /> : <MessageCircle className="w-6 h-6" aria-hidden="true" />}
       </button>
 
       {showLocalPanel && (
