@@ -14,9 +14,6 @@ import { Reveal } from "@/components/reveal";
 import { BeforeAfterSlider } from "@/components/before-after-slider";
 import { Lightbox, type LightboxImage } from "@/components/lightbox";
 import { fittedBox, useNaturalRatio } from "@/hooks/use-natural-ratio";
-import { CallCta } from "@/components/call-cta";
-import { WhatsAppLink } from "@/components/whatsapp-link";
-import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import {
   categoryLabel,
   formatExecutionDate,
@@ -218,35 +215,6 @@ export function ProjectDetail({ project }: { project: Project }) {
               )}
             </figure>
           )}
-
-          {/* CTA. Same card as the contact section, so the ask looks the same
-              wherever it appears. The WhatsApp link carries the slug, which is
-              how an enquiry gets attributed to the project that prompted it. */}
-          <Reveal>
-            <div className="glass rounded-3xl border border-gold/20 p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 text-center lg:text-right">
-              <div>
-                <h2 className="text-2xl lg:text-3xl font-extrabold text-foreground">
-                  أعجبك <span className="gold-gradient-text">هذا المشروع؟</span>
-                </h2>
-                <p className="text-sm text-muted-foreground mt-2">
-                  تحدث معنا عن مشروعك — معاينة واستشارة مجانية
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-shrink-0">
-                <CallCta className="flex justify-center" placement="project_detail" />
-
-                <WhatsAppLink
-                  placement="project_detail"
-                  projectSlug={slug}
-                  className="glass-light border border-border text-foreground font-bold text-sm px-7 py-3 rounded-full flex items-center justify-center gap-2 hover:text-gold hover:border-gold/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-                >
-                  <WhatsAppIcon className="w-4 h-4 fill-gold" />
-                  واتساب
-                </WhatsAppLink>
-              </div>
-            </div>
-          </Reveal>
         </div>
       </div>
 
