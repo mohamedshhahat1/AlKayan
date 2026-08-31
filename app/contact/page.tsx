@@ -3,6 +3,7 @@ import { ContactSection } from "@/components/sections/contact-section";
 import { JsonLd } from "@/components/json-ld";
 import { headerOffsetClass } from "@/lib/navigation";
 import { breadcrumbJsonLd, ORGANIZATION_ID, pageMetadata, webPageJsonLd } from "@/lib/seo";
+import { getSiteContent } from "@/lib/content/fetch";
 import { isKnownService } from "@/lib/services";
 import { siteConfig } from "@/lib/site-config";
 
@@ -42,6 +43,20 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
   // Async because the catalogue is a Supabase read now, not a module constant.
   const defaultService = requested && (await isKnownService(requested)) ? requested : undefined;
 
+  /**
+   * The FAQ rows that this page already renders, for FAQPage markup.
+   *
+   * Google requires FAQ structured data to describe questions and answers
+   * *visible on the page*, and this is the one page that shows them — the
+   * ContactSection renders the same rows in its accordion above. Marking them
+   * up anywhere else, or marking up questions nobody can read, is what the
+   * policy calls out.
+   *
+   * Read through the memoised content loader, so this costs no extra query on
+   * top of the layout's own call.
+   */
+  const { faqs } = await getSiteContent();
+
   return (
     <div className={headerOffsetClass}>
       <JsonLd
@@ -54,6 +69,18 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
             crumbs,
           }),
           breadcrumbJsonLd(crumbs, PATH),
+          faqs.length > 0
+            ? {
+                "@type": "FAQPage",
+                "@id": `${siteConfig.url}${PATH}#faq`,
+                inLanguage: "ar",
+                mainEntity: faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.question,
+                  acceptedAnswer: { "@type": "Answer", text: faq.answer },
+                })),
+              }
+            : null,
           {
             // The phone number and hours as a contact point, attached to the
             // company rather than restated as a second organisation.

@@ -53,16 +53,51 @@ async function readTable<T>(table: string, fallback: T[]): Promise<T[]> {
 }
 
 /**
- * Wrapped in React's `cache` so the fifteen queries below run once per request
- * no matter how many server components ask for the content.
+ * How long one read of the content tables is reused across separate renders.
  *
- * The root layout has always called this. Routes now call it too — /services
- * needs the catalogue to emit its OfferCatalog structured data on the server —
- * and without the memo that would be thirty round trips to Supabase to render
- * one page. `cache` is per-request, so it dedupes without ever serving one
- * visitor's read to another.
+ * React's `cache` below dedupes *within* a request. That is not enough during
+ * `next build`: every statically generated page is its own request, so with the
+ * layout plus /services plus the three service-group pages plus /about, one
+ * build was firing fifteen queries per page — around a hundred round trips to
+ * render seven pages. That is what made static generation for /services time
+ * out and fail a build, twice.
+ *
+ * Sixty seconds collapses a whole build to one read while changing nothing an
+ * editor can observe: the rendered pages are already held by ISR for five
+ * minutes (`revalidate = 300` in the root layout), so this window sits well
+ * inside a staleness budget the site had already accepted.
+ *
+ * Safe to share across requests because this content is global — the same
+ * headings, services and FAQs for every visitor. There is no per-user data in
+ * any of these tables, so there is nothing here that could leak from one
+ * visitor's render into another's.
  */
-export const getSiteContent = cache(loadSiteContent);
+const MEMO_MS = 60_000;
+
+let memo: { at: number; promise: Promise<SiteContent> } | null = null;
+
+/**
+ * Wrapped in React's `cache` so the fifteen queries below run once per request
+ * no matter how many server components ask for the content, and backed by the
+ * short module-level memo above so separate renders share one read too.
+ */
+export const getSiteContent = cache(async (): Promise<SiteContent> => {
+  const now = Date.now();
+
+  if (memo && now - memo.at < MEMO_MS) return memo.promise;
+
+  const promise = loadSiteContent();
+  memo = { at: now, promise };
+
+  // loadSiteContent resolves to the defaults rather than throwing, so this is
+  // belt and braces — but a cached rejected promise would serve the same
+  // failure for a full minute, which is the one outcome worth ruling out.
+  promise.catch(() => {
+    if (memo?.promise === promise) memo = null;
+  });
+
+  return promise;
+});
 
 async function loadSiteContent(): Promise<SiteContent> {
   const supabase = getSupabaseClient();

@@ -408,26 +408,49 @@ export function HeroSection() {
         className="relative z-20 h-full flex items-center justify-center pb-24 sm:pb-28 lg:pb-32"
       >
         <div className="container-luxury text-center">
-          <span
-            className="hero-in inline-block text-xs sm:text-sm font-bold tracking-[0.4em] text-gold uppercase mb-4"
-            style={{ textShadow: BODY_SHADOW, animationDelay: "0.3s" }}
-          >
-            ELITE CONSTRUCTION &amp; INTERIOR
-          </span>
+          {/*
+            The h1 now opens with who this is and what they do, then the slogan.
 
-          {/* Three lines: gold, white, gold. The middle word carries no colour
-              class — it inherits text-white from the h1. Both gold lines use
-              solid --gold to match the back-to-top button; the gradient
-              version reaches --gold-dark over a long line and reads duller. */}
-          <h1
-            className="hero-in text-4xl sm:text-5xl lg:text-7xl font-extrabold text-white leading-[1.1] mb-5 text-balance"
-            style={{ textShadow: HEADING_SHADOW, animationDelay: "0.5s" }}
-          >
-            <span className="text-gold">شطب وانت مرتاح</span>
-            <br />
-            و
-            <br />
-            <span className="text-gold">استلم على المفتاح</span>
+            It used to be the slogan alone — "شطب وانت مرتاح و استلم على المفتاح"
+            — sitting under a Latin eyebrow reading "ELITE CONSTRUCTION &
+            INTERIOR". That is a fine piece of advertising and a poor h1: the
+            single most weighted heading on the site named neither the company
+            nor its trade, so the strongest on-page signal the homepage had said
+            nothing an Arabic search for a finishing company could match.
+
+            The eyebrow line is where that is fixed, and it is now *inside* the
+            h1 rather than a sibling above it. No line was added to the design —
+            the same slot, the same gold, the same size, the same entrance
+            animation — the words changed and the element it belongs to changed.
+
+            The letter-spacing and `uppercase` that styled the Latin text are
+            gone with it, deliberately: `tracking` breaks Arabic, which is a
+            joined script, and would render the name as disconnected letters.
+
+            The slogan below is untouched. It is still the thing a visitor sees.
+          */}
+          <h1 className="hero-in mb-5" style={{ animationDelay: "0.5s" }}>
+            <span
+              className="block text-xs sm:text-sm font-bold text-gold mb-4"
+              style={{ textShadow: BODY_SHADOW }}
+            >
+              الكيان للتشطيبات · تصميم وتنفيذ وتشطيبات داخلية
+            </span>
+
+            {/* Three lines: gold, white, gold. The middle word carries no colour
+                class — it inherits text-white from the wrapper. Both gold lines
+                use solid --gold to match the back-to-top button; the gradient
+                version reaches --gold-dark over a long line and reads duller. */}
+            <span
+              className="block text-4xl sm:text-5xl lg:text-7xl font-extrabold text-white leading-[1.1] text-balance"
+              style={{ textShadow: HEADING_SHADOW }}
+            >
+              <span className="text-gold">شطب وانت مرتاح</span>
+              <br />
+              و
+              <br />
+              <span className="text-gold">استلم على المفتاح</span>
+            </span>
           </h1>
 
           <p

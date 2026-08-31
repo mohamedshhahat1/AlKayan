@@ -147,7 +147,7 @@ export function ServicesSection({
  * service preselected. Every other class is unchanged, so the grid looks
  * identical.
  */
-function ServiceCard({ service }: { service: Service }) {
+export function ServiceCard({ service }: { service: Service }) {
   const Icon = resolveIcon(service.icon);
 
   return (

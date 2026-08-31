@@ -52,7 +52,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
     default: siteConfig.title,
-    template: `%s | ${siteConfig.name}`,
+    // seoName, not name: every inner page ends with the phrase people
+    // actually search for rather than the bare word "الكيان".
+    template: `%s | ${siteConfig.seoName}`,
   },
   description: siteConfig.description,
   keywords: [...siteConfig.keywords],

@@ -183,8 +183,50 @@ const heroVideo = heroMedia(process.env.NEXT_PUBLIC_HERO_VIDEO_URL, DEFAULT_HERO
 const heroPoster = heroMedia(process.env.NEXT_PUBLIC_HERO_POSTER_URL, DEFAULT_HERO_POSTER);
 
 export const siteConfig = {
+  /**
+   * The short name, for UI: header, footer, chat widget, buttons.
+   *
+   * Deliberately still just "الكيان". This is what the company calls itself in
+   * conversation, and padding every button label with "للتشطيبات" would read as
+   * SEO copy rather than a brand. Search engines get the full form from
+   * `seoName` below, which is what the title template and the schema use.
+   */
   name: "الكيان",
-  nameEn: "AL-KAYAN",
+  /**
+   * The name for search: metadata titles and structured data.
+   *
+   * "الكيان" alone is a common Arabic word — it means "the entity" — so on its
+   * own it is a weak entity signal and competes with every unrelated use of the
+   * word. "الكيان للتشطيبات" is the phrase people actually type when they are
+   * looking for this company, and it states the business category in the same
+   * breath as the name.
+   */
+  seoName: "الكيان للتشطيبات",
+  /**
+   * Latin form, used in `alternateName` and the generated OG card.
+   *
+   * "Al Kayan" rather than the previous "AL-KAYAN": it matches the domain
+   * (alkayan.studio) and the way the name is written in the wild. The hero
+   * eyebrow used to say "EL KAYAN", a third spelling — one brand spelled three
+   * ways across one site is the opposite of an entity signal.
+   */
+  nameEn: "Al Kayan",
+  /**
+   * Every name this one business is known by, for schema `alternateName`.
+   *
+   * These are not keywords. They are the real variants a person or a crawler
+   * may encounter — Arabic and Latin, with and without the category — and
+   * listing them is how Google is told that all of them are one entity rather
+   * than several.
+   */
+  alternateNames: [
+    "الكيان",
+    "الكيان للتشطيبات",
+    "شركة الكيان للتشطيبات",
+    "Al Kayan",
+    "Al Kayan Studio",
+    "Al Kayan Finishing",
+  ],
   /**
    * Two-letter Arabic monogram.
    *
@@ -194,9 +236,17 @@ export const siteConfig = {
    */
   monogram: "الك",
   legalName: "الكيان للمقاولات والتشطيبات",
-  title: "الكيان | شركة مقاولات وتشطيبات داخلية فاخرة",
+  /**
+   * The homepage title.
+   *
+   * Front-loads the brand in the form people search for, then names the three
+   * things the company actually sells. "شركة تشطيبات" is the head term for this
+   * market; "تصميم وتنفيذ" is how the process is described everywhere else on
+   * the site. Nothing here is a claim the site does not already make.
+   */
+  title: "الكيان للتشطيبات | شركة تشطيبات وتصميم داخلي وتنفيذ",
   description:
-    "الكيان - شركة رائدة في مجال المقاولات والتشطيبات الداخلية والتصميم الداخلي والخارجي. من الفكرة إلى تسليم المفتاح بأعلى معايير الجودة والاحترافية.",
+    "الكيان للتشطيبات - شركة تشطيبات ومقاولات وتصميم داخلي. تشطيب شقق وفلل ومكاتب ومحلات ومطاعم وعيادات، تصميم داخلي وخارجي، وتنفيذ متكامل من الفكرة حتى تسليم المفتاح.",
   shortDescription:
     "نصمم، ننفذ، ونشرف على جميع أعمال التشطيبات والمقاولات بأعلى معايير الجودة والاحترافية.",
   /**
@@ -236,19 +286,32 @@ export const siteConfig = {
     poster: heroPoster,
   },
 
+  /**
+   * Note: Google has ignored the keywords meta tag since 2009. This list is
+   * kept because Next renders it and other consumers read it, but it is not an
+   * SEO mechanism — the terms below earn their place by appearing naturally in
+   * titles, headings and body copy, which is where they actually count.
+   */
   keywords: [
-    "تشطيبات",
-    "مقاولات",
-    "تصميم داخلي",
-    "تصميم خارجي",
-    "الكيان",
+    "الكيان للتشطيبات",
+    "شركة الكيان للتشطيبات",
+    "شركة تشطيبات",
+    "شركات تشطيبات",
+    "مقاول تشطيبات",
     "تشطيب شقق",
     "تشطيب فلل",
+    "تشطيب محلات",
+    "تشطيب مطاعم",
     "تشطيب مكاتب",
+    "تشطيبات داخلية",
+    "تصميم داخلي",
+    "تصميم وتنفيذ",
+    "تجديد شقق",
     "ديكور",
-    "مقاولات عامة",
-    "تشطيبات القاهرة الجديدة",
-    "مقاولات مصر",
+    "مقاولات",
+    "Al Kayan Finishing",
+    "interior fit out",
+    "interior finishing",
   ],
   contact: {
     ...contactLinks,

@@ -10,6 +10,10 @@ import {
   projectSlug,
   type Project,
 } from "@/lib/projects";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { ProjectCard } from "@/components/project-card";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { JsonLd } from "@/components/json-ld";
 import { headerOffsetClass } from "@/lib/navigation";
 import {
@@ -18,7 +22,9 @@ import {
   ORGANIZATION_ID,
   pageMetadata,
   webPageJsonLd,
+  type Crumb,
 } from "@/lib/seo";
+import { groupsForProject } from "@/lib/service-groups";
 import { siteConfig } from "@/lib/site-config";
 
 /**
@@ -111,10 +117,32 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   const path = `/projects/${encodeURIComponent(projectSlug(project))}`;
   const description = projectDescription(project);
-  const crumbs = [
+  const crumbs: Crumb[] = [
     { name: "مشاريعنا", path: "/projects" },
     { name: project.title, path },
   ];
+
+  /**
+   * The service pages this project's recorded scope belongs to, and three more
+   * projects in the same category.
+   *
+   * Both exist for the same reason: a project page used to be a leaf. The only
+   * way out was the header, the footer, and one "كل المشاريع" link — so a
+   * visitor who liked this villa had nowhere to go, and PageRank flowing into a
+   * shared project URL stopped dead instead of reaching the service and sibling
+   * pages it should lift.
+   *
+   * Both are derived from real columns and both render nothing when there is
+   * nothing to show.
+   */
+  const [serviceGroups, { projects: allProjects }] = await Promise.all([
+    groupsForProject(project.services_included),
+    getProjects(),
+  ]);
+
+  const related = allProjects
+    .filter((other) => other.id !== project.id && other.category === project.category)
+    .slice(0, 3);
 
   return (
     <div className={headerOffsetClass}>
@@ -171,7 +199,57 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           },
         ]}
       />
+      {/* Above the hero, and matching the BreadcrumbList emitted above: Google
+          asks that breadcrumb markup describe a trail the page actually shows. */}
+      <div className="container-luxury pt-4">
+        <Breadcrumbs crumbs={crumbs} />
+      </div>
+
       <ProjectDetail project={project} />
+
+      {(serviceGroups.length > 0 || related.length > 0) && (
+        <section className="relative pb-6">
+          <div className="container-luxury space-y-12">
+            {serviceGroups.length > 0 && (
+              <nav aria-labelledby="project-services">
+                <h2
+                  id="project-services"
+                  className="mb-4 text-xl font-bold text-foreground sm:text-2xl"
+                >
+                  الخدمات المستخدمة في هذا المشروع
+                </h2>
+                <ul className="flex flex-wrap gap-3">
+                  {serviceGroups.map((group) => (
+                    <li key={group.id}>
+                      <Link
+                        href={`/services/${encodeURIComponent(group.slug)}`}
+                        className="inline-flex items-center gap-2 rounded-full glass-light border border-border px-5 py-2.5 text-sm font-bold text-foreground transition-all duration-300 hover:border-gold/30 hover:text-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                      >
+                        خدمات {group.label}
+                        <ArrowLeft className="h-4 w-4 text-gold" aria-hidden="true" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )}
+
+            {related.length > 0 && (
+              <div>
+                <h2 className="mb-5 text-xl font-bold text-foreground sm:text-2xl">
+                  مشاريع {categoryLabel(project.category)} أخرى
+                </h2>
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {related.map((other) => (
+                    <ProjectCard key={other.id} project={other} placement="project_related" />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       <ContactSection variant="cta" source="project_detail" />
     </div>
   );

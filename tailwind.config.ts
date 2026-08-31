@@ -6,6 +6,23 @@ const config: Config = {
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    /*
+     * lib/ too, and it is not optional.
+     *
+     * Tailwind generates a utility only if it finds the literal class string in
+     * a scanned file. `headerOffsetClass` in lib/navigation.ts is the string
+     * "pt-[55px] sm:pt-[60px] lg:pt-[64px]" and lib/ was not on this list, so
+     * those three utilities were never emitted: every route that used it —
+     * /about, /services, /projects, /contact and every project page — resolved
+     * to padding-top 0 and started underneath the fixed header.
+     *
+     * It went unnoticed because most of those pages open with a section whose
+     * own py-14/py-20 happens to clear a 64px header. The pages that do not,
+     * did not.
+     *
+     * Any file that composes class names belongs here, not just components.
+     */
+    "./lib/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {

@@ -28,7 +28,7 @@ export function pageMetadata({ title, description, path, image }: PageMetadataIn
   // The template in app/layout.tsx only applies to `title`. Social cards read
   // openGraph.title verbatim, so the site name is added by hand there — which
   // is also what produces requirement 18's "Project Name | Company Name".
-  const socialTitle = `${title} | ${siteConfig.name}`;
+  const socialTitle = `${title} | ${siteConfig.seoName}`;
 
   /**
    * The sharing card, always set.
@@ -135,8 +135,11 @@ export function organizationJsonLd() {
   return {
     "@type": "GeneralContractor",
     "@id": ORGANIZATION_ID,
-    name: siteConfig.name,
-    alternateName: siteConfig.nameEn,
+    // The full, searched-for form is the entity's name; every other spelling
+    // the company is known by is an alternateName, so Google can resolve all of
+    // them to this one node instead of guessing they are related.
+    name: siteConfig.seoName,
+    alternateName: [...siteConfig.alternateNames],
     legalName: siteConfig.legalName,
     description: siteConfig.description,
     url: `${siteConfig.url}/`,
@@ -144,7 +147,7 @@ export function organizationJsonLd() {
       "@type": "ImageObject",
       "@id": `${siteConfig.url}/#logo`,
       url: absoluteUrl(siteConfig.branding.logo),
-      caption: siteConfig.name,
+      caption: siteConfig.seoName,
     },
     image: { "@id": `${siteConfig.url}/#logo` },
     telephone: siteConfig.contact.phoneE164,
@@ -178,7 +181,8 @@ export function websiteJsonLd() {
     "@type": "WebSite",
     "@id": WEBSITE_ID,
     url: `${siteConfig.url}/`,
-    name: siteConfig.name,
+    name: siteConfig.seoName,
+    alternateName: siteConfig.nameEn,
     description: siteConfig.description,
     inLanguage: "ar",
     publisher: { "@id": ORGANIZATION_ID },

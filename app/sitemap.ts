@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/site-config";
 import { getProjects, projectSlug } from "@/lib/projects";
+import { getServiceGroupSlugs } from "@/lib/service-groups";
 
 /**
  * Rebuilt hourly. Frequent enough that a new project is discoverable the same
@@ -49,6 +50,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
   }));
 
+  /**
+   * The service-group pages, read from the same table that renders them.
+   *
+   * Nothing here is hardcoded: publish a fourth group in Supabase and it turns
+   * up in the sitemap on the next revalidation, exactly as a new project does.
+   * The content layer falls back to the shipped defaults if Supabase is
+   * unreachable, so this list is never empty.
+   */
+  const serviceGroupEntries: MetadataRoute.Sitemap = (await getServiceGroupSlugs()).map(
+    (slug) => ({
+      url: `${siteConfig.url}/services/${encodeURIComponent(slug)}`,
+      lastModified: BUILD_TIME,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    })
+  );
+
   // Failure is silent by design: getProjects logs and returns an empty list, so
   // a Supabase outage costs the project URLs rather than the whole sitemap.
   const { projects } = await getProjects();
@@ -62,5 +80,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticEntries, ...projectEntries];
+  return [...staticEntries, ...serviceGroupEntries, ...projectEntries];
 }
