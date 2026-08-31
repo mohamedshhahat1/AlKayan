@@ -261,16 +261,21 @@ for deployments. Restart or rebuild afterwards.
 
 ### 5. Run the migrations
 
-Three files in `supabase/migrations/`, applied **in filename order**:
+Seven files in `supabase/migrations/`, applied **in filename order**:
 
 | File | What it does |
 | --- | --- |
 | `20260801120755_create_projects_testimonials_bookings.sql` | Creates `projects`, `testimonials`, `partners`, `bookings`. Enables RLS on all four. Adds anon read policies for the three public tables and an anon insert policy for `bookings`. |
 | `20260801170000_harden_schema.sql` | Adds `set_updated_at()` triggers, a category check on `projects`, indexes, a `bookings.status` enum-style check, and tightens the booking insert policy with input validation. |
 | `20260815120000_fix_booking_phone_country.sql` | **Required.** Corrects the phone pattern in the booking insert policy — the previous migration shipped a Saudi pattern, which rejected every valid Egyptian number. Without this, no booking can ever be submitted. |
+| `20260819090000_add_project_slugs.sql` | Adds the nullable `projects.slug` column and a unique index over the non-null ones, so an editor can pin a project's URL. Optional in the sense that the app derives a slug from the title when it is absent — but a slug filled in without this column has nowhere to go. |
+| `20260819090100_add_booking_source.sql` | Adds `bookings.source`, so a lead records which form it came from (contact page, project page, CTA). `lib/leads.ts` retries without the column if this has not run, so bookings still work — you just cannot tell them apart. |
+| `20260830140000_editable_content.sql` | **The one to not skip.** Creates every content table — `site_settings`, `section_headings`, `services`, `faqs`, `stats`, `before_after`, the designs gallery and the rest — and seeds them. Without it the site falls back to the copy compiled into `lib/content/defaults.ts` and nothing is editable from Supabase. |
+| `20260831120000_update_form_submit_label.sql` | Sets the booking button's label to `احجز استشارتك الآن`. A one-line correction to a value seeded by the migration above. |
 
 **Option A — dashboard (simplest).** Open **SQL Editor**, paste the contents of
-each file in order, run each one. All three are written to be safely re-runnable.
+each file in order, run each one. Every one of them is written to be safely
+re-runnable, so applying the whole set to an existing database is fine.
 
 **Option B — CLI.**
 
@@ -469,9 +474,11 @@ is why the health check exists here and not on Vercel.
   local development should not be writing test bookings into the table holding
   real leads. Environment variables are already per-scope on both Vercel and
   Railway, so this costs nothing structurally.
-- **Apply all three migrations**, including
-  `20260815120000_fix_booking_phone_country.sql`. Skipping it means the booking
-  form fails for every visitor.
+- **Apply all seven migrations**, in filename order. Two of them are not
+  optional: `20260815120000_fix_booking_phone_country.sql`, without which the
+  booking form fails for every visitor, and
+  `20260830140000_editable_content.sql`, without which nothing on the site is
+  editable from Supabase.
 - **Verify RLS in the production project specifically.** It is not inherited
   from anywhere.
 - **Confirm `bookings` is not anon-readable** before pointing traffic at it.
@@ -695,7 +702,7 @@ lib/
   lenis.ts                smooth scroll instance
   utils.ts                cn()
 
-supabase/migrations/      three SQL files, applied in filename order
+supabase/migrations/      seven SQL files, applied in filename order
 docs/                     BRAND-ASSETS, DEPLOYMENT-VERCEL, DEPLOYMENT-RAILWAY
 public/brand/             logo.svg + company_name.svg — TO BE ADDED
 
@@ -776,7 +783,7 @@ because they are known to fail.
 - [x] Hero video degrades safely on every failure path
 - [x] Vercel configuration present and documented
 - [x] Railway configuration present and documented, with a health check
-- [ ] **Supabase project created and all three migrations applied**
+- [ ] **Supabase project created and all seven migrations applied**
 - [ ] **RLS verified in the production project**
 - [ ] **`npm run lint` passes**
 - [ ] **`npm run typecheck` passes**
