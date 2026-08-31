@@ -260,7 +260,7 @@ function BeforeAfterBlock() {
           after={pair.after_image}
           // Not a height: the slider takes the pair's own shape and treats
           // this as the ceiling, so nothing is cropped to fit a fixed box.
-          className="[--ba-h:26rem] lg:[--ba-h:30rem] rounded-3xl"
+          className="[--fit-h:26rem] lg:[--fit-h:30rem] rounded-3xl"
         />
         <p className="text-center text-muted-foreground text-xs mt-3">{hint}</p>
       </Reveal>

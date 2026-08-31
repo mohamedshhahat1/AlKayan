@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { fittedBox, useNaturalRatio } from "@/hooks/use-natural-ratio";
 
 type BeforeAfterSliderProps = {
   before: string;
@@ -15,22 +16,6 @@ function clamp(value: number) {
   return Math.max(0, Math.min(100, value));
 }
 
-/** Held until an image reports its real shape. Landscape, like most photographs. */
-const DEFAULT_RATIO = 3 / 2;
-
-/**
- * The shape of an <img> that has just loaded, or null if it reported nothing.
- *
- * Guarded because a decode failure fires load with 0x0 in some browsers, and
- * dividing by that would put NaN into the container's aspect-ratio.
- */
-function naturalRatio(image: HTMLImageElement): number | null {
-  const { naturalWidth, naturalHeight } = image;
-  if (!naturalWidth || !naturalHeight) return null;
-
-  return naturalWidth / naturalHeight;
-}
-
 export function BeforeAfterSlider({
   before,
   after,
@@ -40,18 +25,10 @@ export function BeforeAfterSlider({
 }: BeforeAfterSliderProps) {
   const [position, setPosition] = useState(50);
   const [dragging, setDragging] = useState(false);
-  // The pair's shape, measured off the first image to arrive. Until then the
-  // box holds the 3:2 most photographs are, so it never has zero height and the
-  // page does not reflow around a collapsed slider.
-  const [ratio, setRatio] = useState(DEFAULT_RATIO);
+  // The pair's shape, measured off the after image. Both halves are the same
+  // photograph of the same room, so one measurement sizes the box for both.
+  const { ratio, onLoad } = useNaturalRatio(before, after);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // A new pair is usually a new shape, and the old one must not be kept while
-  // its image loads. Call sites that remount on change (key={pair.id}) get this
-  // for free; the project page, which swaps the props in place, does not.
-  useEffect(() => {
-    setRatio(DEFAULT_RATIO);
-  }, [before, after]);
 
   const setFromClientX = useCallback((clientX: number) => {
     const element = containerRef.current;
@@ -110,27 +87,14 @@ export function BeforeAfterSlider({
         "relative mx-auto overflow-hidden glass select-none touch-none cursor-ew-resize",
         className
       )}
-      style={{
-        aspectRatio: ratio,
-        // Full width, except that the box may not grow taller than --ba-h — so
-        // a portrait pair narrows instead of running down the page. Sizing the
-        // box to the photograph rather than the photograph to a fixed box is
-        // the whole point: object-cover in a box of the wrong shape was cutting
-        // the top and bottom off the landscape pairs and most of the portrait
-        // ones. Callers set --ba-h per breakpoint; the fallback is for any that
-        // forget.
-        width: `min(100%, calc(var(--ba-h, 26rem) * ${ratio}))`,
-      }}
+      style={fittedBox(ratio)}
     >
       <img
         src={after}
         alt={afterAlt}
         className="absolute inset-0 w-full h-full object-cover"
         draggable={false}
-        onLoad={(event) => {
-          const measured = naturalRatio(event.currentTarget);
-          if (measured) setRatio(measured);
-        }}
+        onLoad={onLoad}
       />
 
       <div

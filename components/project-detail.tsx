@@ -13,6 +13,7 @@ import {
 import { Reveal } from "@/components/reveal";
 import { BeforeAfterSlider } from "@/components/before-after-slider";
 import { Lightbox, type LightboxImage } from "@/components/lightbox";
+import { fittedBox, useNaturalRatio } from "@/hooks/use-natural-ratio";
 import { CallCta } from "@/components/call-cta";
 import { WhatsAppLink } from "@/components/whatsapp-link";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
@@ -41,6 +42,7 @@ import { trackOnce, trackProjectView } from "@/lib/analytics";
  */
 export function ProjectDetail({ project }: { project: Project }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const { ratio: heroRatio, onLoad: onHeroLoad } = useNaturalRatio(project.hero_image);
 
   const slug = projectSlug(project);
   const gallery = projectGallery(project);
@@ -80,9 +82,22 @@ export function ProjectDetail({ project }: { project: Project }) {
         {/* Hero. The modal's header, unchanged apart from the rounded corners it
             needs now that it sits in a page rather than filling a dialog. */}
         <Reveal className="mt-5">
-          <div className="relative h-72 sm:h-96 overflow-hidden rounded-3xl">
+          {/* --fit-h is a ceiling, not a height: the box takes the hero's own
+              shape, so a landscape photograph fills the width and a portrait one
+              narrows instead of running the length of the page. It was h-96 at
+              full width — near 3:1 — which cut half the height off every 3:2
+              photograph in the table. */}
+          <div
+            className="relative mx-auto overflow-hidden rounded-3xl [--fit-h:20rem] sm:[--fit-h:28rem] lg:[--fit-h:34rem]"
+            style={fittedBox(heroRatio)}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={project.hero_image} alt="" className="w-full h-full object-cover" />
+            <img
+              src={project.hero_image}
+              alt=""
+              className="w-full h-full object-cover"
+              onLoad={onHeroLoad}
+            />
             <div className="absolute inset-0 bg-image-scrim" />
             <div className="absolute bottom-0 right-0 left-0 p-6 sm:p-8">
               <span className="glass-gold text-gold text-xs font-bold px-3 py-1.5 rounded-full mb-3 inline-block">
@@ -137,7 +152,11 @@ export function ProjectDetail({ project }: { project: Project }) {
                       src={image}
                       alt={`${project.title} — صورة ${index + 1}`}
                       loading="lazy"
-                      className="zoom-image w-full h-56 object-cover"
+                      // A thumbnail in a uniform grid is the one place a crop
+                      // is right — the lightbox shows the whole image. 3:2 is
+                      // the shape of nearly every row, so h-56 (nearer 16:9)
+                      // was trimming them for nothing.
+                      className="zoom-image w-full aspect-[3/2] object-cover"
                     />
                   </button>
                 ))}
@@ -151,7 +170,7 @@ export function ProjectDetail({ project }: { project: Project }) {
               <BeforeAfterSlider
                 before={project.before_image}
                 after={project.after_image}
-                className="[--ba-h:26rem] sm:[--ba-h:28rem] rounded-2xl"
+                className="[--fit-h:26rem] sm:[--fit-h:28rem] rounded-2xl"
               />
               <p className="text-center text-muted-foreground text-xs mt-3">
                 اسحب المقبض أو استخدم أسهم لوحة المفاتيح لرؤية الفرق
